@@ -57,7 +57,9 @@ using std::isfinite;
 using std::cout; 
 using std::endl;
 
-#include <TMatrixDSym.h>
+// #include <TMatrixDSym.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
 
 
 ParticleFitObject::ParticleFitObject()
@@ -186,33 +188,60 @@ std::ostream&  ParticleFitObject::print (std::ostream& os) const {
 bool ParticleFitObject::calculateCovInv() const {
   int n = getNPar();
   
-  TMatrixDSym covm = TMatrixDSym (n);
+/*
+ *   TMatrixDSym covm = TMatrixDSym (n);
+ *   
+ *   int idim = 0;
+ *   for (int i = 0; i < n; ++i) {
+ *     if (isParamMeasured (i)) {
+ *       idim = i;
+ *       for (int j = 0; j < n; ++j) {
+ *         covm(i, j) = isParamMeasured (j) ? cov[i][j] : 0;
+ *       }
+ *     }
+ *     else {
+ *       for (int j = 0; j < n; ++j) {
+ *         covm (i, j) = static_cast<double>(i == j);
+ *       }
+ *     }
+ *   }
+ *   if (idim > 0) {
+ *     // ierr = dsinv(idim+1, &covinv[0][0], NPAR);
+ *     covm.Invert();
+ *   }
+ *   
+ *   for (int i = 0; i < n; ++i) {
+ *     for (int j = 0; j < n; ++j) {
+ *       covinv[i][j] = covm (i, j);
+ *     }
+ *   }
+ */
+ 
+  gsl_matrix *covm = gsl_matrix_alloc (n, n);
+  gsl_matrix_set_identity (covm);
   
-  int idim = 0;
   for (int i = 0; i < n; ++i) {
     if (isParamMeasured (i)) {
-      idim = i;
       for (int j = 0; j < n; ++j) {
-        covm(i, j) = isParamMeasured (j) ? cov[i][j] : 0;
-      }
-    }
-    else {
-      for (int j = 0; j < n; ++j) {
-        covm (i, j) = static_cast<double>(i == j);
+        if (isParamMeasured (j)) gsl_matrix_set (covm, i, j, cov[i][j]);
       }
     }
   }
-  if (idim > 0) {
-    // ierr = dsinv(idim+1, &covinv[0][0], NPAR);
-    covm.Invert();
-  }
+  gsl_error_handler_t *e = gsl_set_error_handler_off ();
+  int result = gsl_linalg_cholesky_decomp (covm);
+  if (result == 0) result = gsl_linalg_cholesky_invert (covm);
+  gsl_set_error_handler (e);
   
   for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < n; ++j) {
-      covinv[i][j] = covm (i, j);
+    for (int j = 0; j < i; ++j) {
+      covinv[i][j] = covinv[j][i] = gsl_matrix_get (covm, i, j);
     }
+    covinv[i][i] = gsl_matrix_get (covm, i, i);
   }
-  return true;
+
+  delete covm;
+  covinvvalid = (result == 0);
+  return covinvvalid;
 }
 
 
@@ -249,7 +278,7 @@ double ParticleFitObject::getDChi2DParam(int ilocal) const {
 
 void ParticleFitObject::addToGlobalChi2DerVector (double *y, int idim) const {
   assert (getNPar() <= NPAR);
-  if (!covinvvalid) covinvvalid = calculateCovInv();
+  if (!covinvvalid) calculateCovInv();
   assert (covinvvalid);
   for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
     if (!isParamFixed(ilocal) && isParamMeasured(ilocal)) {
