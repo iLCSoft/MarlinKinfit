@@ -49,7 +49,6 @@
  */ 
  
 #include "ParticleFitObject.h"
-#include "cernlib.h"
 
 #include <iostream>
 #include <cassert>
@@ -57,6 +56,8 @@
 using std::isfinite;
 using std::cout; 
 using std::endl;
+
+#include <TMatrixDSym.h>
 
 
 ParticleFitObject::ParticleFitObject()
@@ -184,27 +185,34 @@ std::ostream&  ParticleFitObject::print (std::ostream& os) const {
 }
 bool ParticleFitObject::calculateCovInv() const {
   int n = getNPar();
+  
+  TMatrixDSym covm = TMatrixDSym (n);
+  
   int idim = 0;
   for (int i = 0; i < n; ++i) {
     if (isParamMeasured (i)) {
       idim = i;
       for (int j = 0; j < n; ++j) {
-        covinv[i][j] = isParamMeasured (j) ? cov[i][j] : 0;
+        covm(i, j) = isParamMeasured (j) ? cov[i][j] : 0;
       }
     }
     else {
       for (int j = 0; j < n; ++j) {
-        covinv[i][j] = static_cast<double>(i == j);
+        covm (i, j) = static_cast<double>(i == j);
       }
     }
   }
-  int ierr = (idim == 0) ? 0 : dsinv(idim+1, &covinv[0][0], NPAR);
-  if (ierr != 0) {
-    //std::cerr << "ParticleFitObject::calculateCovInv: Error "
-    //          << ierr << " from dsinv! Object " << getName() << std::endl;
-    // printCov (std::cerr);         
+  if (idim > 0) {
+    // ierr = dsinv(idim+1, &covinv[0][0], NPAR);
+    covm.Invert();
   }
-  return covinvvalid = (ierr == 0);
+  
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      covinv[i][j] = covm (i, j);
+    }
+  }
+  return true;
 }
 
 
@@ -241,7 +249,7 @@ double ParticleFitObject::getDChi2DParam(int ilocal) const {
 
 void ParticleFitObject::addToGlobalChi2DerVector (double *y, int idim) const {
   assert (getNPar() <= NPAR);
-  if (!covinvvalid) calculateCovInv();
+  if (!covinvvalid) covinvvalid = calculateCovInv();
   assert (covinvvalid);
   for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
     if (!isParamFixed(ilocal) && isParamMeasured(ilocal)) {

@@ -13,10 +13,13 @@
 #include "JetFitObject.h"
 #include "NeutrinoFitObject.h"
 #include "MassConstraint.h"
-#include "cernlib.h"
 
 #include <iostream>              // - cout
 #include <cmath>            
+#include <TRandom3.h>
+
+static TRandom *rnd = 0;
+
 using std::cout;
 using std::endl;
 using std::abs;
@@ -83,8 +86,9 @@ void TopEventILC::genEvent(){
   double mj   = 1.0;
   double Ecm = 500;
       
-  FReal rw[4];
-  ranmar (rw, 4);
+  double rw[4];
+  if (rnd == 0) rnd = new TRandom3();
+  rnd->RndmArray (4, rw);
   
   FourVector *toppair = fv[0] = new FourVector (Ecm, 0, 0, 0);
   double mtop1 = bwrandom (rw[0], mtop, gammatop, mtop-3*gammatop, mtop+3*gammatop);
@@ -138,8 +142,9 @@ void TopEventILC::genEvent(){
     bfo[j] = new JetFitObject (E, theta, phi, EError, thetaResol, phiResol, 0);
     bfo[j]->setName (names[j]);
     
-    FReal randoms[3];
-    rnorml (randoms, 3);
+    double randoms[3];
+    if (rnd == 0) rnd = new TRandom3();
+    for (int irnd = 0; irnd < 3; ++irnd) randoms[irnd] = rnd->Gaus();
     
     // Create fit object with smeared quantities as fit input
     double ESmear = E + EError*randoms[0];

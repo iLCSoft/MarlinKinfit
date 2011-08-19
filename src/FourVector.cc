@@ -13,9 +13,10 @@
 
 #include <cmath>
 #include <cassert>
-#include "ftypes.h"
-#include "cernlib.h"
 
+#include <TRandom3.h>
+
+static TRandom *rnd = 0;
 
 FourVector& FourVector::boost (const FourVector& P) {
   // See CERNLIB U101 for a description
@@ -42,10 +43,13 @@ void FourVector::decayto (FourVector& d1, FourVector& d2) const {
   double m1 = d1.getM();
   double m2 = d2.getM();
   
-  FReal randoms[2];
+  double randoms[2];
 //  FInteger ilen = 2;
 //  ranmar_ (randoms, &ilen);
-  ranmar (randoms, 2);
+//  ranmar (randoms, 2);
+  if (rnd == 0) rnd = new TRandom3();
+  rnd->RndmArray (2, randoms);
+  
   
   assert (m1+m2<=M);
   

@@ -51,9 +51,6 @@
 #include "BaseFitObject.h"
 #include "BaseHardConstraint.h"
 #include "BaseTracer.h"
-#include "ftypes.h"
-#include "cernlib.h"
-#include "cernlib.h"
 
 #include <gsl/gsl_block.h>
 #include <gsl/gsl_vector.h>
@@ -61,6 +58,7 @@
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_cdf.h>
 
 using std::cout;
 using std::cerr;
@@ -756,8 +754,7 @@ double OPALFitterGSL::fit() {
   } // endif calcerr == true
 
 // *-- Turn chisq into probability.
-  FReal chi = FReal(chinew);
-  fitprob = (ncon-nunm > 0) ? prob(chi,ncon-nunm) : 0.5;
+  fitprob = (ncon-nunm > 0) ? gsl_cdf_chisq_Q(chinew,ncon-nunm) : 0.5;
   chi2 = chinew;
   
 #ifndef FIT_TRACEOFF

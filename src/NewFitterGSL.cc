@@ -35,8 +35,6 @@
 #include "BaseHardConstraint.h"
 #include "BaseSoftConstraint.h"
 #include "BaseTracer.h"
-#include "ftypes.h"
-#include "cernlib.h"
 
 #include <gsl/gsl_block.h>
 #include <gsl/gsl_vector.h>
@@ -44,6 +42,7 @@
 #include <gsl/gsl_permutation.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_cdf.h>
 
 using std::cout;
 using std::cerr;
@@ -280,8 +279,7 @@ double NewFitterGSL::fit() {
 //   }
 
 // *-- Turn chisq into probability.
-  FReal chi = FReal(chi2new);
-  fitprob = (chi >= 0 && ncon+nsoft-nunm> 0) ? prob(chi, ncon+nsoft-nunm) : -1;
+  fitprob = (chi2new >= 0 && ncon+nsoft-nunm> 0) ? gsl_cdf_chisq_Q(chi2new, ncon+nsoft-nunm) : -1;
   
 #ifndef FIT_TRACEOFF
     if (tracer) tracer->finish (*this);
