@@ -11,6 +11,7 @@
  * -
  *
  */ 
+#ifdef MARLIN_USE_ROOT
 
 #ifndef __ITERATIONSCANNER_H
 #define __ITERATIONSCANNER_H
@@ -52,3 +53,4 @@ class IterationScanner {
 
 #endif /* #ifndef __ITERATIONSCANNER_H */
 
+#endif // MARLIN_USE_ROOT

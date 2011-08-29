@@ -8,6 +8,7 @@
 // Description: class to generate and fit top pair events at ILC
 //               
 ////////////////////////////////////////////////////////////////
+#ifdef MARLIN_USE_ROOT
 #include "TopEventILC.h"
 
 #include "JetFitObject.h"
@@ -311,3 +312,4 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
 
 
 }
+#endif // MARLIN_USE_ROOT

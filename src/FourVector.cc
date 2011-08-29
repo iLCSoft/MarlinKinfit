@@ -8,6 +8,7 @@
 // Description: class for four-vectors
 //               
 ////////////////////////////////////////////////////////////////
+#ifdef MARLIN_USE_ROOT
 
 #include "FourVector.h"
 
@@ -80,3 +81,4 @@ void FourVector::decayto (FourVector& d1, FourVector& d2) const {
 //             << "\nand " << d2 
 //             << "\n:   " << mother-(d1+d2) << endl;
 }
+#endif // MARLIN_USE_ROOT

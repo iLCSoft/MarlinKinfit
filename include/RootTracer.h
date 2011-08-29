@@ -18,6 +18,7 @@
  * -
  *
  */ 
+#ifdef MARLIN_USE_ROOT
 
 #ifndef __ROOTTRACER_H
 #define __ROOTTRACER_H
@@ -87,3 +88,5 @@ class RootTracer: public BaseTracer {
 };
 
 #endif // __ROOTTRACER_H
+
+#endif // MARLIN_USE_ROOT

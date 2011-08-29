@@ -13,6 +13,7 @@
  * -
  *
  */ 
+#ifdef MARLIN_USE_ROOT
 
 #include "SoftBWMassConstraint.h"
 #include "ParticleFitObject.h"
@@ -234,4 +235,5 @@ bool SoftBWMassConstraint::firstDerivatives (int i, double *derivatives) const {
   derivatives[3] = -totpz/m;
   return true;
 }
+#endif // MARLIN_USE_ROOT
 

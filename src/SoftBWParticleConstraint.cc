@@ -20,6 +20,7 @@
 // Redo calculation of penalty function and deriavtives
 // Check where to get erfinv 
 
+#ifdef MARLIN_USE_ROOT
 
 
 #include "SoftBWParticleConstraint.h"
@@ -32,6 +33,7 @@
 #include <cmath>
 
 using namespace std;
+
 SoftBWParticleConstraint::SoftBWParticleConstraint(double gamma_, double emin_, double emax_)
 : gamma (gamma_), emin (emin_), emax (emax_)
 {
@@ -496,3 +498,4 @@ bool SoftBWParticleConstraint::cacheValid() const {
   return cachevalid;
 }
 
+#endif // MARLIN_USE_ROOT
