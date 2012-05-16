@@ -239,7 +239,7 @@ bool ParticleFitObject::calculateCovInv() const {
     covinv[i][i] = gsl_matrix_get (covm, i, i);
   }
 
-  delete covm;
+  gsl_matrix_free(covm);
   covinvvalid = (result == 0);
   return covinvvalid;
 }
