@@ -4,7 +4,8 @@
 #include "marlin/Processor.h"
 #include "lcio.h"
 #include <string>
-
+#include <TFile.h>
+#include <TTree.h>
 
 using namespace lcio ;
 using namespace marlin ;
@@ -58,12 +59,13 @@ class WW5CFit : public Processor {
    */
   virtual void end() ;
   
-  
+  double Parametrization(double E);
+
  protected:
 
   /** Input collection name.
    */
-  std::string _jetcolName ;
+  std::string _jetcolName, _name,_OutputCollection ;
   /** Input parameter: center of mass energy.
    */
   float _ecm, _isrpzmax;
@@ -71,8 +73,18 @@ class WW5CFit : public Processor {
 
   double b, ISRPzMaxB;
 
-  int _nRun ;
-  int _nEvt ;
+ 
+  float prob, bestprob, bestnit, bestmass1, bestmass2, beststartmass1, beststartmass2, bestphotonenergy, startmass1, startmass2, variable;
+  float momentum[3], energy;
+           
+  int _nRun, _nEvt, nit;
+ 
+  int bestperm, errorflag;
+ 
+
+  //output
+  // TTree *outTree;
+         
 } ;
 
 #endif
