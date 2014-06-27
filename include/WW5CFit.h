@@ -59,7 +59,7 @@ class WW5CFit : public Processor {
    */
   virtual void end() ;
   
-  double Parametrization(double E);
+  double JetEnergyResolution(double E);
 
  protected:
 

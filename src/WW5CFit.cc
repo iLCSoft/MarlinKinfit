@@ -37,11 +37,18 @@ using namespace CLHEP ;
 
 WW5CFit aWW5CFit ;
 
-// function to modify the jet energy resolution
-double WW5CFit::Parametrization(double E)
+// function to define the jet energy resolution (in GeV)
+double WW5CFit::JetEnergyResolution(double E)
 {
-  double erre = pow(0.6908,2)*(E)+(pow(0.02596,2)*pow(E,2)); 
-  return erre;      
+  // examples here derived by Benjamin Hermberg from e+e- -> udsc:
+  
+  // 1) comparing jet-level to quark-level energies 
+  //    (using MarlinReco/Analysis/RecoMCTruthLink/QuarkJetPairing.cc)
+  // double result = std::sqrt(pow(0.6908,2)*(E)+(pow(0.02596,2)*pow(E,2))); 
+  
+  // 2) 120%/sqrt(E), gives best convergence of 5C fit on e+e- -> udsc
+  double result = 1.2*std::sqrt(E);  
+  return result;      
 }
 
 WW5CFit::WW5CFit() : Processor("WW5CFit") {
@@ -110,11 +117,13 @@ void WW5CFit::processEvent( LCEvent * evt ) {
   static AIDA::IHistogram1D* hRecWMassAll ;    
   static AIDA::IHistogram1D* hRecWMassNoFitBest ;    
   static AIDA::IHistogram1D* hRecWMassNoFitAll ;    
+  static AIDA::IHistogram1D* hTestWMassNoFitAll ;    
   static AIDA::IHistogram1D* hFitProbBest ;    
   static AIDA::IHistogram1D* hFitProbAll ;    
   static AIDA::IHistogram1D* hNItBest ;    
   static AIDA::IHistogram1D* hNItAll ;    
   static AIDA::IHistogram1D* hPhotonEnergy ;    
+  static AIDA::IHistogram1D* hJetMass ;    
              
     message<DEBUG>( log() 
 		      << " processing event " << evt->getEventNumber() 
@@ -135,6 +144,9 @@ void WW5CFit::processEvent( LCEvent * evt ) {
     hRecWMassNoFitAll = 
       AIDAProcessor::histogramFactory(this)->
       createHistogram1D( "hRecWMassNoFitAll", "M_W", 200, 0., 200. ) ; 
+    hTestWMassNoFitAll = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hTestWMassNoFitAll", "M_W", 200, 0., 200. ) ; 
     hFitProbBest = 
       AIDAProcessor::histogramFactory(this)->
       createHistogram1D( "hFitProb", "fit probability", 100, 0., 1. ) ; 
@@ -150,6 +162,9 @@ void WW5CFit::processEvent( LCEvent * evt ) {
     hPhotonEnergy = 
       AIDAProcessor::histogramFactory(this)->
       createHistogram1D( "hPhotonEnergy", "ISR photon energy", 200, 0., 400. ) ; 
+    hJetMass = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hJetMass", "Jet Mass", 200, 0., 100. ) ; 
 
   }
 
@@ -192,45 +207,91 @@ void WW5CFit::processEvent( LCEvent * evt ) {
        JetFitObject* j3 = 0;
        JetFitObject* j4 = 0;
         
-       //double error = 0;         //  Energy resolution; alternatively a good approximation for the energy resolution with the function "Parametrization" would be "std::sqrt(error)"
-       double erre = 1.2;        //   120%/sqrt(E)  
+       // angular resolutions - optimised for best convergence of 5C fit on e+e- -> udsc
        double errtheta = 0.1;   //   100mrad
        double errphi = 0.1;     //   100mrad
        
        
+       ReconstructedParticle* jrps[4];
+       
        for(int i=0; i< nJETS ; i++){
          
           ReconstructedParticle* j = dynamic_cast<ReconstructedParticle*>( jetcol->getElementAt( i ) ) ;
+          
                
           if (j) {
+             jrps[i] = j;
              message<DEBUG>( log() 
                        << " found jet in event " << evt->getEventNumber() 
                        << "  in run "          << evt->getRunNumber() 
                        ) ;
              lvec = HepLorentzVector ((j->getMomentum())[0],(j->getMomentum())[1],(j->getMomentum())[2],j->getEnergy()); 
              if (i == 0) { 
-	       //error = Parametrization(lvec.e());
-               j1 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(), erre*std::sqrt(lvec.e()), errtheta, errphi, lvec.m());
+               j1 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
+                  JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
                message<DEBUG>( log()  << " start four-vector of first  jet: " << *j1  ) ;
 	     }
              else if (i == 1) { 
-	       //error = Parametrization(lvec.e());
-               j2 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(), erre*std::sqrt(lvec.e()), errtheta, errphi, lvec.m());
+               j2 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
+                  JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
                message<DEBUG>( log() << " start four-vector of second  jet: " << *j2  ) ;
 	     }
              else if (i == 2) {
-	       //error = Parametrization(lvec.e());
-               j3 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(), erre*std::sqrt(lvec.e()), errtheta, errphi, lvec.m());
+               j3 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
+                  JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
                message<DEBUG>( log() << " start four-vector of third  jet: " << *j3  ) ;
 	     }
              else if (i == 3) { 
-	       //error = Parametrization(lvec.e());
-               j4 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(), erre*std::sqrt(lvec.e()), errtheta, errphi, lvec.m());
+               j4 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
+                  JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
                message<DEBUG>( log() << " start four-vector of forth  jet: " << *j4  ) ;
 	     }
-           
+#ifdef MARLIN_USE_AIDA
+             hJetMass->fill(j->getMass());
+#endif           
           }
        }
+#ifdef MARLIN_USE_AIDA
+       double en, px, py, pz, mass; 
+       if (jrps[0] && jrps[1] && jrps[2] && jrps[3]) {
+         en = jrps[0]->getEnergy()     +jrps[1]->getEnergy();
+         px = jrps[0]->getMomentum()[0]+jrps[1]->getMomentum()[0];
+         py = jrps[0]->getMomentum()[1]+jrps[1]->getMomentum()[1];
+         pz = jrps[0]->getMomentum()[2]+jrps[1]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+         en = jrps[2]->getEnergy()     +jrps[3]->getEnergy();
+         px = jrps[2]->getMomentum()[0]+jrps[3]->getMomentum()[0];
+         py = jrps[2]->getMomentum()[1]+jrps[3]->getMomentum()[1];
+         pz = jrps[2]->getMomentum()[2]+jrps[3]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+         en = jrps[0]->getEnergy()     +jrps[2]->getEnergy();
+         px = jrps[0]->getMomentum()[0]+jrps[2]->getMomentum()[0];
+         py = jrps[0]->getMomentum()[1]+jrps[2]->getMomentum()[1];
+         pz = jrps[0]->getMomentum()[2]+jrps[2]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+         en = jrps[1]->getEnergy()     +jrps[3]->getEnergy();
+         px = jrps[1]->getMomentum()[0]+jrps[3]->getMomentum()[0];
+         py = jrps[1]->getMomentum()[1]+jrps[3]->getMomentum()[1];
+         pz = jrps[1]->getMomentum()[2]+jrps[3]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+         en = jrps[0]->getEnergy()     +jrps[3]->getEnergy();
+         px = jrps[0]->getMomentum()[0]+jrps[3]->getMomentum()[0];
+         py = jrps[0]->getMomentum()[1]+jrps[3]->getMomentum()[1];
+         pz = jrps[0]->getMomentum()[2]+jrps[3]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+         en = jrps[1]->getEnergy()     +jrps[2]->getEnergy();
+         px = jrps[1]->getMomentum()[0]+jrps[2]->getMomentum()[0];
+         py = jrps[1]->getMomentum()[1]+jrps[2]->getMomentum()[1];
+         pz = jrps[1]->getMomentum()[2]+jrps[2]->getMomentum()[2];
+         mass = en*en-px*px-py*py-pz*pz;
+         if (mass >= 0) hTestWMassNoFitAll->fill( std::sqrt(mass) ) ;
+       }  
+#endif           
        
        const int NJETS = 4;
        
@@ -270,7 +331,9 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          for (int i = 0; i < NJETS; ++i)
             message<DEBUG>( log()  << "start four-vector of jet " << i << ": " << *(permutedjets[i])  ) ;
                               
-         PConstraint pxc (1, 0);
+         //PConstraint pxc (1, 0);
+         // crossing angle 14 mrad = 7/500
+         PConstraint pxc (1, 0, 0, 0, 7.0);
          for (int i = 0; i < NJETS; ++i)
             pxc.addToFOList (*(permutedjets[i]));
         
@@ -319,8 +382,8 @@ void WW5CFit::processEvent( LCEvent * evt ) {
 	 message<DEBUG>( log() << "start mass of W 2: " << startmass2 ) ;
                       
 #ifdef MARLIN_USE_AIDA
-         hRecWMassNoFitAll->fill( startmass1 ) ;
-         hRecWMassNoFitAll->fill( startmass2 ) ;
+         hRecWMassNoFitAll->fill( 0.5*(startmass1 + startmass2) ) ;
+         //hRecWMassNoFitAll->fill( startmass2 ) ;
 #endif
 	 NewtonFitterGSL fitter;
          // NewFitterGSL fitter;
@@ -365,8 +428,8 @@ void WW5CFit::processEvent( LCEvent * evt ) {
 #ifdef MARLIN_USE_AIDA
            hFitProbAll->fill( prob ) ;
            hNItAll->fill( nit ) ;
-           hRecWMassAll->fill( w.getMass(1)) ;
-           hRecWMassAll->fill( w.getMass(2)) ;
+           hRecWMassAll->fill( 0.5*(w.getMass(1)+w.getMass(2)) ) ;
+           //hRecWMassAll->fill( w.getMass(2)) ;
 #endif
 //           if (prob > bestprob && w.getMass(1) > 50 && w.getMass(1) < 110) {
            if (prob > bestprob) {
@@ -390,10 +453,10 @@ void WW5CFit::processEvent( LCEvent * evt ) {
        if (bestprob > 0) {
          hFitProbBest->fill( bestprob ) ;
          hNItBest->fill( bestnit ) ;
-         hRecWMassBest->fill( bestmass1 ) ;
-         hRecWMassBest->fill( bestmass2 ) ;
-         hRecWMassNoFitBest->fill( beststartmass1 ) ;
-         hRecWMassNoFitBest->fill( beststartmass2 ) ;
+         hRecWMassBest->fill( 0.5*(bestmass1+bestmass2) ) ;
+         //hRecWMassBest->fill( bestmass2 ) ;
+         hRecWMassNoFitBest->fill( 0.5*(beststartmass1+beststartmass2) ) ;
+         //hRecWMassNoFitBest->fill( beststartmass2 ) ;
          hPhotonEnergy->fill( _fitISR ? bestphotonenergy : 0. );
        } 
 #endif
