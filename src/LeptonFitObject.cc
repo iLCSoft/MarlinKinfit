@@ -29,7 +29,7 @@ LeptonFitObject::LeptonFitObject(double Pt, double theta, double phi,
 //  assert( !isinf(Dphi) );     assert( !isnan(Dphi) );
 //  assert( !isinf(m) );        assert( !isnan(m) );
   setMass (m);
-  adjustPThetaPhi (m, Pt, theta, phi);
+  adjustPtThetaPhi (m, Pt, theta, phi);
   setParam (0, Pt, true);
   setParam (1, theta, true);
   setParam (2, phi, true);
