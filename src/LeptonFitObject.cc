@@ -17,8 +17,8 @@ using std::cout;
 using std::endl;
 
 // constructor
-LeptonFitObject::LeptonFitObject(double Pt, double theta, double phi,  
-                           double DPt, double Dtheta, double Dphi, 
+LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,  
+                           double Dptinv, double Dtheta, double Dphi, 
                            double m) {
   initCov();                         
 //  assert( !isinf(E) );        assert( !isnan(E) );
@@ -29,14 +29,14 @@ LeptonFitObject::LeptonFitObject(double Pt, double theta, double phi,
 //  assert( !isinf(Dphi) );     assert( !isnan(Dphi) );
 //  assert( !isinf(m) );        assert( !isnan(m) );
   setMass (m);
-  adjustPtThetaPhi (m, Pt, theta, phi);
-  setParam (0, Pt, true);
+  adjustPtinvThetaPhi (m, ptinv, theta, phi);
+  setParam (0, ptinv, true);
   setParam (1, theta, true);
   setParam (2, phi, true);
-  setMParam (0, Pt);
+  setMParam (0, ptinv);
   setMParam (1, theta);
   setMParam (2, phi);
-  setError (0, DPt);
+  setError (0, Dptinv);
   setError (1, Dtheta);
   setError (2, Dphi);
   invalidateCache();
@@ -109,30 +109,24 @@ bool LeptonFitObject::setParam (int i, double par_ ) {
 bool LeptonFitObject::updateParams (double p[], int idim) {
   invalidateCache();
   
-  int iPt = getGlobalParNum(0);
-  int ith = getGlobalParNum(1);
-  int iph = getGlobalParNum(2);
-  assert (iPt >= 0 && iPt  < idim);
-  assert (ith >= 0 && ith < idim);
-  assert (iph >= 0 && iph < idim);
+  int iptinv = getGlobalParNum(0);
+  int ith    = getGlobalParNum(1);
+  int iph    = getGlobalParNum(2);
+  assert (iptinv >= 0 && iptinv  < idim);
+  assert (ith    >= 0 && ith     < idim);
+  assert (iph    >= 0 && iph     < idim);
   
-  double pt  = p[iPt];
+  double ptinv  = std::abs(p[iptinv]);
   double th = p[ith];
   double ph = p[iph];
 //  assert( !isinf(e) );    assert( !isnan(e) );
 //  assert( !isinf(th) );   assert( !isnan(th) );
 //  assert( !isinf(ph) );   assert( !isnan(ph) );
   
-  if (pt<0) {
-    // cout << "JetFitObject::updateParams: mirrored E!\n";
-    pt  = -pt;
-    th = M_PI-th;
-    ph = M_PI+ph;
-  }
   // double massPlusEpsilon = 1/(mass*(1.0000001));
   // if (pt < massPlusEpsilon) pt = massPlusEpsilon; 
   
-  bool result = ((pt -par[0])*(pt -par[0]) > eps2*cov[0][0]) ||
+  bool result = ((ptinv -par[0])*(ptinv -par[0]) > eps2*cov[0][0]) ||
                 ((th-par[1])*(th-par[1]) > eps2*cov[1][1]) ||
                 ((ph-par[2])*(ph-par[2]) > eps2*cov[2][2]);
                 
@@ -143,12 +137,12 @@ bool LeptonFitObject::updateParams (double p[], int idim) {
 //          << "  ph: " <<  par[2] << "->" << ph
 //          << endl;           
   
-  par[0] = pt;
+  par[0] = ptinv;
   par[1] = th;
   par[2] = ph;
-  p[iPt]  = par[0];         
-  p[ith] = par[1];         
-  p[iph] = par[2];         
+  p[iptinv] = par[0];         
+  p[ith]    = par[1];         
+  p[iph]    = par[2];         
   return result;
 }  
 
@@ -178,7 +172,8 @@ double LeptonFitObject::getP2() const {
   return p2;
 }
 double LeptonFitObject::getPt() const {
-  return par[0];
+  if (!cachevalid) updateCache();
+  return pt;
 }
   
 double LeptonFitObject::getPt2() const {
@@ -190,7 +185,7 @@ double LeptonFitObject::getDPx(int ilocal) const {
   assert (ilocal >= 0 && ilocal < NPAR);
   if (!cachevalid) updateCache();
   switch (ilocal) {
-    case 0: return dpxdPt;
+    case 0: return dpxdptinv;
       //case 1: return dpxdtheta; 
     case 1: return 0;
     case 2: return dpxdphi;
@@ -202,7 +197,7 @@ double LeptonFitObject::getDPy(int ilocal) const {
   assert (ilocal >= 0 && ilocal < NPAR);
   if (!cachevalid) updateCache();
   switch (ilocal) {
-    case 0: return dpydPt;
+    case 0: return dpydptinv;
       // case 1: return dpydtheta;
     case 1: return 0;
     case 2: return dpydphi;
@@ -214,7 +209,7 @@ double LeptonFitObject::getDPz(int ilocal) const {
   assert (ilocal >= 0 && ilocal < NPAR);
   if (!cachevalid) updateCache();
   switch (ilocal) {
-    case 0: return dpzdPt; 
+    case 0: return dpzdptinv; 
     case 1: return dpzdtheta;
     case 2: return 0;
   }
@@ -225,7 +220,7 @@ double LeptonFitObject::getDE(int ilocal) const {
   assert (ilocal >= 0 && ilocal < NPAR); 
   if (!cachevalid) updateCache();
   switch (ilocal) {
-    case 0: return dEdPt;
+    case 0: return dEdptinv;
     case 1: return dEdtheta;
     case 2: return 0;
   }
@@ -235,96 +230,96 @@ double LeptonFitObject::getDE(int ilocal) const {
 void   LeptonFitObject::addToDerivatives (double der[], int idim, 
                                        double efact, double pxfact, 
                                        double pyfact, double pzfact) const {
-  int i_Pt     = globalParNum[0];
+  int i_ptinv = globalParNum[0];
   int i_theta = globalParNum[1];
   int i_phi   = globalParNum[2];
-  assert (i_Pt     >= 0 && i_Pt     < idim);
+  assert (i_ptinv >= 0 && i_ptinv < idim);
   assert (i_theta >= 0 && i_theta < idim);
   assert (i_phi   >= 0 && i_phi   < idim);
   
   if (!cachevalid) updateCache();
   // for numerical accuracy, add up derivatives first,
   // then add them to global vector
-  double der_Pt = 0;
+  double der_ptinv = 0;
   double der_theta = 0;
   double der_phi = 0;
   
+  if (efact != 0) {
+   der_ptinv += efact*dEdptinv;
+   der_theta += efact*dEdtheta;
+  }
+  
   if (pxfact != 0) {
-    der_Pt     += pxfact*dpxdPt; 
-    //der_theta += pxfact*dpxdtheta;
+    der_ptinv += pxfact*dpxdptinv; 
+    // der_theta += pxfact*dpxdtheta;
     der_phi   += pxfact*dpxdphi;
   }
   if (pyfact != 0) {
-    der_Pt     += pyfact*dpydPt; 
+    der_ptinv += pyfact*dpydptinv; 
     //der_theta += pyfact*dpydtheta;
     der_phi   += pyfact*dpydphi;
   }
   if (pzfact != 0) {
-    der_Pt     += pzfact*dpzdPt;
+    der_ptinv += pzfact*dpzdptinv;
     der_theta += pzfact*dpzdtheta;
   }
-   if (efact != 0) {
-    der_Pt     += efact*dEdPt;
-    der_theta += efact*dEdtheta;
-   }
-  
-   der[i_Pt]     += der_Pt;
+   der[i_ptinv] += der_ptinv;
    der[i_theta] += der_theta;
    der[i_phi]   += der_phi;
 }
     
 void   LeptonFitObject::addTo2ndDerivatives (double der2[], int idim, 
-                                          double efact, double pxfact, 
-                                          double pyfact, double pzfact) const {
-  int i_Pt  = globalParNum[0];
-  int i_th = globalParNum[1];
-  int i_ph= globalParNum[2];
-  assert (i_Pt  >= 0 && i_Pt  < idim);
-  assert (i_th >= 0 && i_th < idim);
-  assert (i_ph >= 0 && i_ph < idim);
+                                             double efact, double pxfact, 
+                                             double pyfact, double pzfact) const {
+  int i_ptinv = globalParNum[0];
+  int i_th    = globalParNum[1];
+  int i_ph    = globalParNum[2];
+  assert (i_ptinv  >= 0 && i_ptinv  < idim);
+  assert (i_th     >= 0 && i_th     < idim);
+  assert (i_ph     >= 0 && i_ph     < idim);
   
   if (!cachevalid) updateCache();
   // for numerical accuracy, add up derivatives first,
   // then add them to global vector
-  double der_PtPt   = 0;
-  double der_Ptth  = 0;
-  double der_Ptph  = 0;
-  double der_thth = 0;
-  double der_thph = 0;
-  double der_phph = 0;
+  double der_ptinvptinv = 0;
+  double der_ptinvth    = 0;
+  double der_ptinvph    = 0;
+  double der_thth       = 0;
+  double der_thph       = 0;
+  double der_phph       = 0;
   
-    
+  if (efact != 0) {
+    double d2Edp2 = mass*mass/(e2*e);
+    der_ptinvptinv +=  efact*(2.*pt3/stheta)*dEdp + dpdptinv*dpdptinv*d2Edp2;      // was mumbo jumbo
+    der_ptinvth    +=  efact*pt2*cottheta/stheta*dEdp + dpdptinv*dpdtheta*d2Edp2;  // was mumbo jumbo
+    der_thth       +=  efact*pt/stheta*(2*cottheta*cottheta + 1);                  // was mumbo jumbo
+  }      
+
   if (pxfact != 0) {
-    der_PtPt += pxfact*(2*cphi/(pt*pt*pt)); 
-    der_Ptph  += pxfact*(sphi/(pt*pt));
-    der_phph -= pxfact*(cphi/pt); 
+    der_ptinvptinv +=  pxfact*2*pt3*cphi;   // ok
+    der_ptinvph    +=  pxfact*pt2*sphi;        // ok
+    der_phph       += -pxfact*px;             // ok
   }
   if (pyfact != 0) { 
-    der_PtPt += pyfact*(2*sphi/(pt*pt*pt)); 
-    der_Ptph  -= pyfact*(cphi/(pt*pt));
-    der_phph -= pyfact*(sphi/pt);
+    der_ptinvptinv +=  pyfact*2*pt3*sphi;   // ok
+    der_ptinvph    +=  pyfact*pt2*cphi;        // ok
+    der_phph       += -pyfact*py;             // ok
   }
   if (pzfact != 0) { 
-    der_PtPt += pyfact*(2*cottheta/(pt*pt*pt)); 
-    der_Ptth  += pzfact/(pt*pt*stheta*stheta);
-    der_thth += pzfact*(2*cottheta/(pt*stheta*stheta));
+    der_ptinvptinv +=  pzfact*2*pt3*cottheta;          // was pyfact!!!
+    der_ptinvth    +=  pzfact*pt2/stheta2;            // ok
+    der_thth       +=  pzfact*2*pt*cottheta/stheta2;  // ok
   } 
 
-  if (efact != 0) {
-    der_PtPt   += efact*(3/(pt*pt*pt*pt*e*stheta*stheta)-1/(pt*pt*pt*pt*pt*pt*e*e*e*stheta*stheta*stheta*stheta));
-    der_Ptth  += efact*(2*cottheta/(pt*pt*pt*e*stheta*stheta)-cottheta/(pt*pt*pt*pt*pt*e*e*e*stheta*stheta*stheta*stheta));
-    der_thth += efact*((1/(pt*pt*e*stheta*stheta*stheta*stheta))+(2*cottheta*cottheta/(pt*pt*e*stheta*stheta))-(cottheta*cottheta/(pt*pt*pt*pt*e*e*e*stheta*stheta*stheta*stheta)));
-  }
-
-  der2[idim*i_Pt+i_Pt]   += der_PtPt;
-  der2[idim*i_Pt+i_th]  += der_Ptth;
-  der2[idim*i_Pt+i_ph]  += der_Ptph;
-  der2[idim*i_th+i_Pt]  += der_Ptth;
-  der2[idim*i_th+i_th] += der_thth;
-  der2[idim*i_th+i_ph] += der_thph;
-  der2[idim*i_ph+i_Pt]  += der_Ptph;
-  der2[idim*i_ph+i_th] += der_thph;
-  der2[idim*i_ph+i_ph] += der_phph;
+  der2[idim*i_ptinv+i_ptinv] += der_ptinvptinv;
+  der2[idim*i_ptinv+i_th]    += der_ptinvth;
+  der2[idim*i_ptinv+i_ph]    += der_ptinvph;
+  der2[idim*i_th+i_ptinv]    += der_ptinvth;
+  der2[idim*i_th+i_th]       += der_thth;
+  der2[idim*i_th+i_ph]       += der_thph;
+  der2[idim*i_ph+i_ptinv]    += der_ptinvph;
+  der2[idim*i_ph+i_th]       += der_thph;
+  der2[idim*i_ph+i_ph]       += der_phph;
 }
     
 void   LeptonFitObject::addTo2ndDerivatives (double M[], int idim,  double lambda, double der[]) const {
@@ -333,25 +328,25 @@ void   LeptonFitObject::addTo2ndDerivatives (double M[], int idim,  double lambd
 
 void   LeptonFitObject::addTo1stDerivatives (double M[], int idim, double der[], int kglobal) const {
   assert (kglobal >= 0 && kglobal < idim);
-  int i_Pt  = globalParNum[0];
-  int i_th = globalParNum[1];
-  int i_ph= globalParNum[2];
-  assert (i_Pt  >= 0 && i_Pt  < idim);
-  assert (i_th >= 0 && i_th < idim);
-  assert (i_ph >= 0 && i_ph < idim);
+  int i_ptinv  = globalParNum[0];
+  int i_th     = globalParNum[1];
+  int i_ph     = globalParNum[2];
+  assert (i_ptinv  >= 0 && i_ptinv  < idim);
+  assert (i_th     >= 0 && i_th     < idim);
+  assert (i_ph     >= 0 && i_ph     < idim);
   
   if (!cachevalid) updateCache();
   
-  double dPt  = der[0]*dEdPt + der[1]*dpxdPt + der[2]*dpydPt + der[3]*dpzdPt;
-  double dth = der[0]*dEdtheta                               + der[3]*dpzdtheta;
-  double dph =               + der[1]*dpxdphi + der[2]*dpydphi;
+  double dptinv = der[0]*dEdptinv + der[1]*dpxdptinv + der[2]*dpydptinv + der[3]*dpzdptinv;
+  double dth    = der[0]*dEdtheta                                       + der[3]*dpzdtheta;
+  double dph    =                   der[1]*dpxdphi   + der[2]*dpydphi;
   
-  M[idim*kglobal + i_Pt]  += dPt;  
-  M[idim*kglobal + i_th] += dth; 
-  M[idim*kglobal + i_ph] += dph; 
-  M[idim*i_Pt  + kglobal] += dPt;  
-  M[idim*i_th + kglobal] += dth; 
-  M[idim*i_ph + kglobal] += dph; 
+  M[idim*kglobal + i_ptinv] += dptinv;  
+  M[idim*kglobal + i_th]    += dth; 
+  M[idim*kglobal + i_ph]    += dph; 
+  M[idim*i_ptinv  + kglobal]+= dptinv;  
+  M[idim*i_th + kglobal]    += dth; 
+  M[idim*i_ph + kglobal]    += dph; 
 }
 
          
@@ -369,64 +364,63 @@ void LeptonFitObject::invalidateCache() const {
 
 void LeptonFitObject::addToGlobalChi2DerVector (double *y, int idim, 
                                              double lambda, double der[]) const {
-  int i_Pt  = globalParNum[0];
+  int i_ptinv  = globalParNum[0];
   int i_th = globalParNum[1];
   int i_ph = globalParNum[2];
-  assert (i_Pt  >= 0 && i_Pt  < idim);
-  assert (i_th >= 0 && i_th < idim);
-  assert (i_ph >= 0 && i_ph < idim);
+  assert (i_ptinv  >= 0 && i_ptinv  < idim);
+  assert (i_th     >= 0 && i_th     < idim);
+  assert (i_ph     >= 0 && i_ph     < idim);
   
   if (!cachevalid) updateCache();
   
-  y[i_Pt]  += lambda*(der[0]*dEdPt + der[1]*dpxdPt     + der[2]*dpydPt     + der[3]*dpzdPt);
-  y[i_th] += lambda*(der[0]*dEdtheta                                       + der[3]*dpzdtheta);
-  y[i_ph] += lambda*(       + der[1]*dpxdphi        + der[2]*dpydphi);
+  y[i_ptinv]  += lambda*(der[0]*dEdptinv + der[1]*dpxdptinv + der[2]*dpydptinv + der[3]*dpzdptinv);
+  y[i_th]     += lambda*(der[0]*dEdtheta                                       + der[3]*dpzdtheta);
+  y[i_ph]     += lambda*(                  der[1]*dpxdphi   + der[2]*dpydphi);
 }
 
 void LeptonFitObject::updateCache() const {
   // std::cout << "LeptonFitObject::updateCache" << std::endl;
   chi2 = calcChi2 ();
   
-  double pt    = par[0];
+  double ptinv = par[0];
   double theta = par[1];
   double phi   = par[2];
+  
+  pt = 1/ptinv;
+  pt2 = pt*pt;
+  pt3 = pt2*pt;
 
   ctheta = cos(theta);
   stheta = sin(theta);
+  stheta2 = stheta*stheta;
   cphi   = cos(phi);
   sphi   = sin(phi);
   cottheta = ctheta/stheta;
  
-  if(mass > 0){
-  p = 1/(pt*stheta);
-  p2 = std::abs((p*p));
-  e2 = std::abs(p2+mass*mass);
-  e = std::sqrt(e2);
-  dpdPt = -1/((pt*pt)*stheta);
+  p = pt/stheta;
   assert(p!=0);
-  }
-  else{
-    p = 1/(pt*stheta);
-    p2 = std::abs((p*p));
-    e2 = std::abs(p2);
-    e = std::sqrt(e2);
-    dpdPt = -1/((pt*pt)*stheta);
-  }
+  
+  p2 = p*p;
+  e2 = p2+mass*mass;
+  e = std::sqrt(e2);
+  px = cphi*pt;
+  py = sphi*pt;
+  pz = cottheta*pt;
+  
+  dpdptinv = -pt2/stheta;
+  dpxdptinv = -cphi*pt2;
+  dpydptinv = -sphi*pt2;
+  dpzdptinv = -cottheta*pt2;
 
-  px = cphi/pt;
-  py = sphi/pt;
-  pz = cottheta/pt;
- 
-  dpxdPt = -cphi/(pt*pt);
-  dpydPt = -sphi/(pt*pt);
-  dpzdPt = -cottheta/(pt*pt);
-  //dpxdtheta = pz*cphi;
-  //dpydtheta = pz*sphi;
-  dpxdphi = -sphi/pt;
-  dpydphi = cphi/pt;
-  dpzdtheta = -1/(pt*stheta*stheta);
-  dEdPt = -1/(pt*pt*pt*e*stheta*stheta);
-  dEdtheta = -cottheta/(pt*pt*e*stheta*stheta);
+  dpdtheta = -(cottheta*pt/stheta);
+  dpzdtheta = -pt/stheta2;
+
+  dpxdphi   = -sphi*pt;
+  dpydphi   =  cphi*pt;
+
+  dEdp      = p/e;
+  dEdptinv  = dpdptinv*dEdp;
+  dEdtheta  = dpdtheta*dEdp;
  
   cachevalid = true;
 }
@@ -434,25 +428,26 @@ void LeptonFitObject::updateCache() const {
 double LeptonFitObject::getError2 (double der[]) const {
   if (!cachevalid) updateCache();
   double cov4[4][4]; // covariance of E, px, py, px
-  cov4[0][0] = dEdPt*(dEdPt*cov[0][0] + 2*dEdtheta*cov[0][1]) + dEdtheta*dEdtheta*cov[1][1];             // E, E
+  cov4[0][0] = dEdptinv*(dEdptinv*cov[0][0] + 2*dEdtheta*cov[0][1]) + dEdtheta*dEdtheta*cov[1][1];             // E, E
   cov4[0][1] = cov4[1][0] =                          // E, px 
-    dpxdPt*(dEdPt*cov[0][0] + dEdtheta*cov[0][1]) + dpxdphi*(dEdPt*cov[2][0] + dEdtheta*cov[2][1]); 
+              dpxdptinv*(dEdptinv*cov[0][0] +   dEdtheta*cov[0][1]) + dpxdphi*(dEdptinv*cov[2][0] + dEdtheta*cov[2][1]); 
   cov4[0][2] = cov4[2][0] =                          // E, py
-    dpydPt*(dEdPt*cov[0][0] + dEdtheta*cov[0][1]) + dpydphi*(dEdPt*cov[2][0] + dEdtheta*cov[2][1]); 
+              dpydptinv*(dEdptinv*cov[0][0] +   dEdtheta*cov[0][1]) + dpydphi*(dEdptinv*cov[2][0] + dEdtheta*cov[2][1]); 
   cov4[0][3] = cov4[3][0] =                          // E, pz
-    dpzdPt*(dEdPt*cov[0][0] + dEdtheta*cov[0][1]) + dpzdtheta*(dEdPt*cov[1][0] + dEdtheta*cov[1][1]); 
+              dpzdptinv*(dEdptinv*cov[0][0] +   dEdtheta*cov[0][1]) + dpzdtheta*(dEdptinv*cov[1][0] + dEdtheta*cov[1][1]); 
   cov4[1][1] =                                       // px, px
-    dpxdPt*(dpxdPt*cov[0][0] + 2*dpxdphi*cov[0][2]) + dpxdphi*dpxdphi*cov[2][2]; 
+             dpxdptinv*(dpxdptinv*cov[0][0] + 2*dpxdphi*cov[0][2])  + dpxdphi*dpxdphi*cov[2][2]; 
   cov4[1][2] = cov4[2][1] =                         // px, py
-    dpydPt*(dpxdPt*cov[0][0] + dpxdphi*cov[0][2]) + dpydphi*(dpxdPt*cov[2][0] + dpxdphi*cov[2][2]); 
+             dpydptinv*(dpxdptinv*cov[0][0] +   dpxdphi*cov[0][2])  + dpydphi*(dpxdptinv*cov[2][0] + dpxdphi*cov[2][2]); 
   cov4[1][3] = cov4[3][1] =                         // px, pz
-    dpzdPt*(dpxdPt*cov[0][0] + dpxdphi*cov[0][2]) + dpzdtheta*(dpxdPt*cov[1][0] + dpxdphi*cov[2][1]); 
+             dpzdptinv*(dpxdptinv*cov[0][0] +   dpxdphi*cov[0][2])  + dpzdtheta*(dpxdptinv*cov[1][0] + dpxdphi*cov[2][1]); 
   cov4[2][2] =                                       // py, py
-    dpydPt*(dpydPt*cov[0][0] + 2*dpydphi*cov[0][2]) + dpydphi*dpydphi*cov[2][2]; 
+             dpydptinv*(dpydptinv*cov[0][0] + 2*dpydphi*cov[0][2])  + dpydphi*dpydphi*cov[2][2]; 
   cov4[2][3] = cov4[3][2] =                          // py, pz
-    dpzdPt*(dpydPt*cov[0][0] + dpydphi*cov[0][2]) + dpzdtheta*(dpydPt*cov[1][0] + dpydphi*cov[2][1]); 
+             dpzdptinv*(dpydptinv*cov[0][0] +   dpydphi*cov[0][2])  + dpzdtheta*(dpydptinv*cov[1][0] + dpydphi*cov[2][1]); 
   cov4[3][3] =                                      // pz, pz
-       dpzdPt*(dpzdPt*cov[0][0] + 2*dpzdtheta*cov[0][1]) + dpzdtheta*dpzdtheta*cov[1][1]; 
+             dpzdptinv*(dpzdptinv*cov[0][0] + 2*dpzdtheta*cov[0][1]) + dpzdtheta*dpzdtheta*cov[1][1]; 
+             
   return der[0]*(der[0]*cov4[0][0] + 2*der[1]*cov4[0][1] + 2*der[2]*cov4[0][2] + 2*der[3]*cov4[0][3])
                              + der[1]*(der[1]*cov4[1][1] + 2*der[2]*cov4[1][2] + 2*der[3]*cov4[1][3])
                                                    + der[2]*(der[2]*cov4[2][2] + 2*der[3]*cov4[2][3])
@@ -464,14 +459,12 @@ double LeptonFitObject::getChi2 () const {
   return chi2;
 }
 
-bool LeptonFitObject::adjustPtThetaPhi (double& m, double &Pt, double& theta, double& phi) {
+bool LeptonFitObject::adjustPtinvThetaPhi (double& m, double &ptinv, double& theta, double& phi) {
   bool result = false;
   
-  if (Pt<0) {
+  if (ptinv<0) {
     // cout << "LeptonFitObject::adjustEThetaPhi: mirrored E!\n";
-    Pt  = -Pt;
-    theta = M_PI-theta;
-    phi = M_PI+phi;
+    ptinv  = -ptinv;
     result = true;
   }
   if (theta < -M_PI || theta > M_PI) {

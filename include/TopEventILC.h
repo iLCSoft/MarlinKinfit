@@ -38,6 +38,8 @@ class TopEventILC : public BaseEvent {
     double getW1Mass()  {return w1.getMass();};
     double getW2Mass()  {return w2.getMass();};
     double getTopMass(int flag)  {return w.getMass(flag);};
+    double getTop1Mass()  {return fvsmear[1]->getM();};
+    double getTop2Mass()  {return fvsmear[2]->getM();};
     
     ParticleFitObject* getTrueFitObject (int i) {return bfo[i];};
     ParticleFitObject* getSmearedFitObject (int i) {return bfosmear[i];};

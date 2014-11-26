@@ -1,5 +1,5 @@
-#ifndef WW5CFit_h
-#define WW5CFit_h 1
+#ifndef TopTester_h
+#define TopTester_h 1
 
 #include "marlin/Processor.h"
 #include "lcio.h"
@@ -12,14 +12,14 @@ using namespace lcio ;
 using namespace marlin ;
 
 
-/**  An example processor for a kinematic fit
+/**  Test processor using TopEventILC Toy MC
  *   
- *   ... testing a W+W- -> 4jets hypothesis
+ *   ... testing a ttbar -> 6jets or 4jets+lnu hypotheses
  *   with energy and momentum conservation
- *   and an equal mass constraint
+ *   and an equal mass constraint for tops, MW=80.4 GeV for both W's
  * 
  *  <h4>Input - Prerequisites</h4>
- *  Needs 4 reconstructed jets
+ *  nothing
  *
  *  <h4>Output</h4> 
  *  A histogram.
@@ -27,17 +27,17 @@ using namespace marlin ;
  * @param CollectionName Name of the ReconstructedParticle collection
  * 
  * @author J. List, DESY
- * @version $Id: WW5CFit.h,v 1.2 2010/07/19 23:41:46 mbeckman Exp $ 
+ * @version $Id: TopTester.h,v 1.0 2014/11/26 10:40:46 boehmej Exp $ 
  */
 
-class WW5CFit : public Processor {
+class TopTester : public Processor {
   
  public:
   
-  virtual Processor*  newProcessor() { return new WW5CFit ; }
+  virtual Processor*  newProcessor() { return new TopTester ; }
   
   
-  WW5CFit() ;
+  TopTester() ;
   
   /** Called at the begin of the job before anything is read.
    * Use to initialize the processor, e.g. book histograms.
@@ -60,29 +60,19 @@ class WW5CFit : public Processor {
    */
   virtual void end() ;
   
-  double JetEnergyResolution(double E);
-
  protected:
 
-  /** Input collection name.
+  /** Input parameter: center of mass energy, semileptonic?, which fitter.
    */
-  std::string _jetcolName, _name,_OutputCollection ;
-  /** Input parameter: center of mass energy.
-   */
-  float _ecm, _isrpzmax;
-  int _fitISR, _ifitter, _ievttrace;
-  bool _traceall;
-
-  double b, ISRPzMaxB;
-
+  float _ecm;
+  bool _semileptonic, _traceall;
+  int _ifitter, _ievttrace; 
  
-  float prob, bestprob, bestnit, bestmass1, bestmass2, beststartmass1, beststartmass2, bestphotonenergy, startmass1, startmass2, variable;
+  float prob, topmass, startmassW1, startmassW2;
   float momentum[3], energy;
            
   int _nRun, _nEvt, nit;
- 
-  int bestperm, errorflag;
-  
+   
   TopEventILC* topevent;
  
 

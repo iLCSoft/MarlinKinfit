@@ -269,7 +269,9 @@ double NewtonFitterGSL::fit() {
     // Update values in Fitobjects
     updateParams (xbest);
     
-    // debug_print (xbest, "new parameters");
+    if (debug > 1) { 
+      debug_print (xbest, "new parameters");
+    }  
     calcy();
     //cout << "New fval: " << 0.5*pow(gsl_blas_dnrm2 (yscal), 2) << endl;
     chi2new = calcChi2();
@@ -283,7 +285,7 @@ double NewtonFitterGSL::fit() {
   
 //   *-- Convergence criteria 
 
-    if (debug && nit<nitdebug) {
+    if (debug > 1&& nit<nitdebug) {
       cout << "old chi2: " << chi2old << ", new chi2: " << chi2new << ", diff=" << chi2old-chi2new << endl;
     }
     ++nit;
@@ -606,7 +608,7 @@ int NewtonFitterGSL::calcDxSVD () {
 
      if (debug>1) {
        cout << "calcDxSVD: Optimizing scale for ndim=" << ndim << endl;
-       //debug_print (dxscal, "dxscal");
+       debug_print (dxscal, "dxscal");
      }
      
      optimizeScale();
@@ -687,7 +689,7 @@ bool NewtonFitterGSL::updateParams (gsl_vector *xnew) {
     assert (fo);
     bool s = fo->updateParams (xnew->block->data, xnew->size);
     significant |=  s;
-    if (debug && nit<nitdebug && s) {
+    if (debug > 1 && nit<nitdebug && s) {
       cout << "Significant update for FO " << i-fitobjects.begin() << " (" 
            << fo->getName() << ")\n";
     }
@@ -1010,31 +1012,41 @@ void NewtonFitterGSL::calcCovMatrix() {
   gsl_matrix_view dydeta  = gsl_matrix_submatrix (M1, 0, 0, idim, npar);
   gsl_matrix_view Cov_eta = gsl_matrix_submatrix (M2, 0, 0, npar, npar);
   
-  cout << "NewtonFitterGSL::calcCovMatrix\n";
-  debug_print (&dydeta.matrix, "dydeta");
-  debug_print (&Cov_eta.matrix, "Cov_eta");
+  if (debug > 3) {
+    cout << "NewtonFitterGSL::calcCovMatrix\n";
+    debug_print (&dydeta.matrix, "dydeta");
+    debug_print (&Cov_eta.matrix, "Cov_eta");\
+  }  
   
   calcM();
-  debug_print (M, "M");
+  if (debug > 3) {
+    debug_print (M, "M");
+  }  
   
   // Now, solve M*dadeta = dydeta
 
   // Calculate LU decomposition of M into M3
   int signum;
   int result = gsl_linalg_LU_decomp (M, permM, &signum);
-  cout << "invertM: gsl_linalg_LU_decomp result=" << result << endl;
-  debug_print (M, "M_LU"); 
+  if (debug > 3) {
+    cout << "invertM: gsl_linalg_LU_decomp result=" << result << endl;
+    debug_print (M, "M_LU"); 
+  }  
   // Calculate inverse of M, store in M3
   int ifail = gsl_linalg_LU_invert (M, permM, M3);
-  cout << "invertM: gsl_linalg_LU_invert ifail=" << ifail << endl;
- 
-  debug_print (M3, "Minv");
+  
+  if (debug > 3) {
+    cout << "invertM: gsl_linalg_LU_invert ifail=" << ifail << endl;
+    debug_print (M3, "Minv");
+  }
 
   // Calculate dadeta = M3*dydeta
   gsl_matrix_set_zero (M4);
   gsl_matrix_view dadeta   = gsl_matrix_submatrix (M4, 0, 0, idim, npar);
 
-  debug_print (&dadeta.matrix, "dadeta");
+  if (debug > 3) {
+    debug_print (&dadeta.matrix, "dadeta");
+  }
   
   // dadeta = 1*M*dydeta + 0*dadeta
   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, M3, &dydeta.matrix, 0, &dadeta.matrix);
@@ -1050,10 +1062,12 @@ void NewtonFitterGSL::calcCovMatrix() {
   gsl_matrix_view  Cov_a = gsl_matrix_submatrix (M5, 0, 0, npar, npar);
   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dadeta.matrix, &M3part.matrix, 0, M5);
 
-  debug_print (&Cov_a.matrix, "Cov_a");
-
-  // debug_print (CCinv, "full Cov from err prop");
-  // debug_print (M1, "uncorr Cov from err prop");
+  if (debug > 3) {
+    debug_print (&Cov_a.matrix, "Cov_a");
+    debug_print (CCinv, "full Cov from err prop");
+    debug_print (M1, "uncorr Cov from err prop");
+  }
+  
     // Finally, copy covariance matrix
   if (cov && covDim != npar) {
     delete[] cov;

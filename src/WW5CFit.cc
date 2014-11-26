@@ -69,15 +69,32 @@ WW5CFit::WW5CFit() : Processor("WW5CFit") {
                               "Center-of-Mass Energy in GeV",
                               _ecm,
                               (float)500.);
+                              
   registerProcessorParameter( "FitISR" ,
                               "0: Fit hypothesis without ISR   1: Fit hypothesis including ISR",
                               _fitISR,
                               (int) 1);
+                              
   registerProcessorParameter( "ISRPzMax" ,
                               "Maximum possible energy for a single ISR photon",
                               _isrpzmax,
                               (float)225.);
 
+  registerProcessorParameter( "fitter" ,
+                              "0 = OPALFitter, 1 = NewFitter, 2 = NewtonFitter",
+                              _ifitter,
+                              (int)0);
+                              
+  registerProcessorParameter( "traceall" ,
+                              "set true if every event should be traced",
+                              _traceall,
+                              (bool)false);
+                              
+  registerProcessorParameter( "ievttrace" ,
+                              "number of individual event to be traced",
+                              _ievttrace,
+                              (int)0);
+                              
 }
 
 
@@ -385,16 +402,24 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          hRecWMassNoFitAll->fill( 0.5*(startmass1 + startmass2) ) ;
          //hRecWMassNoFitAll->fill( startmass2 ) ;
 #endif
-	 NewtonFitterGSL fitter;
-         // NewFitterGSL fitter;
-	 // OPALFitterGSL fitter;
-
-         // TextTracer tracer (std::cout);
+         BaseFitter *pfitter;
+         if (_ifitter == 1) {
+           pfitter = new NewFitterGSL();
+           (dynamic_cast<NewFitterGSL*>(pfitter))->setDebug (1);
+         }
+         else if (_ifitter == 2) {
+           pfitter = new NewtonFitterGSL();
+           (dynamic_cast<NewtonFitterGSL*>(pfitter))->setDebug (1);
+         }
+         else {
+           // OPALFitter has no method setDebug !
+           pfitter = new OPALFitterGSL();
+         }
+         BaseFitter &fitter = *pfitter;
+  
+         TextTracer tracer (std::cout);
+         if (evt->getEventNumber()== _ievttrace || _traceall) fitter.setTracer (tracer);
          
-         // if (evt->getEventNumber() == 49) {
-         //  fitter.setTracer (tracer);
-         //  fitter.setDebug (10);
-         //}
          for (int i = 0; i < NJETS; ++i)
             fitter.addFitObject (*(permutedjets[i]));
          if(_fitISR){

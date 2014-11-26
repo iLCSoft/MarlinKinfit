@@ -185,6 +185,7 @@ bool JetFitObject::updateParams (double p[], int idim) {
     th = M_PI-th;
     ph = M_PI+ph;
   }
+  
   double massPlusEpsilon = mass*(1.0000001);
   if (e < massPlusEpsilon) e = massPlusEpsilon;
   
@@ -333,7 +334,7 @@ void   JetFitObject::addTo2ndDerivatives (double der2[], int idim,
   if (!cachevalid) updateCache();
   // for numerical accuracy, add up derivatives first,
   // then add them to global vector
-  double der_EE   = 0;
+  double der_EE   = 0;  
   double der_Eth  = 0;
   double der_Eph  = 0;
   double der_thth = 0;
@@ -445,33 +446,27 @@ void JetFitObject::updateCache() const {
   cphi   = cos(phi);
   sphi   = sin(phi);
 
-  if (mass > 0) {
-    p2 = std::abs(e*e-mass*mass);
-    p = std::sqrt(p2);
-    dpdE = e/p;
-    assert (p != 0);
-  }
-  else {
-    p2 = e*e;
-    p = e;
-    dpdE = 1;
-  }
-  pt = p*stheta;
+  p2 = std::abs(e*e-mass*mass);
+  p = std::sqrt(p2);
+  assert (p != 0);
 
+  pt = p*stheta;
   px = pt*cphi;
   py = pt*sphi;
   pz = p*ctheta;
+  
+  dpdE = e/p;
   dptdE = dpdE*stheta;
   dpxdE = dptdE*cphi;
   dpydE = dptdE*sphi;
   dpzdE = dpdE*ctheta;
+  
   dpxdtheta = pz*cphi;
   dpydtheta = pz*sphi;
+  
   // dpzdtheta = -p*stheta = -pt
   // dpxdphi  = -pt*sphi  = -py
   // dpydphi  =  pt*cphi  = px
-//   d2pdE2 
-//   d2ptsE2
 
 
   cachevalid = true;
@@ -482,28 +477,24 @@ double JetFitObject::getError2 (double der[]) const {
   double cov4[4][4]; // covariance of E, px, py, px
   cov4[0][0] =                      cov[0][0];       // E, E
   cov4[0][1] = cov4[1][0] =                          // E, px 
-        dpxdE*cov[0][0] + dpxdtheta*cov[0][1] - py*cov[0][2]; 
+        dpxdE*cov[0][0]       + dpxdtheta*cov[0][1]   - py*cov[0][2]; 
   cov4[0][2] = cov4[2][0] =                          // E, py
-        dpydE*cov[0][0] + dpydtheta*cov[0][1] + px*cov[0][2]; 
+        dpydE*cov[0][0]       + dpydtheta*cov[0][1]   + px*cov[0][2]; 
   cov4[0][3] = cov4[3][0] =                          // E, pz
-        dpzdE*cov[0][0] - pt*cov[0][1]; 
+        dpzdE*cov[0][0]       - pt*cov[0][1]; 
   cov4[1][1] =                                       // px, px
-       dpxdE*(dpxdE*cov[0][0] + 2*dpxdtheta*cov[0][1] - 2*py*cov[0][2])
-     + dpxdtheta*(dpxdtheta*cov[1][1] - 2*py*cov[1][2]) + py*py*cov[2][2]; 
+       dpxdE*(dpxdE*cov[0][0] + 2*dpxdtheta*cov[0][1] - 2*py*cov[0][2]) + dpxdtheta*(                  dpxdtheta*cov[1][1] - 2*py*cov[1][2]) + py*py*cov[2][2]; 
   cov4[1][2] = cov4[2][1] =                         // px, py
-       dpydE*(dpxdE*cov[0][0] + dpxdtheta*cov[0][1] - py*cov[0][2])
-    + dpydtheta*(dpxdE*cov[0][1] + dpxdtheta*cov[1][1] - py*cov[1][2]) + px*(dpxdE*cov[0][2] + dpxdtheta*cov[1][2] - py*cov[2][2]); 
+       dpydE*(dpxdE*cov[0][0] + dpxdtheta*cov[0][1]   - py*cov[0][2])   + dpydtheta*(dpxdE*cov[0][1] + dpxdtheta*cov[1][1] - py*cov[1][2])  + px*(dpxdE*cov[0][2] + dpxdtheta*cov[1][2] - py*cov[2][2]); 
   cov4[1][3] = cov4[3][1] =                         // px, pz
-       dpzdE*(dpxdE*cov[0][0] + dpxdtheta*cov[0][1] - py*cov[0][2])
-    - pt*(dpxdE*cov[0][1] + dpxdtheta*cov[1][1] - py*cov[1][2]); 
+       dpzdE*(dpxdE*cov[0][0] + dpxdtheta*cov[0][1]   - py*cov[0][2])   - pt*       (dpxdE*cov[0][1] + dpxdtheta*cov[1][1] - py*cov[1][2]); 
   cov4[2][2] =                                       // py, py
-       dpydE*(dpydE*cov[0][0] + 2*dpydtheta*cov[0][1] + 2*px*cov[0][2])
-     + dpydtheta*(dpydtheta*cov[1][1] + 2*px*cov[1][2]) + px*px*cov[2][2]; 
+       dpydE*(dpydE*cov[0][0] + 2*dpydtheta*cov[0][1] + 2*px*cov[0][2]) + dpydtheta*(                  dpydtheta*cov[1][1] + 2*px*cov[1][2]) + px*px*cov[2][2]; 
   cov4[2][3] = cov4[3][2] =                          // py, pz
-       dpzdE*(dpydE*cov[0][0] + dpydtheta*cov[0][1] + px*cov[0][2])
-    - pt*(dpydE*cov[0][1] + dpydtheta*cov[1][1] + px*cov[1][2]); 
+       dpzdE*(dpydE*cov[0][0] + dpydtheta*cov[0][1]   + px*cov[0][2])   - pt*       (dpydE*cov[0][1] + dpydtheta*cov[1][1] + px*cov[1][2]); 
   cov4[3][3] =                                      // pz, pz
-       dpzdE*(dpzdE*cov[0][0] - 2*pt*cov[0][1]) + pt*pt*cov[1][1]; 
+       dpzdE*(dpzdE*cov[0][0] - 2*pt*cov[0][1])                                                      + pt*pt*cov[1][1]; 
+       
   return der[0]*(der[0]*cov4[0][0] + 2*der[1]*cov4[0][1] + 2*der[2]*cov4[0][2] + 2*der[3]*cov4[0][3])
                              + der[1]*(der[1]*cov4[1][1] + 2*der[2]*cov4[1][2] + 2*der[3]*cov4[1][3])
                                                    + der[2]*(der[2]*cov4[2][2] + 2*der[3]*cov4[2][3])

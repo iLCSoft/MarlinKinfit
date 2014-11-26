@@ -101,6 +101,7 @@ void TextTracer::printFitObjects (BaseFitter& fitter) {
 void TextTracer::printConstraints (BaseFitter& fitter) {
   chi2sc = 0;
   sumhc = 0;
+  sumhcscal = 0;
   ConstraintContainer* constraints = fitter.getConstraints();
   if (constraints && constraints->size() > 0) {
     os << "Hard Constraints:\n";

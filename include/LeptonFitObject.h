@@ -14,8 +14,8 @@
 
 class LeptonFitObject : public ParticleFitObject {
   public:
-    LeptonFitObject(double Pt, double theta, double phi, 
-                 double DPt, double Dtheta, double Dphi, 
+    LeptonFitObject(double ptinv, double theta, double phi, 
+                 double Dptinv, double Dtheta, double Dphi, 
                  double m = 0);
     virtual ~LeptonFitObject();
 
@@ -118,12 +118,12 @@ class LeptonFitObject : public ParticleFitObject {
   
     mutable bool cachevalid;
     
-    mutable double ctheta, stheta, cphi, sphi, cottheta,
-      p2, p, e, e2, pt, px, py, pz, dpdPt, dptdPt, 
-      dpxdPt, dpydPt, dpzdPt, dpxdtheta, dpydtheta, dpzdtheta, dpxdphi, dpydphi,
-      chi2, dEdPt, dEdtheta;
+    mutable double ctheta, stheta, stheta2, cphi, sphi, cottheta,
+      p2, p, e, e2, pt, pt2, pt3, px, py, pz, dpdptinv, dpdtheta, dptdptinv, 
+      dpxdptinv, dpydptinv, dpzdptinv, dpxdtheta, dpydtheta, dpzdtheta, dpxdphi, dpydphi,
+      chi2, dEdptinv, dEdtheta, dEdp;
                       
-    static bool adjustPtThetaPhi (double& m, double &Pt, double& theta, double& phi);
+    static bool adjustPtinvThetaPhi (double& m, double &ptinv, double& theta, double& phi);
     
     /// Calculate chi2 
     double calcChi2 () const;

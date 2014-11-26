@@ -12,6 +12,7 @@
 #include "TopEventILC.h"
 
 #include "JetFitObject.h"
+#include "LeptonFitObject.h"
 #include "NeutrinoFitObject.h"
 #include "MassConstraint.h"
 
@@ -25,6 +26,8 @@ using std::cout;
 using std::endl;
 using std::abs;
 using std::sqrt;
+using std::cos;
+using std::sin;
 
 // constructor: 
 TopEventILC::TopEventILC()
@@ -66,6 +69,17 @@ double TopEventILC::bwrandom (double r, double e0, double gamma, double emin, do
 
 // generate four vectors
 void TopEventILC::genEvent(){
+
+    // reset all constraints
+    pxc.resetFOList();
+    pyc.resetFOList();
+    pzc.resetFOList();
+    ec.resetFOList();
+    w1.resetFOList();
+    w2.resetFOList();
+    w.resetFOList();
+   
+   
   // generate 4-vectors of top-decay:
   // 0: top-top-system -> top1 top2
   // 1: top 1 -> W1 b1
@@ -98,8 +112,8 @@ void TopEventILC::genEvent(){
   FourVector *top2 = fv[2] = new FourVector (mtop2, 0, 0, 0);
   
   toppair->decayto (*top1, *top2);
-  // cout << "top 1: m=" << mtop1 << " = " << top1->getM() << endl;
-  // cout << "top 2: m=" << mtop2 << " = " << top2->getM() << endl;
+  cout << "top 1: m=" << mtop1 << " = " << top1->getM() << endl;
+  cout << "top 2: m=" << mtop2 << " = " << top2->getM() << endl;
   
   double mw1 = bwrandom (rw[2], mW, gammaW, mW-3*gammaW, mW+3*gammaW);
   double mw2 = bwrandom (rw[3], mW, gammaW, mW-3*gammaW, mW+3*gammaW);
@@ -108,8 +122,8 @@ void TopEventILC::genEvent(){
   FourVector *W2 = fv[4] = new FourVector (mw2, 0, 0, 0);
   FourVector *b1 = fv[5] = new FourVector (mb, 0, 0, 0);
   FourVector *b2 = fv[8] = new FourVector (mb, 0, 0, 0);
-  // cout << "W 1: m=" << mw1 << " = " << W1->getM() << endl;
-  // cout << "W 2: m=" << mw2 << " = " << W2->getM() << endl;
+  cout << "W 1: m=" << mw1 << " = " << W1->getM() << endl;
+  cout << "W 2: m=" << mw2 << " = " << W2->getM() << endl;
   
   top1->decayto (*W1, *b1);
   top2->decayto (*W2, *b2);
@@ -136,12 +150,26 @@ void TopEventILC::genEvent(){
     double E = fv[i]->getE();
     double theta = fv[i]->getTheta();
     double phi = fv[i]->getPhi();
-    double EError = (j==4 && leptonic) ? Eresolem*sqrt(E) : Eresolhad*sqrt(E);
+    double ptinv = 1/(fv[i]->getPt());
+    //double EError = (j==4 && leptonic) ? Eresolem*sqrt(E) : Eresolhad*sqrt(E);
+    double EError = Eresolhad*sqrt(E);  // for jets
+    // for lepton, EError is sigma(1/pt)
+    if (j==4 && leptonic) EError = ptinv*ptinv*sqrt(pow(sin(theta)*Eresolem*sqrt(E),2)+pow(E*cos(theta)*thetaResol,2));
     
     static const char *names[] = {"b1", "j11", "j12", "b2", "j21", "j22"};
     // Create fit object with true quantities for later comparisons
-    bfo[j] = new JetFitObject (E, theta, phi, EError, thetaResol, phiResol, 0);
-    bfo[j]->setName (names[j]);
+    if (j < 4 || !leptonic) {
+      bfo[j] = new JetFitObject (E, theta, phi, EError, thetaResol, phiResol, 0);
+      bfo[j]->setName (names[j]);
+    }  
+    else if (j == 4 && leptonic) {
+      bfo[4] = new LeptonFitObject (ptinv, theta, phi, EError, thetaResol, phiResol, 0.);
+      bfo[4]->setName ("e22");
+    }  
+    else if (j == 5 && leptonic) {
+      bfo[5] = new NeutrinoFitObject (E, theta, phi, 10, 0.2, 0.2);
+      bfo[5]->setName ("n22");
+    }  
     
     double randoms[3];
     if (rnd == 0) rnd = new TRandom3();
@@ -151,16 +179,26 @@ void TopEventILC::genEvent(){
     double ESmear = E + EError*randoms[0];
     double thetaSmear = theta + thetaResol*randoms[1];
     double phiSmear = phi + phiResol*randoms[2];
+    double ptinvSmear = 1./abs(ESmear*sin(thetaSmear));
     
     
-    if (j != 5 || !leptonic) {
+    if (j < 4 || !leptonic) {
       bfosmear[j] = new JetFitObject (ESmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
       bfosmear[j]->setName (names[j]);
       pxtot += bfosmear[j]->getPx();
       pytot += bfosmear[j]->getPy();
       pztot += bfosmear[j]->getPz();
     }
-    else {
+    else if (j == 4 && leptonic) {
+      bfosmear[4] = new LeptonFitObject (ptinvSmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
+      pxtot += bfosmear[4]->getPx();
+      pytot += bfosmear[4]->getPy();
+      pztot += bfosmear[4]->getPz(); 
+      cout << "Lepton: px = " << bfosmear[4]->getPx() << ", py = " << bfosmear[4]->getPy() 
+            << ", pz = " << bfosmear[4]->getPz() << endl;
+      bfosmear[4]->setName ("e22");
+    }
+    else if (j == 5 && leptonic) {
       double pxn = -pxtot;
       double pyn = -pytot;
       double pzn = -pztot;
@@ -170,8 +208,8 @@ void TopEventILC::genEvent(){
       bfosmear[5] = new NeutrinoFitObject (en, theta, phi, 10, 0.2, 0.2);
     
       bfosmear[5]->setName ("n22");
-      // cout << "Neutrino: px=" << bfosmear[5]->getPx() << ", py=" << bfosmear[5]->getPy() 
-      //      << ", pz=" << bfosmear[5]->getPz() << endl;
+      cout << "Neutrino: px = " << bfosmear[5]->getPx() << ", py = " << bfosmear[5]->getPy() 
+           << ", pz = " << bfosmear[5]->getPz() << endl;
     }
     fvsmear[i] = new FourVector (bfosmear[j]->getE(), bfosmear[j]->getPx(), bfosmear[j]->getPy(), bfosmear[j]->getPz());
     
@@ -207,7 +245,7 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
   // reset lists of constraints and fitobjects
   fitter.reset();
   
-  int debug = 0;
+  int debug = 1;
   
   if (debug) {
     cout << "TopEventILC::fitEvent: ==================================================\n";
