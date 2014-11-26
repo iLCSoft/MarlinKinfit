@@ -186,19 +186,19 @@ double OPALFitterGSL::fit() {
   assert (Fetaxi && (int)Fetaxi->size1 == ncon && (int)Fetaxi->size2 == npar);
   assert (S && (int)S->size1 == ncon && (int)S->size2 == ncon);
   assert (Sinv && (int)Sinv->size1 == ncon && (int)Sinv->size2 == ncon);
-  assert (nunm == 0 || SinvFxi && (int)SinvFxi->size1 == ncon && (int)SinvFxi->size2 == nunm);
+  assert (nunm == 0 || (SinvFxi && (int)SinvFxi->size1 == ncon && (int)SinvFxi->size2 == nunm));
   assert (SinvFeta && (int)SinvFeta->size1 == ncon && (int)SinvFeta->size2 == nmea);
-  assert (nunm==0 || W1 && (int)W1->size1 == nunm && (int)W1->size2 == nunm);
+  assert (nunm==0 || (W1 && (int)W1->size1 == nunm && (int)W1->size2 == nunm));
   assert (G && (int)G->size1 == nmea && (int)G->size2 == nmea);
-  assert (nunm==0 || H && (int)H->size1 == nmea && (int)H->size2 == nunm);
-  assert (nunm==0 || HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm);
+  assert (nunm==0 || (H && (int)H->size1 == nmea && (int)H->size2 == nunm));
+  assert (nunm==0 || (HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm));
   assert (IGV && (int)IGV->size1 == nmea && (int)IGV->size2 == nmea);
   assert (V && (int)V->size1 == npar && (int)V->size2 == npar);
   assert (VLU && (int)VLU->size1 == nmea && (int)VLU->size2 == nmea);
   assert (Vinv && (int)Vinv->size1 == nmea && (int)Vinv->size2 == nmea);
   assert (Vnew && (int)Vnew->size1 == npar && (int)Vnew->size2 == npar);
-  assert (nunm==0 || dxi && (int)dxi->size == nunm);
-  assert (nunm==0 || Fxidxi &&  (int)Fxidxi->size == ncon);
+  assert (nunm==0 || (dxi && (int)dxi->size == nunm));
+  assert (nunm==0 || (Fxidxi &&  (int)Fxidxi->size == ncon));
   assert (lambda && (int)lambda->size == ncon);
   assert (FetaTlambda && (int)FetaTlambda->size == nmea);
   assert (etaxi && (int)etaxi->size == npar);
@@ -208,7 +208,7 @@ double OPALFitterGSL::fit() {
   assert (Vinvy_eta && (int)Vinvy_eta->size == nmea);
   assert (FetaV && (int)FetaV->size1 == ncon && (int)FetaV->size2 == nmea);
   assert (permS && (int)permS->size == ncon);
-  assert (nunm==0 || permU && (int)permU->size == nunm);
+  assert (nunm==0 || (permU && (int)permU->size == nunm));
   assert (permV && (int)permV->size == nmea);
       
   // eta is the part of etaxi containing the measured quantities
@@ -558,7 +558,7 @@ double OPALFitterGSL::fit() {
       calcerr = false;
       ierr = 2;
     }  
-    else if (sbad && nit > 1 || !updatesuccess) {
+    else if ((sbad && nit > 1) || !updatesuccess) {
 // *-- ChiK increased, try smaller step
       if ( alph == almin ) {
         repeat = true;   // false;
@@ -847,19 +847,19 @@ bool OPALFitterGSL::initialize() {
   assert (Fetaxi && (int)Fetaxi->size1 == ncon && (int)Fetaxi->size2 == npar);
   assert (S && (int)S->size1 == ncon && (int)S->size2 == ncon);
   assert (Sinv && (int)Sinv->size1 == ncon && (int)Sinv->size2 == ncon);
-  assert (nunm == 0 || SinvFxi && (int)SinvFxi->size1 == ncon && (int)SinvFxi->size2 == nunm);
+  assert (nunm == 0 || (SinvFxi && (int)SinvFxi->size1 == ncon && (int)SinvFxi->size2 == nunm));
   assert (SinvFeta && (int)SinvFeta->size1 == ncon && (int)SinvFeta->size2 == nmea);
-  assert (nunm==0 || W1 && (int)W1->size1 == nunm && (int)W1->size2 == nunm);
+  assert (nunm==0 || (W1 && (int)W1->size1 == nunm && (int)W1->size2 == nunm));
   assert (G && (int)G->size1 == nmea && (int)G->size2 == nmea);
-  assert (nunm==0 || H && (int)H->size1 == nmea && (int)H->size2 == nunm);
-  assert (nunm==0 || HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm);
+  assert (nunm==0 || (H && (int)H->size1 == nmea && (int)H->size2 == nunm));
+  assert (nunm==0 || (HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm));
   assert (IGV && (int)IGV->size1 == nmea && (int)IGV->size2 == nmea);
   assert (V && (int)V->size1 == npar && (int)V->size2 == npar);
   assert (VLU && (int)VLU->size1 == nmea && (int)VLU->size2 == nmea);
   assert (Vinv && (int)Vinv->size1 == nmea && (int)Vinv->size2 == nmea);
   assert (Vnew && (int)Vnew->size1 == npar && (int)Vnew->size2 == npar);
-  assert (nunm==0 || dxi && (int)dxi->size == nunm);
-  assert (nunm==0 || Fxidxi && (int)Fxidxi->size == ncon);
+  assert (nunm==0 || (dxi && (int)dxi->size == nunm));
+  assert (nunm==0 || (Fxidxi && (int)Fxidxi->size == ncon));
   assert (lambda && (int)lambda->size == ncon);
   assert (FetaTlambda && (int)FetaTlambda->size == nmea);
   assert (etaxi && (int)etaxi->size == npar);
@@ -870,7 +870,7 @@ bool OPALFitterGSL::initialize() {
   assert (FetaV && (int)FetaV->size1 == ncon && (int)FetaV->size2 == nmea);
   assert (permS && (int)permS->size == ncon);
   assert (permS && (int)permS->size == ncon);
-  assert (nunm==0 || permU && (int)permU->size == nunm);
+  assert (nunm==0 || (permU && (int)permU->size == nunm));
   assert (permV && (int)permV->size == nmea);
 
   
