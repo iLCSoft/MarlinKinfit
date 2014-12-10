@@ -28,14 +28,25 @@ using std::abs;
 using std::sqrt;
 using std::cos;
 using std::sin;
+//static  double mtop = 174;
+//static  double gammatop = 1.4;
+//static  double mW   = 80.4;
+//static  double gammaW = 2.1;
+//static  double mb   = 5.0;
+//static  double mj   = 1.0;
+//static  double Ecm = 500;
 
 // constructor: 
 TopEventILC::TopEventILC()
-: leptonic (false),
+: leptonic (false), leptonasjet (false), debug (false),
   pxc (1, 0),
   pyc (0, 1),
   pzc (0, 0, 1),
   ec  (0, 0, 0, 1, 500)
+  //, 
+  //w1 (gammaW/(2.*sqrt(0.805)), mW),  // Thesis Jenny p44
+  //w2 (gammaW/(2.*sqrt(0.805)), mW),
+  //w (gammatop/sqrt(0.805))
   {
   for (int i = 0; i < NFV; ++i) fv[i] = 0;
   for (int i = 0; i < NBFO; ++i) bfo[i] = bfosmear[i] = 0;
@@ -112,8 +123,10 @@ void TopEventILC::genEvent(){
   FourVector *top2 = fv[2] = new FourVector (mtop2, 0, 0, 0);
   
   toppair->decayto (*top1, *top2);
-  cout << "top 1: m=" << mtop1 << " = " << top1->getM() << endl;
-  cout << "top 2: m=" << mtop2 << " = " << top2->getM() << endl;
+  if (debug) {
+    cout << "top 1: m=" << mtop1 << " = " << top1->getM() << endl;
+    cout << "top 2: m=" << mtop2 << " = " << top2->getM() << endl;
+  }  
   
   double mw1 = bwrandom (rw[2], mW, gammaW, mW-3*gammaW, mW+3*gammaW);
   double mw2 = bwrandom (rw[3], mW, gammaW, mW-3*gammaW, mW+3*gammaW);
@@ -122,14 +135,17 @@ void TopEventILC::genEvent(){
   FourVector *W2 = fv[4] = new FourVector (mw2, 0, 0, 0);
   FourVector *b1 = fv[5] = new FourVector (mb, 0, 0, 0);
   FourVector *b2 = fv[8] = new FourVector (mb, 0, 0, 0);
-  cout << "W 1: m=" << mw1 << " = " << W1->getM() << endl;
-  cout << "W 2: m=" << mw2 << " = " << W2->getM() << endl;
+  if (debug) {
+    cout << "W 1: m=" << mw1 << " = " << W1->getM() << endl;
+    cout << "W 2: m=" << mw2 << " = " << W2->getM() << endl;
+  }  
   
   top1->decayto (*W1, *b1);
   top2->decayto (*W2, *b2);
   
   FourVector *j11 = fv[6]  = new FourVector (mj, 0, 0, 0);
   FourVector *j12 = fv[7]  = new FourVector (mj, 0, 0, 0);
+  if (leptonic) mj = 0; // W2 decays to "massless" particles
   FourVector *j21 = fv[9]  = new FourVector (mj, 0, 0, 0);
   FourVector *j22 = fv[10] = new FourVector (mj, 0, 0, 0);
   
@@ -140,7 +156,10 @@ void TopEventILC::genEvent(){
   double Eresolem = 0.10;     // 10% / sqrt (E)
   double thetaResol = 0.1;  // rad
   double phiResol = 0.1;    // rad
+  double thetaResolTrack = 0.001;  // rad
+  double phiResolTrack = 0.001;    // rad
   
+  double Etot=0;
   double pxtot=0;
   double pytot=0;
   double pztot=0;
@@ -153,23 +172,39 @@ void TopEventILC::genEvent(){
     double ptinv = 1/(fv[i]->getPt());
     //double EError = (j==4 && leptonic) ? Eresolem*sqrt(E) : Eresolhad*sqrt(E);
     double EError = Eresolhad*sqrt(E);  // for jets
-    // for lepton, EError is sigma(1/pt)
-    if (j==4 && leptonic) EError = ptinv*ptinv*sqrt(pow(sin(theta)*Eresolem*sqrt(E),2)+pow(E*cos(theta)*thetaResol,2));
+    //double ptinvError = ptinv*ptinv*sqrt(pow(sin(theta)*Eresolem*sqrt(E),2)+pow(E*cos(theta)*thetaResol,2));
+    double ptinvError = sqrt(pow(2E-5,2) + pow(1E-3*ptinv/sin(theta),2));
+    if (debug) {
+      cout << "particle " << j << ": pt = " << 1./ptinv << ", sin(theta) = " << sin(theta) 
+                               << ", ptinvError = " << ptinvError << endl;
+      cout << "particle " << j << ": E = " << E << ", EError = " << EError << endl;
+    }
+    if (j==4 && leptonic && leptonasjet) {
+        EError = Eresolem*sqrt(E);
+    }
     
     static const char *names[] = {"b1", "j11", "j12", "b2", "j21", "j22"};
     // Create fit object with true quantities for later comparisons
-    if (j < 4 || !leptonic) {
+    if (j < 4 || !leptonic || (j == 4 && leptonasjet)) {
       bfo[j] = new JetFitObject (E, theta, phi, EError, thetaResol, phiResol, 0);
       bfo[j]->setName (names[j]);
     }  
-    else if (j == 4 && leptonic) {
-      bfo[4] = new LeptonFitObject (ptinv, theta, phi, EError, thetaResol, phiResol, 0.);
-      bfo[4]->setName ("e22");
+    else if (j == 4 && leptonic && !leptonasjet) {
+      bfo[4] = new LeptonFitObject (ptinv, theta, phi, ptinvError, thetaResolTrack, phiResol, 0.);
+      if (debug) {
+        cout << "true Lepton: E = " << bfo[4]->getE() << ", px = " << bfo[4]->getPx() << ", py = " << bfo[4]->getPy() 
+             << ", pz = " << bfo[4]->getPz() << endl;
+      }       
     }  
     else if (j == 5 && leptonic) {
-      bfo[5] = new NeutrinoFitObject (E, theta, phi, 10, 0.2, 0.2);
+      bfo[5] = new NeutrinoFitObject (E, theta, phi, 20, 0.2, 0.2);
       bfo[5]->setName ("n22");
+      if (debug) {
+        cout << "true Neutrino: E = " << bfo[5]->getE() << ", px = " << bfo[5]->getPx() << ", py = " << bfo[5]->getPy() 
+             << ", pz = " << bfo[5]->getPz() << endl;
+      }       
     }  
+    if (j == 4 && leptonic) bfo[4]->setName ("e22");
     
     double randoms[3];
     if (rnd == 0) rnd = new TRandom3();
@@ -177,40 +212,72 @@ void TopEventILC::genEvent(){
     
     // Create fit object with smeared quantities as fit input
     double ESmear = E + EError*randoms[0];
+    double ptinvSmear = ptinv + ptinvError*randoms[0];
+    if (debug) {
+      cout << "ptinvSmear = " << ptinvSmear << ", ptinv = " << ptinv << ", ptinvError = " << ptinvError 
+           << ", randoms[0] = " << randoms[0] << endl;
+    }       
+
     double thetaSmear = theta + thetaResol*randoms[1];
     double phiSmear = phi + phiResol*randoms[2];
-    double ptinvSmear = 1./abs(ESmear*sin(thetaSmear));
+    double thetaSmearTrack = theta + thetaResolTrack*randoms[1];
+    double phiSmearTrack = phi + phiResolTrack*randoms[2];
     
     
-    if (j < 4 || !leptonic) {
+    if (j < 4 || !leptonic || (j == 4 && leptonasjet)) {
       bfosmear[j] = new JetFitObject (ESmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
       bfosmear[j]->setName (names[j]);
+      Etot  += bfosmear[j]->getE();
       pxtot += bfosmear[j]->getPx();
       pytot += bfosmear[j]->getPy();
       pztot += bfosmear[j]->getPz();
     }
-    else if (j == 4 && leptonic) {
-      bfosmear[4] = new LeptonFitObject (ptinvSmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
+    else if (j == 4 && leptonic && !leptonasjet) {
+      bfosmear[4] = new LeptonFitObject (ptinvSmear, thetaSmearTrack, phiSmearTrack, ptinvError, thetaResolTrack, phiResolTrack, 0.);
+      Etot  += bfosmear[4]->getE();
       pxtot += bfosmear[4]->getPx();
       pytot += bfosmear[4]->getPy();
       pztot += bfosmear[4]->getPz(); 
-      cout << "Lepton: px = " << bfosmear[4]->getPx() << ", py = " << bfosmear[4]->getPy() 
-            << ", pz = " << bfosmear[4]->getPz() << endl;
-      bfosmear[4]->setName ("e22");
+      if (debug) {
+        cout << "Lepton energy by hand, exact theta: e=sqrt(pow(pt/sintheta,2)+m*m) = " 
+             << sqrt(pow(1./ptinvSmear/sin(theta),2)+mj*mj) << endl;
+        cout << "Lepton energy by hand, smeared theta: e=sqrt(pow(pt/sintheta,2)+m*m) = " 
+             << sqrt(pow(1./ptinvSmear/sin(thetaSmearTrack),2)+mj*mj) << endl;
+        cout << "Lepton: E = " << bfosmear[4]->getE() << ", px = " << bfosmear[4]->getPx() << ", py = " << bfosmear[4]->getPy() 
+             << ", pz = " << bfosmear[4]->getPz() << endl;
+      }       
     }
     else if (j == 5 && leptonic) {
       double pxn = -pxtot;
       double pyn = -pytot;
       double pzn = -pztot;
-      double en =  sqrt (pxn*pxn+pyn*pyn+pzn*pzn);
-      double phi=atan2(pyn, pxn);
-      double theta = acos (pzn/en);
-      bfosmear[5] = new NeutrinoFitObject (en, theta, phi, 10, 0.2, 0.2);
+      double pn = sqrt(pxn*pxn+pyn*pyn+pzn*pzn);
+//      double en =  sqrt (pxn*pxn+pyn*pyn+pzn*pzn);
+      double en =  Ecm - Etot;
+      if (debug) {
+        cout << "Neutrino: pxn = " << pxn << ", pyn = " << pyn << ", pzn = " << pzn << ", pn = " << pn << ", en = " << en << endl;
+      }   
+//       if (en <= 0) {
+//         cout << "WARNING: negative missing energy = " << en << ", setting to pn = " << pn << ", true pn = " << bfo[5]->getE() << endl;
+//         en = pn;
+//       }   
+      double ptn = sqrt(pxn*pxn+pyn*pyn);
+      double theta = acos (pzn/pn); 
+      double phi = atan2 (pyn, pxn);
+      if (debug) {
+        cout << "Neutrino: en = " << en << ", theta = " << theta << ", phi = " << phi << endl;
+        cout << "Neutrino momenta by hand: px = " << ptn*cos(phi) << ", py = " << ptn*sin(phi) << ", pz = " << pn*cos(theta) << endl;
+      }   
+      bfosmear[5] = new NeutrinoFitObject (pn, theta, phi, 20, 0.2, 0.2);
     
       bfosmear[5]->setName ("n22");
-      cout << "Neutrino: px = " << bfosmear[5]->getPx() << ", py = " << bfosmear[5]->getPy() 
-           << ", pz = " << bfosmear[5]->getPz() << endl;
+      if (debug) {
+        cout << "Neutrino: E = " << bfosmear[5]->getE() << ", px = " << bfosmear[5]->getPx() << ", py = " << bfosmear[5]->getPy() 
+             << ", pz = " << bfosmear[5]->getPz() << endl;
+      }       
     }
+    if (j == 4 && leptonic) bfosmear[4]->setName ("e22");
+    
     fvsmear[i] = new FourVector (bfosmear[j]->getE(), bfosmear[j]->getPx(), bfosmear[j]->getPy(), bfosmear[j]->getPz());
     
     pxc.addToFOList (*bfosmear[j]);
@@ -236,16 +303,15 @@ void TopEventILC::genEvent(){
 // fit it!
 int TopEventILC::fitEvent (BaseFitter& fitter){
   
-//   for (int i = 0; i < 6; ++i) 
-//     cout << "true four-vector of jet " << i << ": " << *bfo[i] << endl;
-//   for (int i = 0; i < 6; ++i) 
-//     cout << "initial four-vector of jet " << i << ": " << *bfosmear[i] << endl;
-  
+  if (debug) {
+    for (int i = 0; i < 6; ++i) 
+      cout << "true four-vector of jet " << i << ": " << *bfo[i] << endl;
+    for (int i = 0; i < 6; ++i) 
+      cout << "initial four-vector of jet " << i << ": " << *bfosmear[i] << endl;
+  }
   
   // reset lists of constraints and fitobjects
   fitter.reset();
-  
-  int debug = 1;
   
   if (debug) {
     cout << "TopEventILC::fitEvent: ==================================================\n";
@@ -278,16 +344,9 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
   for (int i = 0; i < 6; i++) {
     assert (bfosmear[i]);
     fitter.addFitObject (*bfosmear[i]);
-//     pxc.addToFOList (*bfosmear[i]);
-//     pyc.addToFOList (*bfosmear[i]);
-//     w.addToFOList (*bfosmear[i], i<3?1:2);
   }
-//   
-//   w1.addToFOList (*bfosmear[1]);
-//   w1.addToFOList (*bfosmear[2]);
-//   w2.addToFOList (*bfosmear[4]);
-//   w2.addToFOList (*bfosmear[5]);
-  
+
+    
   fitter.addConstraint (pxc);
   fitter.addConstraint (pyc);
   fitter.addConstraint (pzc);
@@ -295,19 +354,27 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
   fitter.addConstraint (w);
   fitter.addConstraint (w1);
   fitter.addConstraint (w2);
+  //fitter.addSoftConstraint (w);
+  //fitter.addSoftConstraint (w1);
+  //fitter.addSoftConstraint (w2);
   
   double prob = fitter.fit();
   
-//   cout << "fit probability = " << prob << endl;
-//   for (int i = 0; i < 6; ++i) 
-//     cout << "final four-vector of jet " << i << ": " << *bfosmear[i] << endl;
-//   cout << "Constraint pxc: " << pxc.getValue() << endl;
-//   cout << "Constraint pxc: " << pxc.getValue() << endl;
-//   cout << "Constraint w:   " << w.getValue() << ", top mass: " << w.getMass() << endl;
-//   cout << "Constraint w1:  " << w1.getValue() << ", W mass: " << w1.getMass() << endl;
-//   cout << "Constraint w2:  " << w2.getValue() << ", W mass: " << w2.getMass() << endl;
-   cout << "fit probability = " << prob << ", top mass: " << w.getMass() << ", dof: " << fitter.getDoF() 
-        << ", iterations: " << fitter.getIterations() << endl;
+  if (debug) {
+    cout << "fit probability = " << prob << endl;
+    for (int i = 0; i < 6; ++i) 
+      cout << "final four-vector of jet " << i << ": " << *bfosmear[i] << endl;
+    cout << "Constraint ec: "  << ec.getValue()  << endl;
+    cout << "Constraint pxc: " << pxc.getValue() << endl;
+    cout << "Constraint pyc: " << pyc.getValue() << endl;
+    cout << "Constraint pzc: " << pzc.getValue() << endl;
+    cout << "Constraint w:   " << w.getValue() << ", top mass: " << w.getMass() << endl;
+    cout << "Constraint w1:  " << w1.getValue() << ", W mass: " << w1.getMass() << endl;
+    cout << "Constraint w2:  " << w2.getValue() << ", W mass: " << w2.getMass() << endl;
+
+    cout << "fit probability = " << prob << ", top mass: " << w.getMass() << ", dof: " << fitter.getDoF() 
+         << ", iterations: " << fitter.getIterations() << endl;
+  }       
 
   for (int j = 0; j < 6; ++j) {
     int i = j+5;
@@ -324,7 +391,7 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
     cout << "===============After Fiting ===================================\n";
     cout << "Final vectors: \n";
     for (int i = 0; i<6; ++i) {
-      cout << bfosmear[i]->getName() << ": " << *bfo[i] << endl;
+      cout << bfosmear[i]->getName() << ": " << *bfosmear[i] << endl;
     }
     cout << "Total: \n";
     cout << "gen:   " << *fv[0] << ", m=" << fv[0]->getM() << endl;

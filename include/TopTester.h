@@ -65,8 +65,8 @@ class TopTester : public Processor {
   /** Input parameter: center of mass energy, semileptonic?, which fitter.
    */
   float _ecm;
-  bool _semileptonic, _traceall;
-  int _ifitter, _ievttrace; 
+  bool _semileptonic, _traceall, _leptonasjet;
+  int _ifitter, _ievttrace, _ntoy; 
  
   float prob, topmass, startmassW1, startmassW2;
   float momentum[3], energy;

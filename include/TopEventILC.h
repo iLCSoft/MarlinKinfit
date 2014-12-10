@@ -19,6 +19,7 @@
 // #include "PxConstraint.h"
 // #include "PyConstraint.h"
 #include "MassConstraint.h"
+#include "SoftGaussMassConstraint.h"
 
 class TopEventILC : public BaseEvent {
   public: 
@@ -41,13 +42,16 @@ class TopEventILC : public BaseEvent {
     double getTop1Mass()  {return fvsmear[1]->getM();};
     double getTop2Mass()  {return fvsmear[2]->getM();};
     
+    void setDebug (bool _debug) {debug = _debug;};
+    
     ParticleFitObject* getTrueFitObject (int i) {return bfo[i];};
     ParticleFitObject* getSmearedFitObject (int i) {return bfosmear[i];};
     FourVector* getTrueFourVector (int i) {return fv[i];};
     
-    bool leptonic;
+    bool leptonic, leptonasjet, debug;
     
   protected:
+  
     enum {NFV = 11, NBFO = 6};
     FourVector *fv[NFV];
     FourVector *fvsmear[NFV];
@@ -62,6 +66,9 @@ class TopEventILC : public BaseEvent {
     MassConstraint w1;
     MassConstraint w2;
     MassConstraint w;
+    //SoftGaussMassConstraint w1;
+    //SoftGaussMassConstraint w2;
+    //SoftGaussMassConstraint w;
     
     
 
