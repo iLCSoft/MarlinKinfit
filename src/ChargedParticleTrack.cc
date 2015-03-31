@@ -462,7 +462,9 @@ void ChargedParticleTrack::getMomentumDerivativeAtTrajectoryEx (double s, int il
         double phi0plkappas = phi0 + kappas;
         double si = sin(phi0plkappas);
         double co = cos(phi0plkappas);
-        p.setValues (-beta*momentum/(energy*kappa),
+// original       p.setValues (-beta*momentum/(energy*kappa),
+// bug fix reported by D. Jeans March 2015
+        p.setValues (-beta*momentum/kappa,
                       momderfact*(co + kappas*si) ,
                       momderfact*(si - kappas*co) ,
                       momderfact*cottheta         );

@@ -385,7 +385,7 @@ void NeutralParticleTrack::addToGlobCov(double *glcov, int idim) const {
   bool ok [NPARMAX];
   for (int ilocal = 0; ilocal < getNPar(); ilocal++) {
     int iglobal = globalnum[ilocal] = getGlobalParNum(ilocal);
-    if (ok [iglobal] = (iglobal >= 0 && !isParamFixed(ilocal) && isParamMeasured (ilocal))) {
+    if (ok [ilocal] = (iglobal >= 0 && !isParamFixed(ilocal) && isParamMeasured (ilocal))) {
       for (int jlocal = 0; jlocal <= ilocal; jlocal++) {
         int jglobal = globalnum[jlocal];
         if (ok [jlocal]) {
