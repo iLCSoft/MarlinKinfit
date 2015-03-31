@@ -103,7 +103,7 @@ bool BaseFitObject::updateParams (double p[], int idim) {
   for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
     int iglobal = getGlobalParNum (ilocal);
     assert (iglobal >= 0 && iglobal < idim);
-    bool parameterChanged = setParam (ilocal, p[iglobal])
+    bool parameterChanged = setParam (ilocal, p[iglobal]);
     result = result || parameterChanged;
     // if illegal value: read back legal value
     p[iglobal] = getParam (ilocal);
