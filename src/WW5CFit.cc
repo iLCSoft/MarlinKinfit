@@ -141,6 +141,7 @@ void WW5CFit::processEvent( LCEvent * evt ) {
   static AIDA::IHistogram1D* hNItAll ;    
   static AIDA::IHistogram1D* hPhotonEnergy ;    
   static AIDA::IHistogram1D* hJetMass ;    
+  static AIDA::IHistogram1D* hFitError;    
              
     message<DEBUG>( log() 
 		      << " processing event " << evt->getEventNumber() 
@@ -182,6 +183,16 @@ void WW5CFit::processEvent( LCEvent * evt ) {
     hJetMass = 
       AIDAProcessor::histogramFactory(this)->
       createHistogram1D( "hJetMass", "Jet Mass", 200, 0., 100. ) ; 
+    if (_ifitter == 1) {
+      hFitError = 
+        AIDAProcessor::histogramFactory(this)->
+        createHistogram1D( "hFitError", "Error flag", 100, -0.5, 99.5 ) ; 
+    }
+    else {    
+      hFitError = 
+        AIDAProcessor::histogramFactory(this)->
+        createHistogram1D( "hFitError", "Error flag", 10, -0.5, 9.5 ) ; 
+    }    
 
   }
 
@@ -246,21 +257,25 @@ void WW5CFit::processEvent( LCEvent * evt ) {
              if (i == 0) { 
                j1 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
                   JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
+               j1->setName("Jet1");
                message<DEBUG>( log()  << " start four-vector of first  jet: " << *j1  ) ;
 	     }
              else if (i == 1) { 
                j2 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
                   JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
+               j2->setName("Jet2");
                message<DEBUG>( log() << " start four-vector of second  jet: " << *j2  ) ;
 	     }
              else if (i == 2) {
                j3 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
                   JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
+               j3->setName("Jet3");
                message<DEBUG>( log() << " start four-vector of third  jet: " << *j3  ) ;
 	     }
              else if (i == 3) { 
                j4 = new JetFitObject (lvec.e(), lvec.theta(), lvec.phi(),
                   JetEnergyResolution(lvec.e()), errtheta, errphi, lvec.m());
+               j4->setName("Jet4");
                message<DEBUG>( log() << " start four-vector of forth  jet: " << *j4  ) ;
 	     }
 #ifdef MARLIN_USE_AIDA
@@ -311,13 +326,18 @@ void WW5CFit::processEvent( LCEvent * evt ) {
 #endif           
        
        const int NJETS = 4;
+       message<DEBUG>( log()  << "*j1" << *j1  << "*j2" << *j2  << "*j3" << *j3  << "*j4" << *j4  ) ;
        
        // these get changed by the fit -> reset after each permutation!
        JetFitObject fitjets[NJETS] = {*j1, *j2, *j3, *j4};
+       for (int i = 0; i < NJETS; ++i)
+         message<DEBUG>( log()  << "fitjets[ " << i << "]: " << fitjets[i]  ) ;
  
        // these point allways to the fitjets array, which gets reset.
        JetFitObject *jets[NJETS];
        for (int i = 0; i < NJETS; ++i) jets[i] = &fitjets[i];
+       for (int i = 0; i < NJETS; ++i)
+         message<DEBUG>( log()  << "start four-vector of jets[ " << i << "]: " << *(jets[i])  ) ;
 
        FourJetPairing pairing (jets);
        JetFitObject *permutedjets[NJETS];
@@ -351,20 +371,23 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          //PConstraint pxc (1, 0);
          // crossing angle 14 mrad = 7/500
          PConstraint pxc (1, 0, 0, 0, 7.0);
+         pxc.setName("sum(p_x)");
          for (int i = 0; i < NJETS; ++i)
             pxc.addToFOList (*(permutedjets[i]));
         
          PConstraint pyc (0, 1);
+         pyc.setName("sum(p_y)");
          for (int i = 0; i < NJETS; ++i)
             pyc.addToFOList (*(permutedjets[i]));
         
          PConstraint pzc (0, 0, 1);
+         pzc.setName("sum(p_z)");
          for (int i = 0; i < NJETS; ++i)
             pzc.addToFOList (*(permutedjets[i]));
         
          message<DEBUG>( log() << "ECM = " << _ecm  ); 
 	 PConstraint ec(0, 0, 0, 1,_ecm);
-
+         ec.setName("sum(E)");
          for (int i = 0; i < NJETS; ++i)
             ec.addToFOList (*(permutedjets[i]));
         
@@ -405,11 +428,11 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          BaseFitter *pfitter;
          if (_ifitter == 1) {
            pfitter = new NewFitterGSL();
-           (dynamic_cast<NewFitterGSL*>(pfitter))->setDebug (1);
+           if (evt->getEventNumber()== _ievttrace || _traceall) (dynamic_cast<NewFitterGSL*>(pfitter))->setDebug (1);
          }
          else if (_ifitter == 2) {
            pfitter = new NewtonFitterGSL();
-           (dynamic_cast<NewtonFitterGSL*>(pfitter))->setDebug (1);
+           if (evt->getEventNumber()== _ievttrace || _traceall) (dynamic_cast<NewtonFitterGSL*>(pfitter))->setDebug (1);
          }
          else {
            // OPALFitter has no method setDebug !
@@ -449,6 +472,7 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          message<DEBUG>( log()  << "final mass of W 1: " << w.getMass(1) ) ;
 	 message<DEBUG>( log()  << "final mass of W 2: " << w.getMass(2) ) ;
                       
+         hFitError->fill( fitter.getError() ) ;
          if (fitter.getError() == 0) {
 #ifdef MARLIN_USE_AIDA
            hFitProbAll->fill( prob ) ;

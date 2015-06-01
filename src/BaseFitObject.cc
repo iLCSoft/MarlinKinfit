@@ -38,7 +38,7 @@ BaseFitObject::BaseFitObject(): name(0) {
 BaseFitObject::BaseFitObject (const BaseFitObject& rhs)
 : name(0)
 {
-  //std::cout << "copying BaseFitObject with name" << rhs.name << std::endl;
+  //std::cout << "copying BaseFitObject with name " << rhs.name << std::endl;
   if (rhs.name) setName(rhs.name);
   else setName ("???");
 }

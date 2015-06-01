@@ -15,7 +15,7 @@
 
  <global>
   <parameter name="LCIOInputFiles">
-/nfs/dust/ilc/group/ild/TEST/rv01-16-p05_500.sv01-14-01-p00.mILD_o1_v05.E500-TDR_ws.I250008.P4f_ww_h.eR.pL-00002-DST.slcio
+/nfs/dust/ilc/group/ild/ILCDirac_DBD/rv01-16-p05_500.sv01-14-01-p00.mILD_o1_v05.E500-TDR_ws.I250008.P4f_ww_h.eR.pL_dst_4128_1.slcio
 <!--/nfs/dust/ilc/group/ild/dbd-data/500/4f_6/E500-TDR_ws.P4f_ww_h.Gwhizard-1_95.eR.pL.I250008.001/SGVDST_E500-TDR_ws.P4f_ww_h.Gwhizard-1_95.eR.pL.I250008.001.slcio-->
  </parameter>
   <!-- limit the number of processed records (run+evt): -->  
@@ -31,7 +31,7 @@
   <!-- compression of output file?   0: false >0: true (default) -->
   <parameter name="Compress" type="int"> 1 </parameter>
   <!-- filename without extension-->
-  <parameter name="FileName" type="string"> TopTester </parameter>
+  <parameter name="FileName" type="string"> TopTester_New_alljets_MarlinKinfit2 </parameter>
   <!-- type of output file xml (default) or root ( only OpenScientist)-->
   <parameter name="FileType" type="string"> root </parameter>
   <parameter name="Verbosity" options="VERBOSE,DEBUG,MESSAGE,WARNING,ERROR,SILENT">ERROR</parameter> 
@@ -44,7 +44,7 @@
   <!-- number of toy events (default: 200) -->
   <parameter name="ntoy" type="int"> 100000 </parameter>
   <!-- set true if semi-leptonic ttbar events should be used (default: false) -->
-  <parameter name="semileptonic" type="bool"> true </parameter>
+  <parameter name="semileptonic" type="bool"> false </parameter>
   <!-- set true if lepton should be parametrised at JetFitObject (default: false) -->
   <parameter name="leptonasjet" type="bool"> false </parameter>
   <!-- 0 = OPALFitter, 1 = NewFitter, 2 = NewtonFitter (default: 0) -->
