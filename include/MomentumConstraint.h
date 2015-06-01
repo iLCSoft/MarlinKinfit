@@ -57,9 +57,12 @@ class MomentumConstraint : public ParticleConstraint {
                                 double der[]   ///< Array of derivatives, at least idim x idim 
                                ) const;
                                    
-    virtual void addToGlobalDerMatrix (double lambda, int idim, double *M) const;
+    // not used at all
+    //    virtual void addToGlobalDerMatrix (double lambda, int idim, double *M) const;
     
     virtual void invalidateCache() const;
+
+    virtual int getVarBasis() const;
   
   protected:
     void updateCache() const;
@@ -83,6 +86,9 @@ class MomentumConstraint : public ParticleConstraint {
     virtual bool firstDerivatives (int i,                        ///< number of 1st FitObject
                                    double *derivatives           ///< The result 4-vector
                                   ) const;
+
+    enum { VAR_BASIS=0 }; // this means that the constraint knows about E,px,py,pz
+
 };
 
 #endif // __MOMENTUMCONSTRAINT_H

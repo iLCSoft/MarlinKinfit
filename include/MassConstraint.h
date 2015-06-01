@@ -68,20 +68,25 @@ class MassConstraint : public ParticleConstraint {
     virtual void setMass (double mass_           ///< The new mass
                          );
     
+    virtual int getVarBasis() const;
   
   protected:
-    double mass;   ///< The mass difference between object sets 1 and 2
 
+    double mass;   ///< The mass difference between object sets 1 and 2
   
     /// Second derivatives with respect to the 4-vectors of Fit objects i and j; result false if all derivatives are zero 
     virtual bool secondDerivatives (int i,                        ///< number of 1st FitObject
                                     int j,                        ///< number of 2nd FitObject
                                     double *derivatives           ///< The result 4x4 matrix 
                                    ) const;
+
     /// First derivatives with respect to the 4-vector of Fit objects i; result false if all derivatives are zero 
     virtual bool firstDerivatives (int i,                        ///< number of 1st FitObject
                                    double *derivatives           ///< The result 4-vector
                                   ) const;
+
+    enum { VAR_BASIS=0 }; // this means that the constraint knows about E,px,py,pz
+
 };
 
 #endif // __MASSCONSTRAINT_H

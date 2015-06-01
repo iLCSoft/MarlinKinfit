@@ -20,6 +20,7 @@
 #define __SOFTBWPARTICLECONSTRAINT_H
 
 #include "BaseSoftConstraint.h"
+#include "BaseFitObject.h"
 
 #include<vector>
 #include<cassert>
@@ -170,6 +171,7 @@ class SoftBWParticleConstraint: public BaseSoftConstraint {
     /// 2nd derivative of penalty function h''(e), e is the value of the constraint
     double penalty2ndder (double e) const;
     
+    int getVarBasis() const;
   
   protected:
   
@@ -207,6 +209,8 @@ class SoftBWParticleConstraint: public BaseSoftConstraint {
     mutable double atanxmin;
     mutable double atanxmax;
     mutable double diffatanx;
+
+    enum { VAR_BASIS=BaseDefs::VARBASIS_EPXYZ }; // this means that the constraint knows about E,px,py,pz
 
 };
 

@@ -21,7 +21,7 @@
 #include <CLHEP/Vector/LorentzVector.h>
 #include "JetFitObject.h"
 #include "ISRPhotonFitObject.h"
-#include "PConstraint.h"
+#include "MomentumConstraint.h"
 #include "OPALFitterGSL.h"
 #include "NewFitterGSL.h"
 #include "TextTracer.h"
@@ -368,25 +368,25 @@ void WW5CFit::processEvent( LCEvent * evt ) {
          for (int i = 0; i < NJETS; ++i)
             message<DEBUG>( log()  << "start four-vector of jet " << i << ": " << *(permutedjets[i])  ) ;
                               
-         //PConstraint pxc (1, 0);
+         //MomentumConstraint pxc (1, 0);
          // crossing angle 14 mrad = 7/500
-         PConstraint pxc (1, 0, 0, 0, 7.0);
+         MomentumConstraint pxc (0, 1, 0, 0, 7.0);
          pxc.setName("sum(p_x)");
          for (int i = 0; i < NJETS; ++i)
             pxc.addToFOList (*(permutedjets[i]));
         
-         PConstraint pyc (0, 1);
+         MomentumConstraint pyc (0, 0, 1);
          pyc.setName("sum(p_y)");
          for (int i = 0; i < NJETS; ++i)
             pyc.addToFOList (*(permutedjets[i]));
         
-         PConstraint pzc (0, 0, 1);
+         MomentumConstraint pzc (0, 0, 0, 1);
          pzc.setName("sum(p_z)");
          for (int i = 0; i < NJETS; ++i)
             pzc.addToFOList (*(permutedjets[i]));
         
          message<DEBUG>( log() << "ECM = " << _ecm  ); 
-	 PConstraint ec(0, 0, 0, 1,_ecm);
+	 MomentumConstraint ec(1, 0, 0, 0, _ecm);
          ec.setName("sum(E)");
          for (int i = 0; i < NJETS; ++i)
             ec.addToFOList (*(permutedjets[i]));

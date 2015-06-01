@@ -72,52 +72,6 @@ void MomentumConstraint::getDerivatives(int idim, double der[]) const {
     }
   }
 }
-  
-    
-void MomentumConstraint::addToGlobalDerMatrix (double lambda, int idim, double *M) const {
-
-  assert (0);
-  // Add lambda*d^2 g / d x_i dx_j to global matrix
-  
-  if (lambda == 0) return;
-  
-  // d^2 g / (dx_i dx_j) = 
-  //   = sum_k,l d^2 g/(dpx_k dpx_l) * dpx_k/dx_i dpx_l/dx_j
-  //     + sum_k dg/dpx_k * d^2 px_k/(dx_i dx_j)
-  //   = sum_k,l      1              * dpx_k/dx_i dpx_l/dx_j
-  
-  // assume here that different 4-vectors always depend on 
-  // different parameters!
-  
-  if (!cachevalid) updateCache();
-  
-  int *globalParNum = new int[nparams];
-  double *der = new double[nparams];
-  
-//   ipar = 0;
-//   for (int i = 0; i < fitobjects.size(); i++) {
-//     for (int ilocal = 0; ilocal < fitobjects[i]->getNPar(); ilocal++) {
-//       int iglobal = fitobjects[i]->getGlobalParNum (ilocal);
-//       if (iglobal >= 0) {
-//         assert (ipar < nparams);
-//         globalParNum[ipar] = iglobal;
-//         der[ipar] = fitobjects[i]->getDPx (ilocal);
-//         ipar++;
-//       }
-//   }
-  
-  for (int ipar = 0; ipar < nparams; ipar++) {
-    int iglobal = globalParNum[ipar];
-    double der_i = der[ipar];
-    for (int jpar = ipar; jpar < nparams; jpar++) {
-      int jglobal = globalParNum[ipar];
-      double der_j = der[jpar];
-      double l_der_ij = lambda*der_i*der_j;
-      M[idim*iglobal+jglobal] += l_der_ij;
-      if (ipar != jpar) M[idim*jglobal+iglobal] += l_der_ij;
-    }
-  }       
-}
 
 void MomentumConstraint::invalidateCache() const {
   cachevalid = false;
@@ -147,4 +101,8 @@ bool MomentumConstraint::firstDerivatives (int i, double *derivatives) const {
   derivatives[2] = pyfact;
   derivatives[3] = pzfact;
   return true;
+}
+
+int MomentumConstraint::getVarBasis() const {
+  return VAR_BASIS;
 }

@@ -39,10 +39,10 @@ using std::sin;
 // constructor: 
 TopEventILC::TopEventILC()
 : leptonic (false), leptonasjet (false), debug (false),
-  pxc (1, 0),
-  pyc (0, 1),
-  pzc (0, 0, 1),
-  ec  (0, 0, 0, 1, 500)
+  pxc (0, 1),
+  pyc (0, 0, 1),
+  pzc (0, 0, 0, 1),
+  ec  (1, 0, 0, 0, 500)
   //, 
   //w1 (gammaW/(2.*sqrt(0.805)), mW),  // Thesis Jenny p44
   //w2 (gammaW/(2.*sqrt(0.805)), mW),

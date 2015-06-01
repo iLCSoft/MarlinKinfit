@@ -27,24 +27,24 @@
 using namespace std;
  
 void ParticleConstraint::add1stDerivativesToMatrix(double *M, int idim) const {
-  double dgdpi[4];
+  double dgdpi[BaseDefs::MAXINTERVARS];
   for (unsigned int i = 0; i < fitobjects.size(); ++i) {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addTo1stDerivatives (M, idim, dgdpi, getGlobalNum());
+      foi->addTo1stDerivatives (M, idim, dgdpi, getGlobalNum(), getVarBasis());
     }
   }
 }
  
 double ParticleConstraint::getError() const {
-  double dgdpi[4];
+  double dgdpi[BaseDefs::MAXINTERVARS];
   double error2 = 0;
   for (unsigned int i = 0; i < fitobjects.size(); ++i) {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      error2 += foi->getError2 (dgdpi);
+      error2 += foi->getError2 (dgdpi, getVarBasis());
     }
   }
   return std::sqrt(std::abs(error2));
@@ -84,33 +84,33 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
    */
   // Derivatives $\frac{\partial ^2 g}{\partial P_i \partial P_j}$ at fixed i, j
   // d2GdPidPj[4*ii+jj] is derivative w.r.t. P_i,ii and P_j,jj, where ii=0,1,2,3 for E,px,py,pz
-  double d2GdPidPj[16];
+  double d2GdPidPj[BaseDefs::MAXINTERVARS*BaseDefs::MAXINTERVARS];
+
   // Derivatives $\frac {\partial P_i}{\partial a_k}$ for all i; 
   // k is local parameter number
   // dPidAk[KMAX*4*i + 4*k + ii] is $\frac {\partial P_{i,ii}}{\partial a_k}$,
   // with ii=0, 1, 2, 3 for E, px, py, pz
-  const int KMAX=4;
   const int n = fitobjects.size();
-  double *dPidAk = new double[n*KMAX*4];
+  double *dPidAk = new double[n*BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS];
   bool *dPidAkval = new bool[n];
   
   for (int i = 0; i < n; ++i) dPidAkval[i] = false;
   
   // Derivatives $\frac{\partial ^2 g}{\partial P_i \partial a_l}$ at fixed i
   // d2GdPdAl[4*l + ii] is $\frac{\partial ^2 g}{\partial P_{i,ii} \partial a_l}$
-  double d2GdPdAl[4*KMAX];
+  double d2GdPdAl[BaseDefs::MAXINTERVARS*BaseDefs::MAXPAR];
   // Derivatives $\frac{\partial ^2 g}{\partial a_k \partial a_l}$ 
-  double d2GdAkdAl[KMAX*KMAX];
+  double d2GdAkdAl[BaseDefs::MAXPAR*BaseDefs::MAXPAR];
   
-  // Global parameter numbers: parglobal[KMAX*i+klocal] 
+  // Global parameter numbers: parglobal[BaseDefs::MAXPAR*i+klocal] 
   // is global parameter number of local parameter klocal of i-th Fit object
-  int *parglobal = new int[KMAX*n];
+  int *parglobal = new int[BaseDefs::MAXPAR*n];
   
   for (int i = 0; i < n; ++i) {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     for (int klocal = 0; klocal < foi->getNPar(); ++klocal) {
-      parglobal [KMAX*i+klocal] = foi->getGlobalParNum(klocal);
+      parglobal [BaseDefs::MAXPAR*i+klocal] = foi->getGlobalParNum(klocal);
     }
   }
   
@@ -123,11 +123,11 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
       assert (foj);
       if (secondDerivatives (i, j, d2GdPidPj)) {
         if (!dPidAkval[i]) {
-          foi->getDerivatives (dPidAk+i*(KMAX*4), KMAX*4);
+          foi->getDerivatives (dPidAk+i*(BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS), BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS);
           dPidAkval[i] = true;
         }
         if (!dPidAkval[j]) {
-          foj->getDerivatives (dPidAk+j*(KMAX*4), KMAX*4);
+          foj->getDerivatives (dPidAk+j*(BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS), BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS);
           dPidAkval[j] = true;
         }
         // Now sum over E/px/Py/Pz for object j:
@@ -136,10 +136,10 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
         //     \cdot \frac{\partial P_{j,jj}}{\partial a_l}
         // We're summing over jj here
         for (int llocal = 0; llocal < foj->getNPar(); ++llocal) {
-          for (int ii = 0; ii < 4; ++ii) {
-            int ind1 = 4*ii;
-            int ind2 = (KMAX*4)*j + 4*llocal;
-            double& r = d2GdPdAl[4*llocal + ii];
+          for (int ii = 0; ii < BaseDefs::MAXINTERVARS; ++ii) {
+            int ind1 = BaseDefs::MAXINTERVARS*ii;
+            int ind2 = (BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS)*j + BaseDefs::MAXINTERVARS*llocal;
+            double& r = d2GdPdAl[BaseDefs::MAXINTERVARS*llocal + ii];
             r  = d2GdPidPj[  ind1] * dPidAk[  ind2];   // E
             r += d2GdPidPj[++ind1] * dPidAk[++ind2];   // px
             r += d2GdPidPj[++ind1] * dPidAk[++ind2];   // py
@@ -154,9 +154,9 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
         // $$
         for (int klocal = 0; klocal < foi->getNPar(); ++klocal) {
           for (int llocal = 0; llocal < foj->getNPar(); ++llocal) {
-            int ind1 = 4*llocal;
-            int ind2 = (KMAX*4)*i + 4*klocal;
-            double& r = d2GdAkdAl[KMAX*klocal+llocal];
+            int ind1 = BaseDefs::MAXINTERVARS*llocal;
+            int ind2 = (BaseDefs::MAXPAR*BaseDefs::MAXINTERVARS)*i + BaseDefs::MAXINTERVARS*klocal;
+            double& r = d2GdAkdAl[BaseDefs::MAXPAR*klocal+llocal];
             r  = d2GdPdAl[  ind1] * dPidAk[  ind2];    //E
             r += d2GdPdAl[++ind1] * dPidAk[++ind2];   // px
             r += d2GdPdAl[++ind1] * dPidAk[++ind2];   // py
@@ -165,10 +165,10 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
         }
         // Now expand the local parameter numbers to global ones
         for (int klocal = 0; klocal < foi->getNPar(); ++klocal) {
-          int kglobal = parglobal [KMAX*i + klocal];
+          int kglobal = parglobal [BaseDefs::MAXPAR*i + klocal];
           for (int llocal = 0; llocal < foj->getNPar(); ++llocal) {
-            int lglobal = parglobal [KMAX*j + llocal];
-            M [idim*kglobal+lglobal] += lambda*d2GdAkdAl[KMAX*klocal+llocal];
+            int lglobal = parglobal [BaseDefs::MAXPAR*j + llocal];
+            M [idim*kglobal+lglobal] += lambda*d2GdAkdAl[BaseDefs::MAXPAR*klocal+llocal];
           }
         }
       }
@@ -183,12 +183,12 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
    * the FitObject
    */
   
-  double dgdpi[4];
+  double dgdpi[BaseDefs::MAXINTERVARS];
   for (int i = 0; i < n; ++i) {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addTo2ndDerivatives (M, idim, lambda, dgdpi);
+      foi->addTo2ndDerivatives (M, idim, lambda, dgdpi, getVarBasis());
     }
   }
   
@@ -198,12 +198,12 @@ void ParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim, double 
 }
 
 void ParticleConstraint::addToGlobalChi2DerVector (double *y, int idim, double lambda) const {
-  double dgdpi[4];
+  double dgdpi[BaseDefs::MAXINTERVARS];
   for (unsigned int i = 0; i < fitobjects.size(); ++i) {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addToGlobalChi2DerVector (y, idim, lambda, dgdpi);
+      foi->addToGlobalChi2DerVector (y, idim, lambda, dgdpi, getVarBasis() );
     }
   }
 }

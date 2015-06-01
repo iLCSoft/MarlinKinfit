@@ -58,7 +58,7 @@ double SoftGaussParticleConstraint::getError() const {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      error2 += foi->getError2 (dgdpi);
+      error2 += foi->getError2 (dgdpi, getVarBasis() );
     }
   }
   return std::sqrt(std::abs(error2));
@@ -218,8 +218,8 @@ void SoftGaussParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addTo2ndDerivatives (M, idim, fact, dgdpi);
-      foi->addToGlobalChi2DerVector (v, idim, sqrtfact2, dgdpi);
+      foi->addTo2ndDerivatives (M, idim, fact, dgdpi, getVarBasis() );
+      foi->addToGlobalChi2DerVector (v, idim, sqrtfact2, dgdpi, getVarBasis() );
     }
   }
   
@@ -247,7 +247,7 @@ void SoftGaussParticleConstraint::addToGlobalChi2DerVector (double *y, int idim)
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addToGlobalChi2DerVector (y, idim, r, dgdpi);
+      foi->addToGlobalChi2DerVector (y, idim, r, dgdpi, getVarBasis() );
     }
   }
 }
@@ -357,4 +357,8 @@ double SoftGaussParticleConstraint::num2ndDerivative (int ifo1, int ilocal1, dou
     fo2->setParam (ilocal2, save2);
   }
   return result;
+}
+
+int SoftGaussParticleConstraint::getVarBasis() const {
+  return VAR_BASIS;
 }

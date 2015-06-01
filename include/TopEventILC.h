@@ -15,7 +15,7 @@
 
 #include "BaseEvent.h"
 #include "JetFitObject.h"
-#include "PConstraint.h"
+#include "MomentumConstraint.h"
 // #include "PxConstraint.h"
 // #include "PyConstraint.h"
 #include "MassConstraint.h"
@@ -59,10 +59,10 @@ class TopEventILC : public BaseEvent {
     ParticleFitObject *bfo[NBFO];
     ParticleFitObject *bfosmear[NBFO];
     
-    PConstraint pxc;
-    PConstraint pyc;
-    PConstraint pzc;
-    PConstraint ec;
+    MomentumConstraint pxc;
+    MomentumConstraint pyc;
+    MomentumConstraint pzc;
+    MomentumConstraint ec;
     MassConstraint w1;
     MassConstraint w2;
     MassConstraint w;

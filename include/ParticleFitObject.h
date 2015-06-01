@@ -10,6 +10,7 @@
 #define __PARTICLEFITOBJECT_H
 
 #include "BaseFitObject.h"
+#include "FourVector.h"
 
 
 // Class ParticleFitObject
@@ -63,94 +64,51 @@ class ParticleFitObject: public BaseFitObject {
   public:
     /// Default constructor
     ParticleFitObject();
+    
+        
+    /// Copy constructor
+    ParticleFitObject (const ParticleFitObject& rhs              ///< right hand side
+                   );
+                   
+    /// Assignment               
+    ParticleFitObject& operator= (const ParticleFitObject& rhs   ///< right hand side
+                             );
+
     /// Virtual destructor
     virtual ~ParticleFitObject();
     
-    /// Set value and measured flag of parameter ilocal; return=significant change
-    virtual bool   setParam (int ilocal,         ///< Local parameter number
-                             double par_,        ///< New parameter value
-                             bool measured_,     ///< New "measured" flag
-                             bool fixed_ = false ///< New "fixed" flag
-                            );  
-    /// Set value of parameter ilocal; return=significant change
-    virtual bool   setParam (int ilocal,    ///< Local parameter number
-                             double par_    ///< New parameter value
-                             );  
-                             
-    /// Set measured value of parameter ilocal; return=success
-    virtual bool   setMParam (int i, double mpar_ );  
-    /// Set error of parameter ilocal; return=success
-    virtual bool   setError (int ilocal,    ///< Local parameter number
-                             double err_    ///< New error value
-                             );
-    /// Set covariance of parameters ilocal and jlocal; return=success
-    virtual bool   setCov (int ilocal,    ///< Local parameter number
-                           int jlocal,    ///< Local parameter number
-                           double cov_    ///< New error value
-                          );
+    /// Assign from anther object, if of same type
+    virtual ParticleFitObject& assign (const BaseFitObject& source   ///< The source object
+                                  );
+
     /// Set mass of particle; return=success
     virtual bool setMass (double mass_);
     /// Get mass of particle
     virtual double getMass () const;
-    /// Set number of parameter ilocal in global list
-    /// return true signals OK
-    virtual bool setGlobalParNum (int ilocal, int iglobal); 
-    /// Fix a parameter (fix=true), or release it (fix=false)
-    virtual bool fixParam (int ilocal,    ///< Local parameter number
-                           bool fix=true  ///< fix if true, release if false
-                          );
-                          
-    
-    /// Get covariance matrix
-    virtual double *getCovMatrix() {return cov[0];};
-    /// Get current value of parameter ilocal
-    virtual double getParam (int ilocal ///< Local parameter number
-                            ) const;
-    /// Get measured value of parameter ilocal
-    virtual double getMParam (int iocal   ///< Local parameter number
-                            ) const;
-    /// Get error of parameter ilocal
-    virtual double getError (int ilocal     ///< Local parameter number
-                            ) const;
-    /// Get covariance between parameters ilocal and jlocal
-    virtual double getCov (int ilocal,    ///< Local parameter number i
-                           int jlocal     ///< Local parameter number j
-                          ) const;
-    /// Get measured flag for parameter i
-    virtual bool isParamMeasured (int ilocal) const;
-    /// Get fixed flag for parameter i
-    virtual bool isParamFixed (int ilocal) const;
-    /// Get global parameter number of parameter ilocal
-    virtual int getGlobalParNum(int ilocal) const;
-    /// Get number of parameters of this FitObject
-    virtual int getNPar() const {return NPAR;};
-    
-    /// Add covariance matrix elements to global covariance matrix
-    virtual void addToGlobCov(double *globCov,    ///< Global covariance matrix, size idim x idim
-                              int idim            ///< First dimension of globCov
-                             ) const; 
-    
+
     /// print the four-momentum (E, px, py, pz)
     virtual std::ostream& print4Vector (std::ostream& os   ///< The output stream
                                        ) const;
         
+    virtual FourVector getFourMomentum() const;
+
     /// Return E
-    virtual double getE() const = 0;
+    virtual double getE() const;
     /// Return px
-    virtual double getPx() const = 0;
+    virtual double getPx() const;
     /// Return py
-    virtual double getPy() const = 0;
+    virtual double getPy() const;
     /// Return pz
-    virtual double getPz() const = 0;
+    virtual double getPz() const;
     
     /// Return p (momentum) 
-    virtual double getP() const = 0;
+    virtual double getP() const;
     /// Return p (momentum) squared
-    virtual double getP2() const = 0;
+    virtual double getP2() const;
     /// Return pt (transverse momentum) 
-    virtual double getPt() const = 0;
+    virtual double getPt() const;
     /// Return pt (transverse momentum)  squared
-    virtual double getPt2() const = 0;
+    virtual double getPt2() const;
     
     /// Return d p_x / d par_ilocal (derivative of px w.r.t. local parameter ilocal)
     virtual double getDPx (int ilocal              ///< Local parameter number
@@ -165,90 +123,19 @@ class ParticleFitObject: public BaseFitObject {
     virtual double getDE (int ilocal               ///< Local parameter number
                           ) const = 0;
     
-    
-    /// Return all derivatives w.r.t. local parameters
-    /**
-     *  The result vector der will contain d E/d par1, d px/d par 1, d py/d par 1, d pz / d par1, d E/d par 2 ...
-     */
-    virtual void getDerivatives (double der[],    ///< Derivatives vector, length 4*idim
-                                 int idim         ///< Length of derivatives vector
-                                ) const;    
-    
-    /// add derivatives to vector der of size idim
-    /// pxfact*dpx/dx_i + pyfact*dpy/dx_i + pzfact*dpz/dx_i + efact*dE/dx_i 
-    virtual void   addToDerivatives (double der[],      ///< Derivatives vector, length idim
-                                     int    idim,       ///< Length of derivatives vector
-                                     double efact=0,    ///< Factor for dE/dx_i
-                                     double pxfact=0,   ///< Factor for dpx/dx_i
-                                     double pyfact=0,   ///< Factor for dpy/dx_i 
-                                     double pzfact=0    ///< Factor for dpz/dx_i
-                                     ) const = 0;
-    /// add second order derivatives to matrix der2 of size idim x idim
-    /// pxfact*d^2px/(dx_i dx_j) + pyfact...
-    virtual void   addTo2ndDerivatives (double der2[],  ///< Derivatives vector, size idim x idim
-                                        int    idim,    ///< First dimension of derivatives matrix
-                                        double efact,   ///< Factor for d^2E/dx_i dx_j
-                                        double pxfact,  ///< Factor for d^2px/dx_i dx_j
-                                        double pyfact,  ///< Factor for d^2py/dx_i dx_j
-                                        double pzfact   ///< Factor for d^2pz/dx_i dx_j
-                                       ) const = 0;
-    /// Add second order derivatives to matrix M of size idim x idim
-    /// der[0]*d^2E/(dx_i dx_j) + der[1]*d^2px/(dx_i dx_j) + ...
-    virtual void   addTo2ndDerivatives (double M[],     ///< Global derivatives matrix size idim x idim
-                                        int    idim,    ///< First dimension of derivatives matrix
-                                        double lamda,   ///< Global factor
-                                        double der[]    ///< Factors for d^2(E,px,py,pz)/dx_i dx_j
-                                       ) const = 0;
-    /// Add first order derivatives to matrix M of size idim x idim
-    /// der[0]*dE/dx_i + der[1]*dpx/dx_i + ...
-    virtual void   addTo1stDerivatives (double M[],     ///< Global derivatives matrix size idim x idim
-                                        int    idim,    ///< First dimension of derivatives matrix
-                                        double der[],   ///< Factors for d^2(E,px,py,pz)/dx_i dx_j
-                                        int kglobal     ///< Global parameter number of constraint
-                                       ) const = 0;
-    /// Calculates the squared error for a quantity with derivatives w.r.t. E, dx, dy, dz
-    virtual double getError2 (double der[]    ///< Factors for d(E,px,py,pz)/dx_i
-                             ) const = 0;
-    
-    /// Get chi squared from measured and fitted parameters
-    virtual double getChi2() const;
-    /// Get derivative of chi squared w.r.t. parameter ilocal
-    virtual double getDChi2DParam (int ilocal           ///< Local parameter number
-                                  ) const;
-    /// Get second derivative of chi squared w.r.t. parameters ilocal and jlocal
-    virtual double getD2Chi2DParam2(int ilocal,         ///< Local parameter number i
-                                    int jlocal          ///< Local parameter number j
-                                   ) const;
-    
-    /// Add 2nd derivatives of chi squared to global derivative matrix
-    virtual void addToGlobalChi2DerMatrix (double *M,   ///< Global derivative matrix
-                                           int idim     ///< First dimension of global derivative matrix
-                                          ) const;
-                                      
+    virtual void getDerivatives (double der[], int idim) const;
+
     /// Add  numerically determined derivatives of chi squared to global covariance matrix
     virtual void addToGlobalChi2DerMatrixNum (double *M,   ///< Global covariance matrix
-                                              int idim,    ///< First dimension of global covariance matrix
-                                              double eps   ///< Parameter variation
-                                             );
-                                      
-    /// Add derivatives of chi squared to global derivative vector
-    virtual void addToGlobalChi2DerVector (double *y,   ///< Vector of chi2 derivatives
-                                           int idim     ///< Vector size 
-                                           ) const;
+					      int idim,    ///< First dimension of global covariance matrix
+					      double eps   ///< Parameter variation
+                                              );
+
     /// Add numerically determined derivatives of chi squared to global derivative vector
     virtual void addToGlobalChi2DerVectorNum (double *y,    ///< Vector of chi2 derivatives
                                               int idim,     ///< Vector size 
                                               double eps    ///< Parameter variation
                                              );
-
-
-    /// Add derivatives of momentum vector to global derivative vector
-    virtual void addToGlobalChi2DerVector (double *y,     ///< Vector of chi2 derivatives
-                                           int idim,      ///< Vector size 
-                                           double lambda, ///< The lambda value
-                                           double der[]   ///< 4-vector with dg/dE, dg/dpx, dg/dpy, dg/dpz
-                                           ) const = 0;
-        
     
     /// print object to ostream
     virtual std::ostream& print (std::ostream& os    ///< The output stream
@@ -261,37 +148,24 @@ class ParticleFitObject: public BaseFitObject {
     double num1stDerivative (int ilocal,  ///< Local parameter number 
                              double eps   ///< variation of  local parameter 
                             );
+
     /// Evaluates numerically the 2nd derivative of chi2 w.r.t. 2 parameters
     double num2ndDerivative (int ilocal1, ///< 1st local parameter number 
                              double eps1, ///< variation of 1st local parameter 
                              int ilocal2, ///< 1st local parameter number 
                              double eps2  ///< variation of 2nd local parameter 
                             );
-  
+
+    virtual double getChi2 () const;
+
   protected:
-    /// Calculate the inverse of the covariance matrix
-    virtual bool calculateCovInv() const;
-        
-    /// number of parameters
-    enum {NPAR = 3};
     /// mass of particle
     double mass;
-    /// fit parameters
-    double par[NPAR];
-    /// measured parameters
-    double mpar[NPAR];
-    /// measured flag
-    bool measured[NPAR];
-    /// fixed flag
-    bool fixed[NPAR];
-    /// global paramter number for each parameter
-    int globalParNum [NPAR];
-    /// local covariance matrix
-    double cov [NPAR][NPAR];    
-    /// inverse pf local covariance matrix
-    mutable double covinv [NPAR][NPAR];    
-    /// flag for valid inverse covariance matrix
-    mutable bool covinvvalid; 
+
+    mutable FourVector fourMomentum;
+
+    // this is to flag phi angle, for example
+    double paramCycl[BaseDefs::MAXPAR];
 
 };
 

@@ -22,6 +22,7 @@
 #include<vector>
 #include<cassert>
 #include "BaseSoftConstraint.h"
+#include "BaseFitObject.h"
 
 class ParticleFitObject;
 
@@ -140,6 +141,7 @@ class SoftGaussParticleConstraint: public BaseSoftConstraint {
                              double eps2  ///< variation of 2nd local parameter 
                             );
                               
+    int getVarBasis() const;
   
   protected:
   
@@ -170,6 +172,8 @@ class SoftGaussParticleConstraint: public BaseSoftConstraint {
     
     /// The sigma of the Gaussian
     double sigma;
+
+    enum { VAR_BASIS=BaseDefs::VARBASIS_EPXYZ }; // this means that the constraint knows about E,px,py,pz
 
 };
 

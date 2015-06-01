@@ -5,6 +5,16 @@
 ===============================
 
  ----------
+| v00-01-04|
+ ----------
+
+ First version after refactoring of FitObject inheritance tree (D. Jeans)
+ Minimized duplication of code in derived classes at the price of a
+ overall limit on the maximum number of parameters, to be set in BaseDefs.h/cc
+ As a consequence, the logic of the copy constructors / assignment operators
+ had to be adjusted. 
+
+ ----------
 | v00-01-03|
  ----------
 

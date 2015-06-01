@@ -209,3 +209,7 @@ bool MassConstraint::firstDerivatives (int i, double *derivatives) const {
   derivatives[3] = -totpz/m;
   return true;
 }
+
+int MassConstraint::getVarBasis() const {
+  return VAR_BASIS;
+}

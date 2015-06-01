@@ -63,7 +63,7 @@ double SoftBWParticleConstraint::getError() const {
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      error2 += foi->getError2 (dgdpi);
+      error2 += foi->getError2 (dgdpi, getVarBasis() );
     }
   }
   return std::sqrt(std::abs(error2));
@@ -228,8 +228,8 @@ void SoftBWParticleConstraint::add2ndDerivativesToMatrix (double *M, int idim) c
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addTo2ndDerivatives (M, idim, fact, dgdpi);
-      foi->addToGlobalChi2DerVector (v, idim, 1, dgdpi);
+      foi->addTo2ndDerivatives (M, idim, fact, dgdpi, getVarBasis() );
+      foi->addToGlobalChi2DerVector (v, idim, 1, dgdpi, getVarBasis() );
     }
   }
   
@@ -256,7 +256,7 @@ void SoftBWParticleConstraint::addToGlobalChi2DerVector (double *y, int idim) co
     const ParticleFitObject *foi = fitobjects[i];
     assert (foi);
     if (firstDerivatives (i, dgdpi)) {
-      foi->addToGlobalChi2DerVector (y, idim, r, dgdpi);
+      foi->addToGlobalChi2DerVector (y, idim, r, dgdpi, getVarBasis() );
     }
   }
 }
@@ -496,6 +496,10 @@ void SoftBWParticleConstraint::updateCache() const {
 
 bool SoftBWParticleConstraint::cacheValid() const {
   return cachevalid;
+}
+
+int SoftBWParticleConstraint::getVarBasis() const {
+  return VAR_BASIS;
 }
 
 #endif // MARLIN_USE_ROOT

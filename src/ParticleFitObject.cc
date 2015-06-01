@@ -65,61 +65,26 @@ using std::endl;
 ParticleFitObject::ParticleFitObject()
 : mass (0)
 {
-  for (int ilocal = 0; ilocal < NPAR; ++ilocal) globalParNum[ilocal] = -1;
-  for (int ilocal = 0; ilocal < NPAR; ++ilocal) fixed[ilocal] = false;
-  for (int ilocal = 0; ilocal < NPAR; ++ilocal) 
-    for (int jlocal = 0; jlocal < NPAR; ++jlocal) cov[ilocal][jlocal] = 0; 
+  for (int i=0; i<BaseDefs::MAXPAR; i++)
+    paramCycl[i]=-1;
 }
 
 ParticleFitObject::~ParticleFitObject()
 {}
 
-bool ParticleFitObject::setParam (int ilocal, double par_, 
-                                    bool measured_, bool fixed_) {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  if (measured[ilocal] != measured_ || fixed[ilocal] != fixed_) invalidateCache();
-  measured[ilocal] = measured_;
-  fixed[ilocal] = fixed_;
-  return setParam (ilocal, par_);
-}  
-
-bool ParticleFitObject::setParam (int ilocal, double par_ ) {
-  if (!isfinite(par_)) return true;
-  assert (ilocal >= 0 && ilocal < NPAR);
-  if (par[ilocal] == par_) return false;
-  invalidateCache();
-  bool result = (par_-par[ilocal])*(par_-par[ilocal]) > eps2*cov[ilocal][ilocal]; 
-  par[ilocal] = par_;
-  return result;
-}
-  
-bool ParticleFitObject::setMParam (int ilocal, double mpar_ ) {
-  if (!isfinite(mpar_)) return false;
-  assert (ilocal >= 0 && ilocal < NPAR);
-  if (mpar[ilocal] == mpar_) return true;
-  invalidateCache();
-  mpar[ilocal] = mpar_;
-  return true;
+ParticleFitObject::ParticleFitObject (const ParticleFitObject& rhs)
+{
+  //std::cout << "copying ParticleFitObject with name" << rhs.name << std::endl;
+  ParticleFitObject::assign (rhs);
 }
 
-bool ParticleFitObject::setError (int ilocal, double err_) {
-  if (!isfinite(err_)) return false;
-  assert (ilocal >= 0 && ilocal < NPAR);
-  invalidateCache();
-  covinvvalid = false;
-  cov[ilocal][ilocal] = err_*err_;
-  return true;
+ParticleFitObject& ParticleFitObject::operator= (const ParticleFitObject& rhs) {
+  if (this != &rhs) {
+    assign (rhs); // calls virtual function assign of derived class
+  }
+  return *this;
 }
 
-bool ParticleFitObject::setCov (int ilocal, int jlocal, double cov_) {
-  if (!isfinite(cov_)) return false;
-  assert (ilocal >= 0 && ilocal < NPAR);
-  assert (jlocal >= 0 && jlocal < NPAR);
-  invalidateCache();
-  covinvvalid = false;
-  cov[ilocal][jlocal] = cov[jlocal][ilocal] = cov_;
-  return true;
-}
 bool ParticleFitObject::setMass (double mass_) {
   if (!isfinite(mass_)) return false;
   if (mass == mass_) return true;
@@ -127,50 +92,26 @@ bool ParticleFitObject::setMass (double mass_) {
   mass = std::abs(mass_);
   return true;
 }
+
+    
+ParticleFitObject& ParticleFitObject::assign (const BaseFitObject& source) {
+  if (const ParticleFitObject *psource = dynamic_cast<const ParticleFitObject *>(&source)) {
+    if (psource != this) {
+      BaseFitObject::assign (source);
+      mass = psource->mass;
+      for (int i =0; i < BaseDefs::MAXPAR; ++i)
+        paramCycl[i] = psource->paramCycl[i];
+    }
+  }
+  else {
+    assert (0);
+  }
+  return *this;
+}
+
+
 double ParticleFitObject::getMass () const {
   return mass;
-}
-bool ParticleFitObject::fixParam (int ilocal, bool fix) {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return fixed [ilocal] = fix;
-}
-
-bool ParticleFitObject::setGlobalParNum (int ilocal, int iglobal) {
-  if (ilocal < 0 || ilocal >= NPAR) return false;
-  globalParNum[ilocal] = iglobal;
-  return true;
-}
-int  ParticleFitObject::getGlobalParNum(int ilocal) const {
-  if (ilocal < 0 || ilocal >= NPAR) return -1;
-  return globalParNum[ilocal];
-}
-
-double ParticleFitObject::getParam (int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return par[ilocal];
-}
-double ParticleFitObject::getMParam (int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return mpar[ilocal];
-}
-
-double ParticleFitObject::getError (int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return std::sqrt(cov[ilocal][ilocal]);
-}
-double ParticleFitObject::getCov (int ilocal, int jlocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  assert (jlocal >= 0 && jlocal < NPAR);
-  return cov[ilocal][jlocal];
-}
-bool ParticleFitObject::isParamMeasured (int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return measured[ilocal];
-}
-
-bool ParticleFitObject::isParamFixed (int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  return fixed[ilocal];
 }
     
 std::ostream&  ParticleFitObject::print4Vector(std::ostream& os) const {
@@ -179,126 +120,44 @@ std::ostream&  ParticleFitObject::print4Vector(std::ostream& os) const {
   return os;
 }
 
+FourVector ParticleFitObject::getFourMomentum() const {
+  if (!cachevalid) updateCache();
+  return fourMomentum;
+}
+double ParticleFitObject::getE()   const {
+  return getFourMomentum().getE();
+}
+double ParticleFitObject::getPx()  const {
+  return getFourMomentum().getPx();
+}
+double ParticleFitObject::getPy()  const {
+  return getFourMomentum().getPy();
+}
+double ParticleFitObject::getPz()  const {
+  return getFourMomentum().getPz();
+}
+double ParticleFitObject::getP()   const {
+  return getFourMomentum().getP();
+}
+double ParticleFitObject::getP2()  const {
+  return getFourMomentum().getP2();
+}
+double ParticleFitObject::getPt()  const {
+  return getFourMomentum().getPt();
+}
+double ParticleFitObject::getPt2() const {
+  return getFourMomentum().getPt2();
+}
+
+
 std::ostream&  ParticleFitObject::print (std::ostream& os) const {
+
+  if (!cachevalid) updateCache();
+
   printParams(os);
   os << " => ";
   print4Vector(os);
   return os;
-}
-bool ParticleFitObject::calculateCovInv() const {
-  int n = getNPar();
-  
-/*
- *   TMatrixDSym covm = TMatrixDSym (n);
- *   
- *   int idim = 0;
- *   for (int i = 0; i < n; ++i) {
- *     if (isParamMeasured (i)) {
- *       idim = i;
- *       for (int j = 0; j < n; ++j) {
- *         covm(i, j) = isParamMeasured (j) ? cov[i][j] : 0;
- *       }
- *     }
- *     else {
- *       for (int j = 0; j < n; ++j) {
- *         covm (i, j) = static_cast<double>(i == j);
- *       }
- *     }
- *   }
- *   if (idim > 0) {
- *     // ierr = dsinv(idim+1, &covinv[0][0], NPAR);
- *     covm.Invert();
- *   }
- *   
- *   for (int i = 0; i < n; ++i) {
- *     for (int j = 0; j < n; ++j) {
- *       covinv[i][j] = covm (i, j);
- *     }
- *   }
- */
- 
-  gsl_matrix *covm = gsl_matrix_alloc (n, n);
-  gsl_matrix_set_identity (covm);
-  
-  for (int i = 0; i < n; ++i) {
-    if (isParamMeasured (i)) {
-      for (int j = 0; j < n; ++j) {
-        if (isParamMeasured (j)) gsl_matrix_set (covm, i, j, cov[i][j]);
-      }
-    }
-  }
-  gsl_error_handler_t *e = gsl_set_error_handler_off ();
-  int result = gsl_linalg_cholesky_decomp (covm);
-  if (result == 0) result = gsl_linalg_cholesky_invert (covm);
-  gsl_set_error_handler (e);
-  
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < i; ++j) {
-      covinv[i][j] = covinv[j][i] = gsl_matrix_get (covm, i, j);
-    }
-    covinv[i][i] = gsl_matrix_get (covm, i, i);
-  }
-
-  gsl_matrix_free(covm);
-  covinvvalid = (result == 0);
-  return covinvvalid;
-}
-
-
-double ParticleFitObject::getChi2() const {
-  if (!covinvvalid) calculateCovInv();
-  if (!covinvvalid) return -1;
-  double chi2 = 0;
-  static double resid[NPAR];
-  static bool chi2contr[NPAR];
-  for (int i = 0; i < getNPar(); ++i) {
-    resid[i] = par[i]-mpar[i];
-    if (chi2contr[i] = isParamMeasured(i) && !isParamFixed(i)) {
-      chi2 += resid[i]*covinv[i][i]*resid[i];
-      for (int j = 0; j < i; ++j) {
-        if (chi2contr[j]) chi2 += 2*(resid[i])*covinv[i][j]*(resid[j]);
-      }
-    }
-  }
-  return chi2;
-}
-
-
-double ParticleFitObject::getDChi2DParam(int ilocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  if (isParamFixed(ilocal) || !isParamMeasured(ilocal)) return 0;
-  if (!covinvvalid) calculateCovInv();
-  if (!covinvvalid) return 0;
-  double result = 0;
-  for (int jlocal = 0; jlocal < getNPar(); jlocal++) 
-    if (!isParamFixed(jlocal) && isParamMeasured(jlocal))
-      result += covinv[ilocal][jlocal]*(par[jlocal]-mpar[jlocal]);
-  return 2*result;
-}
-
-void ParticleFitObject::addToGlobalChi2DerVector (double *y, int idim) const {
-  assert (getNPar() <= NPAR);
-  if (!covinvvalid) calculateCovInv();
-  assert (covinvvalid);
-  for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
-    if (!isParamFixed(ilocal) && isParamMeasured(ilocal)) {
-      int iglobal = getGlobalParNum (ilocal);
-      assert (iglobal>= 0 && iglobal < idim);
-      for (int jlocal = 0; jlocal < getNPar(); jlocal++) {
-        if (!isParamFixed(jlocal) && isParamMeasured(jlocal)) {
-//           cout << "ParticleFitObject::addToGlobalChi2DerVector: fo=" << getName()
-//                << ", ilocal=" << ilocal << ", jlocal=" << jlocal
-//                << ", covinv=" << covinv[ilocal][jlocal]
-//                << ", resid = " << par[jlocal]-mpar[jlocal]
-//                << ", term=" << 2*covinv[ilocal][jlocal]*(par[jlocal]-mpar[jlocal])
-//                << ", par=" << par[jlocal]
-//                << ", mpar=" << mpar[jlocal]
-//                << endl;
-          y[iglobal] += 2*covinv[ilocal][jlocal]*(par[jlocal]-mpar[jlocal]);
-        }
-      }
-    }
-  }
 }
 
 void ParticleFitObject::addToGlobalChi2DerVectorNum (double *y, int idim, double eps)  {
@@ -307,37 +166,8 @@ void ParticleFitObject::addToGlobalChi2DerVectorNum (double *y, int idim, double
     y[iglobal] += num1stDerivative (ilocal, eps);
   }
 }
-    
-double ParticleFitObject::getD2Chi2DParam2(int ilocal, int jlocal) const {
-  assert (ilocal >= 0 && ilocal < NPAR);
-  assert (jlocal >= 0 && jlocal < NPAR);
-  if (isParamFixed(ilocal) || !isParamMeasured(ilocal) || 
-      isParamFixed(jlocal) || !isParamMeasured(jlocal))
-    return 0;
-  if (!covinvvalid) calculateCovInv();
-  if (!covinvvalid) return 0;
-  return 2*covinv[ilocal][jlocal];
-}
-      
-void ParticleFitObject::addToGlobalChi2DerMatrix (double *M, int idim) const {
-  if (!covinvvalid) calculateCovInv();
-  if (!covinvvalid) return;
-  for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
-    if (!isParamFixed(ilocal) && isParamMeasured(ilocal)) {
-      int iglobal = getGlobalParNum (ilocal);
-      assert (iglobal >= 0 && iglobal < idim);
-      int ioffs = idim*iglobal;
-      for (int jlocal = 0; jlocal < getNPar(); ++jlocal) {
-        if (!isParamFixed(jlocal) && isParamMeasured(jlocal)) {
-          int jglobal = getGlobalParNum (jlocal);
-          assert (jglobal >= 0 && jglobal < idim);
-          M[ioffs+jglobal] += 2*covinv[ilocal][jlocal];
-        }
-      }
-    }
-  }
-}
-      
+
+
 void ParticleFitObject::addToGlobalChi2DerMatrixNum (double *M, int idim, double eps) {
   for (int ilocal1 = 0; ilocal1 < getNPar(); ++ilocal1) {
     int iglobal1 = getGlobalParNum (ilocal1);
@@ -348,33 +178,15 @@ void ParticleFitObject::addToGlobalChi2DerMatrixNum (double *M, int idim, double
   }
 }
 
-void ParticleFitObject::addToGlobCov(double *globCov, int idim) const {
-  for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
-    if (!isParamFixed(ilocal) && isParamMeasured(ilocal)) {
-      int iglobal = getGlobalParNum (ilocal);
-      assert (iglobal >= 0 && iglobal < idim);
-      int ioffs = idim*iglobal;
-      for (int jlocal = 0; jlocal < getNPar(); ++jlocal) {
-        if (!isParamFixed(jlocal) && isParamMeasured(jlocal)) {
-          int jglobal = getGlobalParNum (jlocal);
-          assert (jglobal >= 0 && jglobal < idim);
-          globCov[ioffs+jglobal] += cov[ilocal][jlocal];
-        }
-      }
-    }
-  }
-}
-
 void ParticleFitObject::getDerivatives (double der[], int idim) const {
   for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
     assert (ilocal < idim);
-    der [4*ilocal]   = getDE (ilocal);
+    der [4*ilocal]   = getDE  (ilocal);
     der [4*ilocal+1] = getDPx (ilocal);
     der [4*ilocal+2] = getDPy (ilocal);
     der [4*ilocal+3] = getDPz (ilocal);
   }
 }
-
 
 void ParticleFitObject::test1stDerivatives () {
   cout << "ParticleFitObject::test1stDerivatives, object " << getName() << "\n";
@@ -464,4 +276,49 @@ double ParticleFitObject::num2ndDerivative (int ilocal1, double eps1,
     setParam (ilocal2, save2);
   }
   return result;
+}
+
+
+double ParticleFitObject::getChi2 () const {
+  // reimplemented here to take account of cyclical variables e.g azimuthal angle phi - DJeans
+
+  //  cout << "hello from ParticleFitObject::getChi2 () " << endl;
+
+  if (!covinvvalid) calculateCovInv();
+  if (!covinvvalid) return -1;
+
+  double resid[BaseDefs::MAXPAR]={0};
+  for (int i=0; i<getNPar(); i++) {
+    //    cout << i << " " << isParamMeasured(i) << " " << isParamFixed(i) << endl;
+    if ( isParamMeasured(i) && !isParamFixed(i) ) {
+      resid[i] = par[i] - mpar[i];
+      //cout << "  xxx  " << i << " " << par[i] << " " << mpar[i] << " " << resid[i] << endl;
+      if ( paramCycl[i]>0 ) {
+	while ( resid[i] >  paramCycl[i]/2 ) resid[i]-=paramCycl[i];
+	while ( resid[i] < -paramCycl[i]/2 ) resid[i]+=paramCycl[i];
+      }
+    }
+  }
+
+  //cout << " ParticleFitObject::getChi2  " << endl;
+  //for (int i=0; i<getNPar(); i++) {
+  //  cout << " --- " << i << " " << resid[i] << " " << covinv[i][i] << endl;
+  //}
+
+  double chi2 = 0;
+  for (int i=0; i<getNPar(); i++) {
+    if ( isParamMeasured(i) && !isParamFixed(i) ) {
+      for (int j=0; j<getNPar(); j++) {
+	if ( isParamMeasured(j) && !isParamFixed(j) ) {
+	  chi2+=resid[i]*covinv[i][j]*resid[j];
+	  //cout << getName () << " === " << i << " " << j << " : " << 
+	  //  resid[i] << "*" << covinv[i][j] << "*" << resid[j] << " = " << resid[i]*covinv[i][j]*resid[j] << " , sum " << chi2 << endl;
+	}
+      }
+    }
+  }
+
+  //  cout << "ParticleFitObject::getChi2 () chi2 = " << chi2 << endl;
+
+  return chi2;
 }

@@ -45,6 +45,7 @@
 
 #include <iostream>
 
+#include "BaseDefs.h"
 
 // Class BaseFitObject
 /// Abstract base class for particle objects of kinematic fits
@@ -126,45 +127,51 @@ class BaseFitObject {
     
     /// Assign from anther object, if of same type
     virtual BaseFitObject& assign (const BaseFitObject& source   ///< The source object
-                                  ) = 0;
+                                  );
     
     /// Set value and measured flag of parameter i; return: significant change
     virtual bool setParam (int ilocal,         ///< Local parameter number
                            double par_,        ///< New parameter value
                            bool measured_,     ///< New "measured" flag
                            bool fixed_ = false ///< New "fixed" flag
-                          ) = 0;  
+                          );  
+
     /// Set value of parameter ilocal; return: significant change
     virtual bool setParam (int ilocal,    ///< Local parameter number
                            double par_    ///< New parameter value
-                          ) = 0;  
+                          );  
+
     /// Read values from global vector, readjust vector; return: significant change
     virtual bool updateParams (double p[],   ///< The parameter vector
                                int idim      ///< Length of the vector                         
                               );  
+
     /// Set measured value of parameter ilocal; return: success
     virtual bool setMParam (int ilocal,    ///< Local parameter number
                             double mpar_   ///< New measured parameter value
-                           ) = 0;  
+                           );  
+
     /// Set error of parameter ilocal; return: success
     virtual bool setError (int ilocal,    ///< Local parameter number
                            double err_    ///< New error value
-                           ) = 0;
+                           );
+
     /// Set covariance of parameters ilocal and jlocal; return: success
     virtual bool setCov (int ilocal,    ///< Local parameter number
                          int jlocal,    ///< Local parameter number
                          double cov_    ///< New error value
-                        ) = 0;
+                        );
+
     /// Set number of parameter ilocal in global list
     /// return true signals OK
     virtual bool setGlobalParNum (int ilocal,  ///< Local parameter number
                                   int iglobal  ///< New global parameter number
-                                  ) = 0; 
+                                  ); 
     
     /// Fix a parameter (fix=true), or release it (fix=false)
     virtual bool fixParam (int ilocal,    ///< Local parameter number
                            bool fix=true  ///< fix if true, release if false
-                          ) = 0;
+                          );
     /// Release a parameter 
     virtual bool releaseParam (int ilocal    ///< Local parameter number
                               ) 
@@ -172,36 +179,37 @@ class BaseFitObject {
     
     /// Returns whether parameter is fixed 
     virtual bool isParamFixed (int ilocal     ///< Local parameter number
-                              ) const = 0; 
+                              ) const; 
     
     /// Get current value of parameter ilocal
     virtual double getParam (int ilocal     ///< Local parameter number
-                            ) const = 0;
+                            ) const;
     /// Get name of parameter ilocal
     virtual const char *getParamName (int ilocal     ///< Local parameter number
                             ) const { return "???";}
     /// Get object's name
-    virtual const char *getName () const { return name ? name : "???";}
+    //    virtual const char *getName () const { return name ? name : "???";}
+    virtual const char *getName () const; // { return name ? name : "???";}
     /// Set object's name
     virtual void setName (const char * name_);
     /// Get measured value of parameter ilocal
     virtual double getMParam (int ilocal     ///< Local parameter number
-                             ) const = 0;
+                             ) const;
     /// Get error of parameter ilocal
     virtual double getError (int ilocal     ///< Local parameter number
-                            ) const = 0;
+                            ) const;
     /// Get covariance between parameters ilocal and jlocal
     virtual double getCov (int ilocal,    ///< Local parameter number i
                            int jlocal     ///< Local parameter number j
-                          ) const = 0;
+                          ) const;
     /// Get measured flag for parameter ilocal
     virtual bool isParamMeasured (int ilocal    ///< Local parameter number
-                                   ) const = 0;
+                                   ) const;
     /// Get global parameter number of parameter ilocal
     virtual int getGlobalParNum(int ilocal     ///< Local parameter number
-                                ) const = 0;
+                                ) const;
     /// Get total number of parameters of this FitObject
-    virtual int getNPar() const = 0;
+    virtual int getNPar() const=0;
     /// Get number of measured parameters of this FitObject
     virtual int getNMeasured() const;
     /// Get number of unmeasured parameters of this FitObject
@@ -211,30 +219,18 @@ class BaseFitObject {
     /// Get number of fixed parameters of this FitObject
     virtual int getNFixed() const;
     
-    /// Add covariance matrix elements to 
-    /// global covariance matrix of size idim x idim
-    virtual void addToGlobCov(double *glcov,   ///< Global covariance matrix
-                              int idim     ///< First dimension of global derivative matrix
-                              ) const; 
-            
     /// Get chi squared from measured and fitted parameters
-    virtual double getChi2() const = 0;
+    virtual double getChi2() const;
+
     /// Get derivative of chi squared w.r.t. parameter ilocal
     virtual double getDChi2DParam(int ilocal   ///< Local parameter number
-                                   ) const = 0;
+                                   ) const ;
+
     /// Get second derivative of chi squared w.r.t. parameters ilocal1 and ilocal2
     virtual double getD2Chi2DParam2(int ilocal,   ///< Local parameter number i
                                     int jlocal    ///< Local parameter number j
-                                   ) const = 0;
+                                   ) const;
     
-    /// Add 2nd derivatives of chi squared to global derivative matrix
-    virtual void addToGlobalChi2DerMatrix (double *M,   ///< Global derivative matrix
-                                           int idim     ///< First dimension of global derivative matrix
-                                           ) const = 0;
-    /// Add derivatives of chi squared to global derivative vector
-    virtual void addToGlobalChi2DerVector (double *y,   ///< Vector of chi2 derivatives
-                                           int idim     ///< Vector size 
-                                           ) const = 0;
     /// print the parameters
     virtual std::ostream& printParams (std::ostream& os  ///< The output stream
                                       ) const;
@@ -242,12 +238,119 @@ class BaseFitObject {
     /// print object to ostream
     virtual std::ostream&  print (std::ostream& os       ///< The output stream
                                  ) const = 0;
+
+
     /// invalidate any cached quantities
-    virtual void invalidateCache() const {};
+    virtual void invalidateCache() const {cachevalid=false;};
+    virtual void updateCache() const=0;
+
+
+
+
+
+
+
+    // these are the mothods that fill the fitter's matrices/vectors
+
+    /// Add covariance matrix elements to 
+    /// global covariance matrix of size idim x idim
+    virtual void addToGlobCov(double *glcov,   ///< Global covariance matrix
+                              int idim     ///< First dimension of global derivative matrix
+                              ) const; 
+            
+    /// Add derivatives of chi squared to global derivative vector
+    virtual void addToGlobalChi2DerVector (double *y,   ///< Vector of chi2 derivatives
+                                           int idim     ///< Vector size 
+                                           ) const;
+
+    /// Add 2nd derivatives of chi squared to global derivative matrix
+    virtual void addToGlobalChi2DerMatrix (double *M,   ///< Global derivative matrix
+                                           int idim     ///< First dimension of global derivative matrix
+                                           ) const;
+
+    /// Add derivatives of momentum vector to global derivative vector
+    virtual void addToGlobalChi2DerVector (double *y,     ///< Vector of chi2 derivatives
+                                           int idim,      ///< Vector size 
+                                           double lambda, ///< The lambda value
+                                           double der[], ///< derivatices of constraint wrt intermediate variables (e.g. 4-vector with dg/dE, dg/dpx, dg/dpy, dg/dpz)
+					   int metaSet  ///< which set of intermediate variables
+                                           ) const;
+        
+
+    virtual void addToDerivatives (double der[], int idim, 
+				   double factor[], int metaSet) const;
+
+    virtual void addTo1stDerivatives (double M[], 
+				      int idim, 
+				      double der[], 
+				      int kglobal, 
+				      int metaSet
+				      ) const;
+
+    virtual void addTo2ndDerivatives (double der2[], int idim, double factor[], int metaSet) const;
+    virtual void addTo2ndDerivatives (double M[], int idim,  double lambda, double der[], int metaSet) const;
+
+    // DANIEL added
+    // derivatives of intermediate variables wrt object's local parameters
+    // these must be implemented by the derived classes for each type of object
+    virtual double getFirstDerivative( int iMeta , 
+				       int ilocal ,
+				       int metaSet 
+				       ) const = 0;
+
+    virtual double getSecondDerivative( int iMeta, 
+					int ilocal , 
+					int jlocal , 
+					int metaSet 
+					) const = 0;
                                  
+    virtual void initCov();
+
+    virtual double getError2 (double der[], int metaset) const;
+
+    //// DANIEL
+    //// these are some definitions of max # parameters, intermediate parameters, and of the different sets of intermediate parameters
+    //// they should probably be moved out of BaseFitObject into a separate class...?
+    //enum { VARBASIS_EPXYZ=0, VARBASIS_TRKNORMAL, NMETASET }; // define labels for bases (sets of intermediate variables)
+    //enum { maxInter=4 };                  // max # of variables in the above bases
+    //static const int nMetaVars[NMETASET]; // this is used to store how many variables in each base (should be <= maxInter)
+    ///// maximum number of parameters for a fit object
+    //enum {MAXPAR = 10};
+    //// end definitions
+
+
     protected:
       char *name;  
       const static double eps2;                           
+
+
+      // DANIEL moved all of this stuff to BaseFitObject
+      // it costs some extra memory, since everything has dimension of largest # of parameters
+      // but avoid a lot of almost-duplication in the derived classes
+
+      /// Calculate the inverse of the covariance matrix
+      virtual bool calculateCovInv() const;
+        
+      /// fit parameters
+      double par[BaseDefs::MAXPAR];
+      /// measured parameters
+      double mpar[BaseDefs::MAXPAR];
+      /// measured flag
+      bool measured[BaseDefs::MAXPAR];
+      /// fixed flag
+      bool fixed[BaseDefs::MAXPAR];
+      /// global paramter number for each parameter
+      int globalParNum [BaseDefs::MAXPAR];
+      /// local covariance matrix
+      double cov [BaseDefs::MAXPAR][BaseDefs::MAXPAR];    
+      /// inverse pf local covariance matrix
+      mutable double covinv [BaseDefs::MAXPAR][BaseDefs::MAXPAR];    
+      /// flag for valid inverse covariance matrix
+      mutable bool covinvvalid; 
+      /// flag for valid cache
+      mutable bool cachevalid;
+      // end DANIEL adds
+
 };
 
 /** \relates BaseFitObject

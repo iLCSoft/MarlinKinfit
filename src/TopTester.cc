@@ -14,7 +14,7 @@
 
 #include <CLHEP/Vector/LorentzVector.h>
 #include "JetFitObject.h"
-#include "PConstraint.h"
+//#include "PConstraint.h"
 #include "OPALFitterGSL.h"
 #include "NewFitterGSL.h"
 #include "TextTracer.h"

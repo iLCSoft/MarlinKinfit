@@ -168,6 +168,7 @@ class ParticleConstraint: public BaseHardConstraint {
                              double eps2  ///< variation of 2nd local parameter 
                             );
                               
+    virtual int getVarBasis() const = 0;
   
   protected:
   
