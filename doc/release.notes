@@ -5,6 +5,15 @@
 ===============================
 
  ----------
+| v00-01-05|
+ ----------
+
+ adjusted version number in CMakeLists.txt, removed obsolete PConstraint,  
+ added directory not_used and moved there all the Track / Vertex fitting stuff which
+ had only recently (r4750) been transfered from H1 version and is now being
+ overhauled by Daniel Jeans.  
+
+ ----------
 | v00-01-04|
  ----------
 
