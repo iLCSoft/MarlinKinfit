@@ -217,6 +217,12 @@ class VertexFitObject: public BaseFitObject {
     
     /// Initialize this object and attatched tracks for fit with initial estimates
     virtual void initForFit();
+
+    // this class does not yet work in refactoring - DJeans
+    // (at least) these two methods will need to be implemented
+    virtual double getFirstDerivative(int iMeta, int ilocal , int metaSet) const {assert (0);}
+    virtual double getSecondDerivative(int iMeta, int ilocal , int jlocal , int metaSet) const {assert (0);}
+    virtual void updateCache() const {assert (0);}
             
   protected:
     /// generate vertex constraints

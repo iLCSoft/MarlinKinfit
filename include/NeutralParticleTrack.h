@@ -179,7 +179,13 @@ class NeutralParticleTrack: public TrackFitObject {
     
     /// Factor between internal and external parameters
     static const double parfact[NPARMAX];
-  
+
+
+    // this class does not yet work in refactoring - DJeans
+    // (at least) these two methods will need to be implemented
+    virtual double getFirstDerivative(int iMeta, int ilocal , int metaSet) const {assert (0);}
+    virtual double getSecondDerivative(int iMeta, int ilocal , int jlocal , int metaSet) const {assert (0);}
+
   protected:
     
     /// init covariance matrix from an array
