@@ -72,7 +72,7 @@ using std::cerr;
 using std::endl;
 using std::abs;
 
-static int debuglevel = 0;
+static int debuglevel = 1;
 static int nitdebug = 100;
 static int nitcalc = 0;
 static int nitsvd = 0;
@@ -240,7 +240,7 @@ double NewtonFitterGSL::fit() {
     // Now, calculate the result vector y with the values of the derivatives
     // d chi^2/d x
     calcy();
-    
+
     if (debug>3 && (nit==0 || nit<nitdebug)) {
       cout << "After setting up equations: \n";
       debug_print (M, "M");
@@ -272,11 +272,12 @@ double NewtonFitterGSL::fit() {
     if (debug > 1) { 
       debug_print (xbest, "new parameters");
     }  
+
     calcy();
     //cout << "New fval: " << 0.5*pow(gsl_blas_dnrm2 (yscal), 2) << endl;
     chi2new = calcChi2();
     //cout << "chi2: " << chi2old << " -> " << chi2new << endl;
-    
+   
     if (debug>3 && (nit==0 || nit<nitdebug)) {
       cout << "After solving equations: \n";
       debug_print (xbest, "xbest");
@@ -332,7 +333,7 @@ double NewtonFitterGSL::fit() {
           int jglobal = fitobjects[ifitobj]->getGlobalParNum (jlocal); 
           if (iglobal >= 0 && jglobal >= 0) 
           fitobjects[ifitobj]->setCov(ilocal, jlocal, gsl_matrix_get (CCinv, iglobal, jglobal)); 
-        }
+	}//CCinv
       }
     }
   }
@@ -1019,6 +1020,7 @@ void NewtonFitterGSL::calcCovMatrix() {
   }  
   
   calcM();
+
   if (debug > 3) {
     debug_print (M, "M");
   }  
@@ -1028,10 +1030,12 @@ void NewtonFitterGSL::calcCovMatrix() {
   // Calculate LU decomposition of M into M3
   int signum;
   int result = gsl_linalg_LU_decomp (M, permM, &signum);
+
   if (debug > 3) {
     cout << "invertM: gsl_linalg_LU_decomp result=" << result << endl;
     debug_print (M, "M_LU"); 
   }  
+
   // Calculate inverse of M, store in M3
   int ifail = gsl_linalg_LU_invert (M, permM, M3);
   
@@ -1061,6 +1065,7 @@ void NewtonFitterGSL::calcCovMatrix() {
   gsl_matrix_set_zero (M5);
   gsl_matrix_view  Cov_a = gsl_matrix_submatrix (M5, 0, 0, npar, npar);
   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dadeta.matrix, &M3part.matrix, 0, M5);
+  gsl_matrix_memcpy(CCinv,M5);
 
   if (debug > 3) {
     debug_print (&Cov_a.matrix, "Cov_a");
