@@ -232,6 +232,40 @@ double JetFitObject::getDE(int ilocal) const {
   return 0; 
 }
 
+double JetFitObject::getError (int ilocal) const {
+  assert (ilocal >= 0 && ilocal < NPAR);
+  return std::sqrt(cov[ilocal][ilocal]);
+}
+
+double JetFitObject::getCov (int ilocal, int jlocal) const {
+  assert (ilocal >= 0 && ilocal < NPAR);
+  assert (jlocal >= 0 && jlocal < NPAR);
+  return cov[ilocal][jlocal];
+} 
+
+//void   JetFitObject::addToDerivatives (double der[], int idim, 
+//                                       double efact, double pxfact, 
+//                                       double pyfact, double pzfact) const {
+//  int i_E     = globalParNum[0];
+//  int i_theta = globalParNum[1];
+//  int i_phi   = globalParNum[2];
+//  assert (i_E     >= 0 && i_E     < idim);
+//  assert (i_theta >= 0 && i_theta < idim);
+//  assert (i_phi   >= 0 && i_phi   < idim);
+//  
+//  if (!cachevalid) updateCache();
+//  // for numerical accuracy, add up derivatives first,
+//  // then add them to global vector
+//  double der_E = efact;
+//  double der_theta = 0;
+//  double der_phi = 0;
+//  
+//  if (pxfact != 0) {
+//    der_E     += pxfact*dpxdE;
+//    der_theta += pxfact*dpxdtheta;
+//    der_phi   -= pxfact*py;
+
+
 
 double JetFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
 
@@ -251,6 +285,7 @@ double JetFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) c
     break;
   default:
     assert(0);
+
   }
 
 }
@@ -348,6 +383,7 @@ void JetFitObject::updateCache() const {
 //  if (!cachevalid) updateCache();
 //  return chi2;
 //}
+//
 
 bool JetFitObject::adjustEThetaPhi (double& m, double &E, double& theta, double& phi) {
   bool result = false;
