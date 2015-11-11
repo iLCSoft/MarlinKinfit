@@ -94,6 +94,25 @@ class JetFitObject : public ParticleFitObject {
     virtual double getDPz(int ilocal) const;
     virtual double getDE(int ilocal) const;
 
+    virtual double getCov (int ilocal,    ///< Local parameter number i                                                                                                 
+                           int jlocal     ///< Local parameter number j                                                                                             
+			   ) const ;
+
+    /// Get error of parameter ilocal
+    virtual double getError (int ilocal     ///< Local parameter number
+			     ) const;
+
+    
+    /// add derivatives to vector der of size idim
+    /// pxfact*dpx/dx_i + pyfact*dpy/dx_i + pzfact*dpz/dx_i + efact*dE/dx_i 
+//    virtual void   addToDerivatives (double der[],      ///< Derivatives vector, length idim
+//                                     int idim,          ///< Length of derivatives vector
+//                                     double efact=0,    ///< Factor for dE/dx_i
+//                                     double pxfact=0,   ///< Factor for dpx/dx_i
+//                                     double pyfact=0,   ///< Factor for dpy/dx_i 
+//                                     double pzfact=0    ///< Factor for dpz/dx_i
+//                                     ) const;
+
     // daniel's new method
     // derivatives of intermediate variable wrt local variable
     virtual double getFirstDerivative( int iMeta, int ilocal , int metaSet ) const;
