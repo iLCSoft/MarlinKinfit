@@ -34,7 +34,7 @@ SET( MarlinKinfit_INCLUDE_DIRS MarlinKinfit_INCLUDE_DIRS-NOTFOUND )
 MARK_AS_ADVANCED( MarlinKinfit_INCLUDE_DIRS )
 
 FIND_PATH( MarlinKinfit_INCLUDE_DIRS
-	NAMES WW5CFit.h
+	NAMES BaseFitter.h
 	PATHS ${MarlinKinfit_ROOT}/include
 	NO_DEFAULT_PATH
 )
