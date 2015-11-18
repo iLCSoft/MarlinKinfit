@@ -45,7 +45,8 @@ class TopEventILC : public BaseEvent {
     void setDebug (bool _debug) {debug = _debug;};
     
     ParticleFitObject* getTrueFitObject (int i) {return bfo[i];};
-    ParticleFitObject* getSmearedFitObject (int i) {return bfosmear[i];};
+    ParticleFitObject* getStartFitObject (int i) {return bfostart[i];};
+    ParticleFitObject* getFittedFitObject (int i) {return bfosmear[i];};
     FourVector* getTrueFourVector (int i) {return fv[i];};
     
     bool leptonic, leptonasjet, debug;
@@ -57,6 +58,7 @@ class TopEventILC : public BaseEvent {
     FourVector *fvsmear[NFV];
     FourVector *fvfinal[NFV];
     ParticleFitObject *bfo[NBFO];
+    ParticleFitObject *bfostart[NBFO];
     ParticleFitObject *bfosmear[NBFO];
     
     MomentumConstraint pxc;

@@ -188,20 +188,34 @@ void TopEventILC::genEvent(){
     if (j < 4 || !leptonic || (j == 4 && leptonasjet)) {
       bfo[j] = new JetFitObject (E, theta, phi, EError, thetaResol, phiResol, 0);
       bfo[j]->setName (names[j]);
+      if (debug) {
+        cout << "true jet " << j << ": E = " << bfo[j]->getParam(0) << " +- " << bfo[j]->getError(0)
+             << ", theta = " << bfo[j]->getParam(1) << " +- " << bfo[j]->getError(1)
+             << ", phi = " << bfo[j]->getParam(2) << " +- " << bfo[j]->getError(2)
+             << endl;
+      }
     }  
     else if (j == 4 && leptonic && !leptonasjet) {
       bfo[4] = new LeptonFitObject (ptinv, theta, phi, ptinvError, thetaResolTrack, phiResol, 0.);
       if (debug) {
-        cout << "true Lepton: E = " << bfo[4]->getE() << ", px = " << bfo[4]->getPx() << ", py = " << bfo[4]->getPy() 
+        cout << " true Lepton: E = " << bfo[4]->getE() << ", px = " << bfo[4]->getPx() << ", py = " << bfo[4]->getPy() 
              << ", pz = " << bfo[4]->getPz() << endl;
+        cout << " true Lepton: ptinv = " << bfo[4]->getParam(0) << " +- " << bfo[4]->getError(0)
+             << ", theta = " << bfo[4]->getParam(1) << " +- " << bfo[4]->getError(1)
+             << ", phi = " << bfo[4]->getParam(2) << " +- " << bfo[4]->getError(2)
+             << endl;
       }       
     }  
     else if (j == 5 && leptonic) {
-      bfo[5] = new NeutrinoFitObject (E, theta, phi, 20, 0.2, 0.2);
+      bfo[5] = new NeutrinoFitObject (E, theta, phi, 0.01, 0.0001, 0.00001);
       bfo[5]->setName ("n22");
       if (debug) {
         cout << "true Neutrino: E = " << bfo[5]->getE() << ", px = " << bfo[5]->getPx() << ", py = " << bfo[5]->getPy() 
              << ", pz = " << bfo[5]->getPz() << endl;
+        cout << "true Neutrino " << j << ": E = " << bfo[5]->getParam(0) << " +- " << bfo[5]->getError(0)
+             << ", theta = " << bfo[5]->getParam(1) << " +- " << bfo[5]->getError(1)
+             << ", phi = " << bfo[5]->getParam(2) << " +- " << bfo[5]->getError(2)
+             << endl;
       }       
     }  
     if (j == 4 && leptonic) bfo[4]->setName ("e22");
@@ -227,13 +241,22 @@ void TopEventILC::genEvent(){
     if (j < 4 || !leptonic || (j == 4 && leptonasjet)) {
       bfosmear[j] = new JetFitObject (ESmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
       bfosmear[j]->setName (names[j]);
+      bfostart[j] = new JetFitObject (ESmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, 0.);
+      bfostart[j]->setName (names[j]);
       Etot  += bfosmear[j]->getE();
       pxtot += bfosmear[j]->getPx();
       pytot += bfosmear[j]->getPy();
       pztot += bfosmear[j]->getPz();
+      if (debug) {
+        cout << "smeared jet " << j << ": E = " << bfosmear[j]->getParam(0) << " +- " << bfosmear[j]->getError(0)
+             << ", theta = " << bfosmear[j]->getParam(1) << " +- " << bfosmear[j]->getError(1)
+             << ", phi = " << bfosmear[j]->getParam(2) << " +- " << bfosmear[j]->getError(2)
+             << endl;
+      }
     }
     else if (j == 4 && leptonic && !leptonasjet) {
       bfosmear[4] = new LeptonFitObject (ptinvSmear, thetaSmearTrack, phiSmearTrack, ptinvError, thetaResolTrack, phiResolTrack, 0.);
+      bfostart[4] = new LeptonFitObject (ptinvSmear, thetaSmearTrack, phiSmearTrack, ptinvError, thetaResolTrack, phiResolTrack, 0.);
       Etot  += bfosmear[4]->getE();
       pxtot += bfosmear[4]->getPx();
       pytot += bfosmear[4]->getPy();
@@ -245,6 +268,10 @@ void TopEventILC::genEvent(){
              << sqrt(pow(1./ptinvSmear/sin(thetaSmearTrack),2)+mj*mj) << endl;
         cout << "Lepton: E = " << bfosmear[4]->getE() << ", px = " << bfosmear[4]->getPx() << ", py = " << bfosmear[4]->getPy() 
              << ", pz = " << bfosmear[4]->getPz() << endl;
+        cout << " smeared Lepton: ptinv = " << bfosmear[4]->getParam(0) << " +- " << bfosmear[4]->getError(0)
+             << ", theta = " << bfosmear[4]->getParam(1) << " +- " << bfosmear[4]->getError(1)
+             << ", phi = " << bfosmear[4]->getParam(2) << " +- " << bfosmear[4]->getError(2)
+             << endl;
       }       
     }
     else if (j == 5 && leptonic) {
@@ -254,29 +281,36 @@ void TopEventILC::genEvent(){
       double pn = sqrt(pxn*pxn+pyn*pyn+pzn*pzn);
 //      double en =  sqrt (pxn*pxn+pyn*pyn+pzn*pzn);
       double en =  Ecm - Etot;
-      if (debug) {
-        cout << "Neutrino: pxn = " << pxn << ", pyn = " << pyn << ", pzn = " << pzn << ", pn = " << pn << ", en = " << en << endl;
-      }   
+      double ptn = sqrt(pxn*pxn+pyn*pyn);
+      double theta = acos (pzn/pn); 
+      double phi = atan2 (pyn, pxn);
 //       if (en <= 0) {
 //         cout << "WARNING: negative missing energy = " << en << ", setting to pn = " << pn << ", true pn = " << bfo[5]->getE() << endl;
 //         en = pn;
 //       }   
-      double ptn = sqrt(pxn*pxn+pyn*pyn);
-      double theta = acos (pzn/pn); 
-      double phi = atan2 (pyn, pxn);
       if (debug) {
         cout << "Neutrino: en = " << en << ", theta = " << theta << ", phi = " << phi << endl;
+        cout << "Neutrino: pxn = " << pxn << ", pyn = " << pyn << ", pzn = " << pzn << ", pn = " << pn << endl;
         cout << "Neutrino momenta by hand: px = " << ptn*cos(phi) << ", py = " << ptn*sin(phi) << ", pz = " << pn*cos(theta) << endl;
       }   
-      bfosmear[5] = new NeutrinoFitObject (pn, theta, phi, 20, 0.2, 0.2);
+      bfosmear[5] = new NeutrinoFitObject (pn, theta, phi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
+      bfostart[5] = new NeutrinoFitObject (pn, theta, phi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
     
       bfosmear[5]->setName ("n22");
+      bfostart[5]->setName ("n22");
       if (debug) {
         cout << "Neutrino: E = " << bfosmear[5]->getE() << ", px = " << bfosmear[5]->getPx() << ", py = " << bfosmear[5]->getPy() 
              << ", pz = " << bfosmear[5]->getPz() << endl;
+        cout << "smeared Neutrino " << j << ": E = " << bfosmear[5]->getParam(0) << " +- " << bfosmear[5]->getError(0)
+             << ", theta = " << bfosmear[5]->getParam(1) << " +- " << bfosmear[5]->getError(1)
+             << ", phi = " << bfosmear[5]->getParam(2) << " +- " << bfosmear[5]->getError(2)
+             << endl;
       }       
     }
-    if (j == 4 && leptonic) bfosmear[4]->setName ("e22");
+    if (j == 4 && leptonic) {
+      bfosmear[4]->setName ("e22");
+      bfostart[4]->setName ("e22");
+    }  
     
     fvsmear[i] = new FourVector (bfosmear[j]->getE(), bfosmear[j]->getPx(), bfosmear[j]->getPy(), bfosmear[j]->getPz());
     
@@ -392,6 +426,24 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
     cout << "Final vectors: \n";
     for (int i = 0; i<6; ++i) {
       cout << bfosmear[i]->getName() << ": " << *bfosmear[i] << endl;
+      if (i < 4 || !leptonic || (i == 4 && leptonasjet)) {
+        cout << "fitted jet " << i << ": E = " << bfosmear[i]->getParam(0) << " +- " << bfosmear[i]->getError(0)
+             << ", theta = " << bfosmear[i]->getParam(1) << " +- " << bfosmear[i]->getError(1)
+             << ", phi = " << bfosmear[i]->getParam(2) << " +- " << bfosmear[i]->getError(2)
+             << endl;
+      }
+      else if (i == 4 && leptonic && !leptonasjet) {
+        cout << " fitted Lepton: ptinv = " << bfosmear[4]->getParam(0) << " +- " << bfosmear[4]->getError(0)
+             << ", theta = " << bfosmear[4]->getParam(1) << " +- " << bfosmear[4]->getError(1)
+             << ", phi = " << bfosmear[4]->getParam(2) << " +- " << bfosmear[4]->getError(2)
+             << endl;
+      }       
+      else if (i == 5 && leptonic) {
+        cout << "fitted Neutrino " << i << ": E = " << bfosmear[5]->getParam(0) << " +- " << bfosmear[5]->getError(0)
+             << ", theta = " << bfosmear[5]->getParam(1) << " +- " << bfosmear[5]->getError(1)
+             << ", phi = " << bfosmear[5]->getParam(2) << " +- " << bfosmear[5]->getError(2)
+             << endl;
+      }       
     }
     cout << "Total: \n";
     cout << "gen:   " << *fv[0] << ", m=" << fv[0]->getM() << endl;

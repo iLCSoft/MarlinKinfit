@@ -75,7 +75,6 @@ TopTester::TopTester() : Processor("TopTester") {
                               
                               
   topevent = new TopEventILC();   
-                           
 }
 
 
@@ -129,7 +128,37 @@ void TopTester::processEvent( LCEvent * evt ) {
   static AIDA::IHistogram1D* hRecWMassNoFitAll;    
   static AIDA::IHistogram1D* hFitProb;    
   static AIDA::IHistogram1D* hNIt;    
-  static AIDA::IHistogram1D* hFitError;    
+  static AIDA::IHistogram1D* hFitError;
+      
+  static AIDA::IHistogram1D* hPullEJetOK;    
+  static AIDA::IHistogram1D* hPullELepOK;    
+  static AIDA::IHistogram1D* hPullENeuOK;    
+  static AIDA::IHistogram1D* hPullThJetOK;    
+  static AIDA::IHistogram1D* hPullThLepOK;    
+  static AIDA::IHistogram1D* hPullThNeuOK;    
+  static AIDA::IHistogram1D* hPullPhJetOK;    
+  static AIDA::IHistogram1D* hPullPhLepOK;    
+  static AIDA::IHistogram1D* hPullPhNeuOK;
+      
+  static AIDA::IHistogram1D* hPullEJetMea;    
+  static AIDA::IHistogram1D* hPullELepMea;    
+  static AIDA::IHistogram1D* hPullENeuMea;    
+  static AIDA::IHistogram1D* hPullThJetMea;    
+  static AIDA::IHistogram1D* hPullThLepMea;    
+  static AIDA::IHistogram1D* hPullThNeuMea;    
+  static AIDA::IHistogram1D* hPullPhJetMea;    
+  static AIDA::IHistogram1D* hPullPhLepMea;    
+  static AIDA::IHistogram1D* hPullPhNeuMea; 
+     
+  static AIDA::IHistogram1D* hPullEJetTrue;    
+  static AIDA::IHistogram1D* hPullELepTrue;    
+  static AIDA::IHistogram1D* hPullENeuTrue;    
+  static AIDA::IHistogram1D* hPullThJetTrue;    
+  static AIDA::IHistogram1D* hPullThLepTrue;    
+  static AIDA::IHistogram1D* hPullThNeuTrue;    
+  static AIDA::IHistogram1D* hPullPhJetTrue;    
+  static AIDA::IHistogram1D* hPullPhLepTrue;    
+  static AIDA::IHistogram1D* hPullPhNeuTrue;    
                
   if( isFirstEvent() ) { 
     
@@ -224,6 +253,89 @@ void TopTester::processEvent( LCEvent * evt ) {
         createHistogram1D( "hFitError", "Error flag", 10, -0.5, 9.5 ) ; 
     }    
 
+    hPullEJetOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullEJetOK", "pull of jet energy", 100, -5., 5. ) ;    
+    hPullELepOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullELepOK", "pull of lepton energy", 100, -5., 5. ) ;    
+    hPullENeuOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullENeuOK", "pull of neutrino energy", 100, -5., 5. ) ;    
+    hPullThJetOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThJetOK", "pull of jet theta", 100, -5., 5. ) ;    
+    hPullThLepOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThLepOK", "pull of lepton theta", 100, -5., 5. ) ;    
+    hPullThNeuOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThNeuOK", "pull of neutrino theta", 100, -5., 5. ) ;    
+    hPullPhJetOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhJetOK", "pull of jet phi", 100, -5., 5. ) ;    
+    hPullPhLepOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhLepOK", "pull of lepton phi", 100, -5., 5. ) ;    
+    hPullPhNeuOK = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhNeuOK", "pull of neutrino phi", 100, -5., 5. ) ;    
+
+    hPullEJetMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullEJetMea", "pull of jet energy, #sigma_mea", 100, -5., 5. ) ;    
+    hPullELepMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullELepMea", "pull of lepton energy, #sigma_mea", 100, -5., 5. ) ;    
+    hPullENeuMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullENeuMea", "pull of neutrino energy, #sigma_mea", 100, -5., 5. ) ;    
+    hPullThJetMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThJetMea", "pull of jet theta, #sigma_mea", 100, -5., 5. ) ;    
+    hPullThLepMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThLepMea", "pull of lepton theta, #sigma_mea", 100, -5., 5. ) ;    
+    hPullThNeuMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThNeuMea", "pull of neutrino theta, #sigma_mea", 100, -5., 5. ) ;    
+    hPullPhJetMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhJetMea", "pull of jet phi, #sigma_mea", 100, -5., 5. ) ;    
+    hPullPhLepMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhLepMea", "pull of lepton phi, #sigma_mea", 100, -5., 5. ) ;    
+    hPullPhNeuMea = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhNeuMea", "pull of neutrino phi, #sigma_mea", 100, -5., 5. ) ;    
+
+    hPullEJetTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullEJetTrue", "pull of jet energy vs true", 100, -5., 5. ) ;    
+    hPullELepTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullELepTrue", "pull of lepton energy vs true", 100, -5., 5. ) ;    
+    hPullENeuTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullENeuTrue", "pull of neutrino energy vs true", 100, -5., 5. ) ;    
+    hPullThJetTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThJetTrue", "pull of jet theta vs true", 100, -5., 5. ) ;    
+    hPullThLepTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThLepTrue", "pull of lepton theta vs true", 100, -5., 5. ) ;    
+    hPullThNeuTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullThNeuTrue", "pull of neutrino theta vs true", 100, -5., 5. ) ;    
+    hPullPhJetTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhJetTrue", "pull of jet phi vs true", 100, -5., 5. ) ;    
+    hPullPhLepTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhLepTrue", "pull of lepton phi vs true", 100, -5., 5. ) ;    
+    hPullPhNeuTrue = 
+      AIDAProcessor::histogramFactory(this)->
+      createHistogram1D( "hPullPhNeuTrue", "pull of neutrino phi vs true", 100, -5., 5. ) ;    
   }
 
 #endif   
@@ -236,8 +348,8 @@ void TopTester::processEvent( LCEvent * evt ) {
      double startmassW1 = 0., startmassW2 = 0.;
      double startmasstop1 = 0., startmasstop2 = 0.;
      
-     bool debug = false;
-     if (ievt == _ievttrace || _traceall) debug = true;
+     int debug = 0;
+     if (ievt == _ievttrace || _traceall) debug = 4;
      topevent->setDebug (debug);
           
      topevent->genEvent();
@@ -292,6 +404,8 @@ void TopTester::processEvent( LCEvent * evt ) {
      message<DEBUG>( log()  << "final mass of W 2: " << topevent->getW2Mass() ) ;
      message<DEBUG>( log()  << "final mass of top 1: " << topevent->getTop1Mass() ) ;
      message<DEBUG>( log()  << "final mass of top 2: " << topevent->getTop2Mass() ) ;
+       
+     bool usesigma_evt = true;
                   
 #ifdef MARLIN_USE_AIDA
      hFitError->fill( ierr ) ;
@@ -310,9 +424,51 @@ void TopTester::processEvent( LCEvent * evt ) {
        hRecW1Mass->fill( topevent->getW1Mass() ) ;
        hRecW2Mass->fill( topevent->getW2Mass() ) ;
        hRecWMass->fill( 0.5*(topevent->getW1Mass()+topevent->getW2Mass()) ) ;
+       
+       for (int ifo = 0; ifo < 6; ifo++){
+         double errfit, errmea, start, sigma; 
+         double pull[3], pullmea[3], pulltrue[3];
+         bool usesigma[3];
+         for (int ipar = 0; ipar < 3; ipar++) {
+           errfit = topevent->getFittedFitObject(ifo)->getError(ipar);  // should make difference for NewtonFitter
+           errmea = topevent->getStartFitObject(ifo)->getError(ipar);  // SmearedFO are not fitted: original errors
+           start = topevent->getStartFitObject(ifo)->getParam(ipar);  // SmearedFO are not fitted: original values
+           sigma = errmea*errmea-errfit*errfit;
+           if (sigma > 0) {
+             sigma = sqrt(sigma);
+             usesigma[ipar] = true;
+           }
+           else {
+             message<WARNING>( log() << " SIGMA <= 0, taking only measured errors for pull for ifo = " << ifo 
+                                     << " in evt " << ievt << ", errmea =  " << errmea << ", errfit = " << errfit ) ;
+             usesigma[ipar] = false;
+             usesigma_evt = false;
+           }  
+           pull[ipar] = (start - topevent->getFittedFitObject(ifo)->getParam(ipar))/sigma;
+           pullmea[ipar] = (start - topevent->getFittedFitObject(ifo)->getParam(ipar))/errmea;
+           pulltrue[ipar] = (start - topevent->getTrueFitObject(ifo)->getParam(ipar))/errmea;
+         }  
+         if ( !_semileptonic || ifo < 4 ) {
+           if (usesigma[0]) hPullEJetOK->fill (pull[0]); hPullEJetMea->fill (pullmea[0]); hPullEJetTrue->fill (pulltrue[0]);
+           if (usesigma[1]) hPullThJetOK->fill(pull[1]); hPullThJetMea->fill(pullmea[1]); hPullThJetTrue->fill(pulltrue[1]);
+           if (usesigma[2]) hPullPhJetOK->fill(pull[2]); hPullPhJetMea->fill(pullmea[2]); hPullPhJetTrue->fill(pulltrue[2]);
+         }
+         else if ( _semileptonic && ifo ==  4 ) {
+           if (usesigma[0]) hPullELepOK->fill (pull[0]); hPullELepMea->fill (pullmea[0]); hPullELepTrue->fill (pulltrue[0]);
+           if (usesigma[1]) hPullThLepOK->fill(pull[1]); hPullThLepMea->fill(pullmea[1]); hPullThLepTrue->fill(pulltrue[1]);
+           if (usesigma[2]) hPullPhLepOK->fill(pull[2]); hPullPhLepMea->fill(pullmea[2]); hPullPhLepTrue->fill(pulltrue[2]);
+         }
+         else if ( _semileptonic && ifo ==  5 ) {
+           if (usesigma[0]) hPullENeuOK->fill (pull[0]); hPullENeuMea->fill (pullmea[0]); hPullENeuTrue->fill (pulltrue[0]);
+           if (usesigma[1]) hPullThNeuOK->fill(pull[1]); hPullThNeuMea->fill(pullmea[1]); hPullThNeuTrue->fill(pulltrue[1]);
+           if (usesigma[2]) hPullPhNeuOK->fill(pull[2]); hPullPhNeuMea->fill(pullmea[2]); hPullPhNeuTrue->fill(pulltrue[2]);
+         }
+       }
      }
 #endif
      if (ierr > 0) message<WARNING>( log() << "FIT ERROR = " << ierr << " in toy event " << ievt ) ;
+     
+     if (!usesigma_evt) break;
 
      _nEvt ++ ;
      

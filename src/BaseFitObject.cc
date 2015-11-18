@@ -208,29 +208,29 @@ bool BaseFitObject::calculateCovInv() const {
     covinv[i][i] = gsl_matrix_get (covm, i, i);
   }
 
-//  std::cout << "cov matrix:" << std::endl;
-//  for (int i = 0; i < n; ++i) {
-//    for (int j = 0; j < n; ++j) {
-//      std::cout << cov[i][j] << " " ;
-//    }
-//    std::cout << std::endl;
-//  }
+ std::cout << "cov matrix:" << std::endl;
+ for (int i = 0; i < n; ++i) {
+   for (int j = 0; j < n; ++j) {
+     std::cout << cov[i][j] << " " ;
+   }
+   std::cout << std::endl;
+ }
 //
-//  std::cout << "corr matrix:" << std::endl;
-//  for (int i = 0; i < n; ++i) {
-//    for (int j = 0; j < n; ++j) {
-//      std::cout << cov[i][j]/sqrt(cov[i][i]*cov[j][j]) << " " ;
-//    }
-//    std::cout << std::endl;
-//  }
+ std::cout << "corr matrix:" << std::endl;
+ for (int i = 0; i < n; ++i) {
+   for (int j = 0; j < n; ++j) {
+     std::cout << cov[i][j]/sqrt(cov[i][i]*cov[j][j]) << " " ;
+   }
+   std::cout << std::endl;
+ }
 //
-//  std::cout << "inverse of cov matrix:" << std::endl;
-//  for (int i = 0; i < n; ++i) {
-//    for (int j = 0; j < n; ++j) {
-//      std::cout << covinv[i][j] << " " ;
-//    }
-//    std::cout << std::endl;
-//  }
+ std::cout << "inverse of cov matrix:" << std::endl;
+ for (int i = 0; i < n; ++i) {
+   for (int j = 0; j < n; ++j) {
+     std::cout << covinv[i][j] << " " ;
+   }
+   std::cout << std::endl;
+ }
 
   gsl_matrix_free(covm);
   covinvvalid = (result == 0);
@@ -389,7 +389,7 @@ double BaseFitObject::getChi2() const {
 
     std::cout << " BaseFitObject::getChi2() " << i << " " << resid[i] << " " << covinv[i][i] << std::endl;
 
-    if (chi2contr[i] = isParamMeasured(i) && !isParamFixed(i)) {
+    if ( ( chi2contr[i] = (isParamMeasured(i) && !isParamFixed(i)) ) ) {
       chi2 += resid[i]*covinv[i][i]*resid[i];
       for (int j = 0; j < i; ++j) {
         if (chi2contr[j]) chi2 += 2*(resid[i])*covinv[i][j]*(resid[j]);
@@ -421,7 +421,7 @@ double BaseFitObject::getD2Chi2DParam2(int ilocal, int jlocal) const {
     return 0;
   if (!covinvvalid) calculateCovInv();
   if (!covinvvalid) return 0;
-  return 2*covinv[ilocal][jlocal];
+  return 2*covinv[ilocal][jlocal];  // JL: ok in absence of soft constraints
 }
        
 

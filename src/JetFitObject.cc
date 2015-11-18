@@ -234,6 +234,7 @@ double JetFitObject::getDE(int ilocal) const {
 
 double JetFitObject::getError (int ilocal) const {
   assert (ilocal >= 0 && ilocal < NPAR);
+  //cout << "JetFitObject::getError (ilocal = " << ilocal << ") = " <<  std::sqrt(cov[ilocal][ilocal]) << endl;
   return std::sqrt(cov[ilocal][ilocal]);
 }
 

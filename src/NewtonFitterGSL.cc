@@ -985,6 +985,7 @@ int NewtonFitterGSL::invertM() {
 
 void NewtonFitterGSL::setDebug (int debuglevel) {
   debug = debuglevel;
+  cout << "NewtonFitterGSL::setDebug: debug level set to " << debug << endl;
 }
 
 
@@ -1007,8 +1008,11 @@ void NewtonFitterGSL::calcCovMatrix() {
     fo->addToGlobalChi2DerMatrix (M1->block->data, M1->tda);
     fo->addToGlobCov (M2->block->data, M2->tda);
   }
-  // multiply by -1
+  
+  // multiply by -1  
   gsl_matrix_scale (M1, -1);
+  
+  // JL: need to add derivatives of soft constraints here!
   
   gsl_matrix_view dydeta  = gsl_matrix_submatrix (M1, 0, 0, idim, npar);
   gsl_matrix_view Cov_eta = gsl_matrix_submatrix (M2, 0, 0, npar, npar);
@@ -1019,6 +1023,7 @@ void NewtonFitterGSL::calcCovMatrix() {
     debug_print (&Cov_eta.matrix, "Cov_eta");\
   }  
   
+  // JL: calculates d^2 chi^2 / dx1 dx2 + derivatives of hard and soft constraints
   calcM();
 
   if (debug > 3) {
