@@ -1,5 +1,5 @@
  
-#ifndef __IRSPHOTONFITOBJECT_H
+#ifndef __ISRPHOTONFITOBJECT_H
 #define __ISRPHOTONFITOBJECT_H
 
 #include "ParticleFitObject.h"
