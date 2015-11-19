@@ -748,20 +748,23 @@ void NewtonFitterGSL::fillperr() {
   }
 }
 
-int NewtonFitterGSL::calcM() {
+int NewtonFitterGSL::calcM (bool errorpropagation) {
   assert (M);
   assert (M->size1 == idim && M->size2 == idim);
   
   gsl_matrix_set_zero (M);
+  
   // First, all terms d^2 chi^2/dx1 dx2
   for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
     BaseFitObject *fo = *i;
     assert (fo);
     fo->addToGlobalChi2DerMatrix (M->block->data, M->tda);
   }
+  if (debug > 3) { 
+    cout << "After adding covariances from fit ojects:\n";
+    printMy ((double*) M, (double*) y, (int) idim);
+  }
   
-//   cout << "After adding covariances from fit ojects:\n";
-//   printMy (M, y, idim);
   // Second, all terms d^2 chi^2/dlambda dx, 
   // i.e. the first derivatives of the contraints,
   // plus the second derivatives times the lambda values
@@ -771,10 +774,20 @@ int NewtonFitterGSL::calcM() {
     int kglobal = c->getGlobalNum();
     assert (kglobal >= 0 && kglobal < (int)idim);
     c->add1stDerivativesToMatrix (M->block->data, M->tda);
-    c->add2ndDerivativesToMatrix (M->block->data, M->tda, gsl_vector_get (x, kglobal));
+    if (debug > 3) { 
+      cout << "After adding first derivatives of constraint " << c->getName() << endl;
+      printMy ((double*) M, (double*) y, (int) idim);
+      cout << "errorpropagation = " << errorpropagation << endl;
+    }
+    // for error propagation after fit, 
+    //2nd derivatives of constraints times lambda should _not_ be included!
+    if (!errorpropagation) c->add2ndDerivativesToMatrix (M->block->data, M->tda, gsl_vector_get (x, kglobal));
   }
-//     cout << "After adding derivatives of constraints::\n";
-//     printMy (M, y, idim);
+  if (debug > 3) { 
+    cout << "After adding derivatives of constraints::\n";
+    printMy ((double*) M, (double*) y, (int) idim);
+  }  
+  
   
   // Finally, treat the soft constraints
 
@@ -985,7 +998,7 @@ int NewtonFitterGSL::invertM() {
 
 void NewtonFitterGSL::setDebug (int debuglevel) {
   debug = debuglevel;
-  cout << "NewtonFitterGSL::setDebug: debug level set to " << debug << endl;
+  //cout << "NewtonFitterGSL::setDebug: debug level set to " << debug << endl;
 }
 
 
@@ -1023,8 +1036,8 @@ void NewtonFitterGSL::calcCovMatrix() {
     debug_print (&Cov_eta.matrix, "Cov_eta");\
   }  
   
-  // JL: calculates d^2 chi^2 / dx1 dx2 + derivatives of hard and soft constraints
-  calcM();
+  // JL: calculates d^2 chi^2 / dx1 dx2 + first (!) derivatives of hard constraints
+  calcM (true);
 
   if (debug > 3) {
     debug_print (M, "M");

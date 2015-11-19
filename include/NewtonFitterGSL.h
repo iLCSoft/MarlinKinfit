@@ -100,7 +100,7 @@ class NewtonFitterGSL : public BaseFitter {
     bool updateParams (gsl_vector *xnew);
     void fillxold();
     void fillperr();
-    int calcM();
+    int calcM (bool errorpropagation = false);
     int calcy();
     int optimizeScale();
     int invertM();

@@ -208,29 +208,29 @@ bool BaseFitObject::calculateCovInv() const {
     covinv[i][i] = gsl_matrix_get (covm, i, i);
   }
 
- std::cout << "cov matrix:" << std::endl;
- for (int i = 0; i < n; ++i) {
-   for (int j = 0; j < n; ++j) {
-     std::cout << cov[i][j] << " " ;
-   }
-   std::cout << std::endl;
- }
-//
- std::cout << "corr matrix:" << std::endl;
- for (int i = 0; i < n; ++i) {
-   for (int j = 0; j < n; ++j) {
-     std::cout << cov[i][j]/sqrt(cov[i][i]*cov[j][j]) << " " ;
-   }
-   std::cout << std::endl;
- }
-//
- std::cout << "inverse of cov matrix:" << std::endl;
- for (int i = 0; i < n; ++i) {
-   for (int j = 0; j < n; ++j) {
-     std::cout << covinv[i][j] << " " ;
-   }
-   std::cout << std::endl;
- }
+//  //std::cout << "cov matrix:" << std::endl;
+//  for (int i = 0; i < n; ++i) {
+//    for (int j = 0; j < n; ++j) {
+//      std::cout << cov[i][j] << " " ;
+//    }
+//    std::cout << std::endl;
+//  }
+// //
+//  std::cout << "corr matrix:" << std::endl;
+//  for (int i = 0; i < n; ++i) {
+//    for (int j = 0; j < n; ++j) {
+//      std::cout << cov[i][j]/sqrt(cov[i][i]*cov[j][j]) << " " ;
+//    }
+//    std::cout << std::endl;
+//  }
+// //
+//  std::cout << "inverse of cov matrix:" << std::endl;
+//  for (int i = 0; i < n; ++i) {
+//    for (int j = 0; j < n; ++j) {
+//      std::cout << covinv[i][j] << " " ;
+//    }
+//    std::cout << std::endl;
+//  }
 
   gsl_matrix_free(covm);
   covinvvalid = (result == 0);
