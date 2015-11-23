@@ -378,8 +378,11 @@ bool NewtonFitterGSL::initialize() {
   for (unsigned int ifitobj = 0; ifitobj < fitobjects.size(); ++ifitobj) {
     for (int ilocal = 0; ilocal < fitobjects[ifitobj]->getNPar(); ++ilocal) {
       if (!fitobjects[ifitobj]->isParamFixed(ilocal)) {
+        if (debug > 3) cout << "NewtonFitterGSL::initialize: parameter " << ilocal 
+                            << " of fitobject " << fitobjects[ifitobj]->getName()
+                            << " gets global number " << npar << endl;
         fitobjects[ifitobj]->setGlobalParNum (ilocal, npar);
-        ++npar;
+        ++npar;        
         if (!fitobjects[ifitobj]->isParamMeasured(ilocal)) ++nunm;
       }
     }
@@ -388,9 +391,11 @@ bool NewtonFitterGSL::initialize() {
   // set number of constraints
   ncon = constraints.size();
   // Tell the constraints their numbers
-  for (unsigned int icon = 0; icon < constraints.size(); ++icon) {
+  for (unsigned int icon = 0; icon < ncon; ++icon) {
     BaseHardConstraint *c = constraints[icon];
     assert (c);
+    if (debug > 3) cout << "NewtonFitterGSL::initialize: constraint " << c->getName() 
+                        << " gets global number " << npar+icon << endl;
     c->setGlobalNum (npar+icon);
 //    if (debug) cout << "Constraint " << icon << " -> global " << c->getGlobalNum() << endl;
   }
@@ -762,7 +767,8 @@ int NewtonFitterGSL::calcM (bool errorpropagation) {
   }
   if (debug > 3) { 
     cout << "After adding covariances from fit ojects:\n";
-    printMy ((double*) M, (double*) y, (int) idim);
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (M, "M");
   }
   
   // Second, all terms d^2 chi^2/dlambda dx, 
@@ -776,7 +782,8 @@ int NewtonFitterGSL::calcM (bool errorpropagation) {
     c->add1stDerivativesToMatrix (M->block->data, M->tda);
     if (debug > 3) { 
       cout << "After adding first derivatives of constraint " << c->getName() << endl;
-      printMy ((double*) M, (double*) y, (int) idim);
+      //printMy ((double*) M, (double*) y, (int) idim);
+      debug_print (M, "M");
       cout << "errorpropagation = " << errorpropagation << endl;
     }
     // for error propagation after fit, 
@@ -785,7 +792,9 @@ int NewtonFitterGSL::calcM (bool errorpropagation) {
   }
   if (debug > 3) { 
     cout << "After adding derivatives of constraints::\n";
-    printMy ((double*) M, (double*) y, (int) idim);
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (M, "M");
+    cout << "===========================================::\n";
   }  
   
   
