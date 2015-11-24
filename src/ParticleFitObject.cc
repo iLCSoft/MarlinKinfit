@@ -282,8 +282,8 @@ double ParticleFitObject::num2ndDerivative (int ilocal1, double eps1,
 double ParticleFitObject::getChi2 () const {
   // reimplemented here to take account of cyclical variables e.g azimuthal angle phi - DJeans
 
-  //  cout << "hello from ParticleFitObject::getChi2 () " << endl;
-
+  //cout << "hello from ParticleFitObject::getChi2 () " << endl;
+  
   if (!covinvvalid) calculateCovInv();
   if (!covinvvalid) return -1;
 
@@ -294,15 +294,16 @@ double ParticleFitObject::getChi2 () const {
       resid[i] = par[i] - mpar[i];
       //cout << "  xxx  " << i << " " << par[i] << " " << mpar[i] << " " << resid[i] << endl;
       if ( paramCycl[i]>0 ) {
-	while ( resid[i] >  paramCycl[i]/2 ) resid[i]-=paramCycl[i];
-	while ( resid[i] < -paramCycl[i]/2 ) resid[i]+=paramCycl[i];
+	resid[i]=fmod(resid[i],paramCycl[i]);
+	if(resid[i] >  paramCycl[i]/2 ) resid[i]-=paramCycl[i];
+	if(resid[i] < -paramCycl[i]/2 ) resid[i]+=paramCycl[i];
       }
     }
   }
 
   //cout << " ParticleFitObject::getChi2  " << endl;
   //for (int i=0; i<getNPar(); i++) {
-  //  cout << " --- " << i << " " << resid[i] << " " << covinv[i][i] << endl;
+  // cout << " --- " << i << " " << resid[i] << " " << covinv[i][i] << endl;
   //}
 
   double chi2 = 0;
@@ -311,8 +312,8 @@ double ParticleFitObject::getChi2 () const {
       for (int j=0; j<getNPar(); j++) {
 	if ( isParamMeasured(j) && !isParamFixed(j) ) {
 	  chi2+=resid[i]*covinv[i][j]*resid[j];
-	  //cout << getName () << " === " << i << " " << j << " : " << 
-	  //  resid[i] << "*" << covinv[i][j] << "*" << resid[j] << " = " << resid[i]*covinv[i][j]*resid[j] << " , sum " << chi2 << endl;
+	  //	  cout << getName () << " === " << i << " " << j << " : " << 
+	  // resid[i] << "*" << covinv[i][j] << "*" << resid[j] << " = " << resid[i]*covinv[i][j]*resid[j] << " , sum " << chi2 << endl;
 	}
       }
     }
