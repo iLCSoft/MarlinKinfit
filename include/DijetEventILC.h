@@ -1,49 +1,36 @@
 ////////////////////////////////////////////////////////////////
-// Class TopEventILC
+// Class DijetEventILC
 //
-// Author: Benno List, Jenny Boehme
-// Last update: $Date: 2008/02/12 16:43:26 $
-//          by: $Author: blist $
+// Author: Jenny Boehme
+// Last update: $Date: 2015/11/18 16:43:26 $
+//          by: $Author: boehmej $
 // 
-// Description: class to generate and fit top pair events at ILC
+// Description: class to generate and fit di jet events at ILC
 //               
 ////////////////////////////////////////////////////////////////
 #ifdef MARLIN_USE_ROOT
 
-#ifndef __TOPEVENTILC_H
-#define __TOPEVENTILC_H
+#ifndef __DIJETEVENTILC_H
+#define __DIJETEVENTILC_H
 
 #include "BaseEvent.h"
 #include "JetFitObject.h"
 #include "MomentumConstraint.h"
-// #include "PxConstraint.h"
-// #include "PyConstraint.h"
 #include "MassConstraint.h"
-#include "SoftGaussMassConstraint.h"
 
-class TopEventILC : public BaseEvent {
+class DijetEventILC : public BaseEvent {
   public: 
-    TopEventILC();
-    virtual ~TopEventILC();
+    DijetEventILC();
+    virtual ~DijetEventILC();
     virtual void genEvent();
     virtual int fitEvent (BaseFitter& fitter);
-
-    double bwrandom (double r, double e0, double gamma, double emin, double emax) const;
     
     MomentumConstraint& getPxConstraint() {return pxc;};
     MomentumConstraint& getPyConstraint() {return pyc;};
     MomentumConstraint& getPzConstraint() {return pzc;};
     MomentumConstraint& getEConstraint()  {return ec;};
-    MassConstraint& getW1Constraint() {return w1;};
-    MassConstraint& getW2Constraint() {return w2;};
-    MassConstraint& getTopConstraint() {return w;};
-    
-    double getW1Mass()  {return w1.getMass();};
-    double getW2Mass()  {return w2.getMass();};
-    double getTopMass(int flag)  {return w.getMass(flag);};
-    double getTop1Mass()  {return fvsmear[1]->getM();};
-    double getTop2Mass()  {return fvsmear[2]->getM();};
-    
+    MassConstraint& getMassConstraint() {return mc;};
+        
     void setDebug (bool _debug) {debug = _debug;};
     
     ParticleFitObject* getTrueFitObject (int i) {return bfo[i];};
@@ -55,7 +42,7 @@ class TopEventILC : public BaseEvent {
     
   protected:
   
-    enum {NFV = 11, NBFO = 6};
+    enum {NFV = 3, NBFO = 2};
     FourVector *fv[NFV];
     FourVector *fvsmear[NFV];
     FourVector *fvfinal[NFV];
@@ -66,19 +53,13 @@ class TopEventILC : public BaseEvent {
     MomentumConstraint pxc;
     MomentumConstraint pyc;
     MomentumConstraint pzc;
-    MomentumConstraint ec;
-    MassConstraint w1;
-    MassConstraint w2;
-    MassConstraint w;
-    //SoftGaussMassConstraint w1;
-    //SoftGaussMassConstraint w2;
-    //SoftGaussMassConstraint w;
-    
+    MomentumConstraint ec;    
+    MassConstraint mc;
     
 
 };
 
 
-#endif // __TOPEVENTILC_H
+#endif // __DIJETEVENTILC_H
 
 #endif // MARLIN_USE_ROOT
