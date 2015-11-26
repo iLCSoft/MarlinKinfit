@@ -65,7 +65,8 @@ NewFitterGSL::NewFitterGSL()
   perr(0), v1 (0), v2(0), 
   //Meval (0),
   M(0), Mscal (0), W(0), W2 (0), W3 (0),
-  //M1(0), M2 (0), M3 (0), M4 (0), M5 (0), Mevec (0), 
+  M1(0), M2 (0), M3 (0), M4 (0), M5 (0), 
+  //Mevec (0), 
   CC (0), CC1 (0), CCinv (0), 
   permW(0), 
   eigenws(0), eigenwsdim (0),
@@ -95,11 +96,11 @@ NewFitterGSL::~NewFitterGSL() {
   if (W) gsl_matrix_free (W);               W=0;
   if (W2) gsl_matrix_free (W2);             W2=0;
   if (W3) gsl_matrix_free (W3);             W3=0;
-//   if (M1) gsl_matrix_free (M1);             M1=0;
-//   if (M2) gsl_matrix_free (M2);             M2=0;
-//   if (M3) gsl_matrix_free (M3);             M3=0;
-//   if (M4) gsl_matrix_free (M4);             M4=0;
-//   if (M5) gsl_matrix_free (M5);             M5=0;
+  if (M1) gsl_matrix_free (M1);             M1=0;
+  if (M2) gsl_matrix_free (M2);             M2=0;
+  if (M3) gsl_matrix_free (M3);             M3=0;
+  if (M4) gsl_matrix_free (M4);             M4=0;
+  if (M5) gsl_matrix_free (M5);             M5=0;
 //   if (Mevec) gsl_matrix_free (Mevec);       Mevec=0;
   if (CC) gsl_matrix_free (CC);             CC=0;
   if (CC1) gsl_matrix_free (CC1);           CC1=0;
@@ -128,7 +129,7 @@ double NewFitterGSL::fit() {
   assert (M && M->size1 == idim && M->size1 == idim);
   assert (W && W->size1 == idim && W->size1 == idim);
   assert (W2 && W2->size1 == idim && W2->size1 == idim);
-//   assert (M1 && M1->size1 == idim && M1->size1 == idim);
+  assert (M1 && M1->size1 == idim && M1->size1 == idim);
 //   assert (Mevec && Mevec->size1 == idim && Mevec->size1 == idim);
   assert (permW && permW->size == idim);
   
@@ -239,44 +240,44 @@ double NewFitterGSL::fit() {
   if (tracer) tracer->step (*this);
 #endif  
   
-// *-- End of iterations - calculate errors.
+//*-- End of iterations - calculate errors.
 
-// // ERROR CALCULATION 
-// 
-//   if (!ierr) {
-// 
-//     calcCovMatrix();  
-// 
-//     // update errors in fitobjects
-//     for (unsigned int ifitobj = 0; ifitobj < fitobjects.size(); ++ifitobj) {
-//       for (int ilocal = 0; ilocal < fitobjects[ifitobj]->getNPar(); ++ilocal) {
-//         int iglobal = fitobjects[ifitobj]->getGlobalParNum (ilocal); 
-//         for (int jlocal = ilocal; jlocal < fitobjects[ifitobj]->getNPar(); ++jlocal) {
-//           int jglobal = fitobjects[ifitobj]->getGlobalParNum (jlocal); 
-//           if (iglobal >= 0 && jglobal >= 0) 
-//           fitobjects[ifitobj]->setCov(ilocal, jlocal, gsl_matrix_get (CCinv, iglobal, jglobal)); 
-//         }
-//       }
-//     }
-//   }
-//   
-// 
-//   if (debug>1) {
-//     cout << "========= END =========\n";
-//     cout << "Fit objects:\n";
-//     for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
-//       BaseFitObject *fo = *i;
-//       assert (fo);
-//       cout << fo->getName() << ": " << *fo << ", chi2=" << fo->getChi2() << endl;
-//     }
-//     cout << "constraints:\n";
-//     for (ConstraintIterator i = constraints.begin(); i != constraints.end(); ++i) {
-//       BaseHardConstraint *c = *i;
-//       assert (c);
-//       cout << i-constraints.begin() << " " << c->getName() << ": " << c->getValue() << "+-" << c->getError() << endl;
-//     }
-//     cout << "=============================================\n";
-//   }
+// ERROR CALCULATION 
+
+  if (!ierr) {
+
+    calcCovMatrix(W, permW, x);  
+
+    // update errors in fitobjects
+    for (unsigned int ifitobj = 0; ifitobj < fitobjects.size(); ++ifitobj) {
+      for (int ilocal = 0; ilocal < fitobjects[ifitobj]->getNPar(); ++ilocal) {
+        int iglobal = fitobjects[ifitobj]->getGlobalParNum (ilocal); 
+        for (int jlocal = ilocal; jlocal < fitobjects[ifitobj]->getNPar(); ++jlocal) {
+          int jglobal = fitobjects[ifitobj]->getGlobalParNum (jlocal); 
+          if (iglobal >= 0 && jglobal >= 0) 
+          fitobjects[ifitobj]->setCov(ilocal, jlocal, gsl_matrix_get (CCinv, iglobal, jglobal)); 
+        }
+      }
+    }
+  }
+  
+
+  if (debug>1) {
+    cout << "========= END =========\n";
+    cout << "Fit objects:\n";
+    for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
+      BaseFitObject *fo = *i;
+      assert (fo);
+      cout << fo->getName() << ": " << *fo << ", chi2=" << fo->getChi2() << endl;
+    }
+    cout << "constraints:\n";
+    for (ConstraintIterator i = constraints.begin(); i != constraints.end(); ++i) {
+      BaseHardConstraint *c = *i;
+      assert (c);
+      cout << i-constraints.begin() << " " << c->getName() << ": " << c->getValue() << "+-" << c->getError() << endl;
+    }
+    cout << "=============================================\n";
+  }
 
 // *-- Turn chisq into probability.
   fitprob = (chi2new >= 0 && ncon+nsoft-nunm> 0) ? gsl_cdf_chisq_Q(chi2new, ncon+nsoft-nunm) : -1;
@@ -352,15 +353,15 @@ bool NewFitterGSL::initialize() {
   ini_gsl_matrix (W, idim, idim);
   ini_gsl_matrix (W2, idim, idim);
   ini_gsl_matrix (W3, idim, idim);
-//   ini_gsl_matrix (M1, idim, idim);
-//   ini_gsl_matrix (M2, idim, idim);
-//   ini_gsl_matrix (M3, idim, idim);
-//   ini_gsl_matrix (M4, idim, idim);
-//   ini_gsl_matrix (M5, idim, idim);
+  ini_gsl_matrix (M1, idim, idim);
+  ini_gsl_matrix (M2, idim, idim);
+  ini_gsl_matrix (M3, idim, idim);
+  ini_gsl_matrix (M4, idim, idim);
+  ini_gsl_matrix (M5, idim, idim);
 //   ini_gsl_matrix (Mevec, idim, idim);
-//   ini_gsl_matrix (CC, idim, idim);
-//   ini_gsl_matrix (CC1, idim, idim);
-//   ini_gsl_matrix (CCinv, idim, idim);
+  ini_gsl_matrix (CC, idim, idim);
+  ini_gsl_matrix (CC1, idim, idim);
+  ini_gsl_matrix (CCinv, idim, idim);
   
   ini_gsl_permutation (permW, idim);
   
@@ -539,13 +540,14 @@ void NewFitterGSL::fillperr(gsl_vector *vece) {
   }
 }
 
-void NewFitterGSL::assembleM(gsl_matrix *MatM, const gsl_vector *vecx) {
+void NewFitterGSL::assembleM(gsl_matrix *MatM, const gsl_vector *vecx, bool errorpropagation) {
   assert (MatM);
   assert (MatM->size1 == idim && MatM->size2 == idim);
   assert (vecx);
   assert (vecx->size == idim);
   
   gsl_matrix_set_zero (MatM);
+  
   // First, all terms d^2 chi^2/dx1 dx2
   for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
     BaseFitObject *fo = *i;
@@ -555,6 +557,11 @@ void NewFitterGSL::assembleM(gsl_matrix *MatM, const gsl_vector *vecx) {
       cout << "NewFitterGSL::assembleM: illegal elements in MatM after adding fo " << *fo << ":\n";
       if (debug > 5) debug_print (MatM, "M");
     }
+  }
+  if (debug > 3) { 
+    cout << "After adding covariances from fit objects:\n";
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (MatM, "MatM");
   }
   
   // Second, all terms d^2 chi^2/dlambda dx, 
@@ -570,12 +577,26 @@ void NewFitterGSL::assembleM(gsl_matrix *MatM, const gsl_vector *vecx) {
       cout << "NewFitterGSL::assembleM: illegal elements in MatM after adding 1st derivatives of constraint " << *c << ":\n";
       if (debug > 3) debug_print (MatM, "M");
     }
-    c->add2ndDerivativesToMatrix (MatM->block->data, MatM->tda, gsl_vector_get (vecx, kglobal));
+    if (debug > 3) { 
+      cout << "After adding first derivatives of constraint " << c->getName() << endl;
+      //printMy ((double*) M, (double*) y, (int) idim);
+      debug_print (MatM, "MatM");
+      cout << "errorpropagation = " << errorpropagation << endl;
+    }
+    // for error propagation after fit, 
+    //2nd derivatives of constraints times lambda should _not_ be included!
+    if (!errorpropagation) c->add2ndDerivativesToMatrix (MatM->block->data, MatM->tda, gsl_vector_get (vecx, kglobal));
     if (debug > 0 && !isfinite (MatM)) {
       cout << "NewFitterGSL::assembleM: illegal elements in MatM after adding 2nd derivatives of constraint " << *c << ":\n";
-      if (debug > 3) debug_print (MatM, "M");
+      if (debug > 3) debug_print (MatM, "MatM");
     }
   }
+  if (debug > 3) { 
+    cout << "After adding derivatives of constraints::\n";
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (M, "M");
+    cout << "===========================================::\n";
+  }  
   
   // Finally, treat the soft constraints
 
@@ -588,6 +609,13 @@ void NewFitterGSL::assembleM(gsl_matrix *MatM, const gsl_vector *vecx) {
       if (debug > 3) debug_print (MatM, "M");
     }
   }
+  if (debug > 3) { 
+    cout << "After adding soft constraints::\n";
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (M, "M");
+    cout << "===========================================::\n";
+  }  
+
 }
 
 void NewFitterGSL::assembleG (gsl_matrix *MatM, const gsl_vector *vecx) {
@@ -1314,88 +1342,111 @@ void NewFitterGSL::setDebug (int debuglevel) {
 }
 
 
-// void NewFitterGSL::calcCovMatrix(gsl_matrix *MatW, gsl_permutation *permW,
-//                                  gsl_matrix *MatM1, gsl_matrix *MatM2,
-//                                  gsl_vector *vecx) {
-//   // Set up equation system M*dadeta + dydeta = 0
-//   // here, dadeta is d a / d eta, i.e. the derivatives of the fitted 
-//   // parameters a w.r.t. to the measured parameters eta,
-//   // and dydeta is the derivative of the set of equations
-//   // w.r.t eta, i.e. simply d^2 chi^2 / d a d eta.
-//   // Now, if chi2 = (a-eta)^T*Vinv((a-eta), we have simply
-//   // d^2 chi^2 / d a d eta = - d^2 chi^2 / d a d a
-//   // and can use the method addToGlobalChi2DerMatrix.
-//   
-//   gsl_matrix_set_zero (MatM1);
-//   gsl_matrix_set_zero (MatM2);
-//   // First, all terms d^2 chi^2/dx1 dx2
-//   for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
-//     BaseFitObject *fo = *i;
-//     assert (fo);
-//     fo->addToGlobalChi2DerMatrix (MatM1->block->data, MatM1->tda);
-//     fo->addToGlobCov (MatM2->block->data, MatM2->tda);
-//   }
-//   // multiply by -1
-//   gsl_matrix_scale (MatM1, -1);
-//   
-//   gsl_matrix_view dydeta  = gsl_matrix_submatrix (MatM1, 0, 0, idim, npar);
-//   gsl_matrix_view Cov_eta = gsl_matrix_submatrix (MatM2, 0, 0, npar, npar);
-//   
-//   cout << "NewFitterGSL::calcCovMatrix\n";
-//   debug_print (&dydeta.matrix, "dydeta");
-//   debug_print (&Cov_eta.matrix, "Cov_eta");
-//   
-//   assembleM(MatW, vecx);
-//   
-//   // Now, solve M*dadeta = dydeta
-// 
-//   // Calculate LU decomposition of M into M3
-//   int signum;
-//   int result = gsl_linalg_LU_decomp (MatW, permW, &signum);
-//   cout << "invertM: gsl_linalg_LU_decomp result=" << result << endl;
-//   debug_print (M, "M_LU"); 
-//   // Calculate inverse of M, store in M3
-//   int ifail = gsl_linalg_LU_invert (MatW, permW, MatM3);
-//   cout << "invertM: gsl_linalg_LU_invert ifail=" << ifail << endl;
-//  
-//   // Calculate dadeta = M3*dydeta
-//   gsl_matrix_set_zero (MatM4);
-//   gsl_matrix_view dadeta   = gsl_matrix_submatrix (MatM4, 0, 0, idim, npar);
-// 
-//   debug_print (&dadeta.matrix, "dadeta");
-//   
-//   // dadeta = 1*M*dydeta + 0*dadeta
-//   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, MatM3, &dydeta.matrix, 0, &dadeta.matrix);
-//   
-//   
-//   // Now calculate Cov_a = dadeta*Cov_eta*dadeta^T
-// 
-//   // First, calculate M3 = Cov_eta*dadeta^T as 
-//   gsl_matrix_view M3part   = gsl_matrix_submatrix (MatM3, 0, 0, npar, idim);
-//   gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, &Cov_eta.matrix, &dadeta.matrix, 0, &M3part.matrix);
-//   // Now Cov_a = dadeta*M3part
-//   gsl_matrix_set_zero (MatM5);
-//   gsl_matrix_view  Cov_a = gsl_matrix_submatrix (M5, 0, 0, npar, npar);
-//   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dadeta.matrix, &M3part.matrix, 0, M5);
-// 
-//   debug_print (&Cov_a.matrix, "Cov_a");
-// 
-//   // debug_print (CCinv, "full Cov from err prop");
-//   // debug_print (M1, "uncorr Cov from err prop");
-//     // Finally, copy covariance matrix
-//   if (cov && covDim != npar) {
-//     delete[] cov;
-//     cov = 0;
-//   }
-//   covDim = npar;
-//   if (!cov) cov = new double[covDim*covDim];
-//   for (int i = 0; i < covDim; ++i) {
-//     for (int j = 0; j < covDim; ++j) {
-//       cov[i*covDim+j] = gsl_matrix_get (&Cov_a.matrix, i, j);
-//     }
-//   }    
-//   covValid = true;
-// }
+void NewFitterGSL::calcCovMatrix(gsl_matrix *MatW, 
+                                 gsl_permutation *permW,
+                                 gsl_vector *vecx) {
+  // Set up equation system M*dadeta + dydeta = 0
+  // here, dadeta is d a / d eta, i.e. the derivatives of the fitted 
+  // parameters a w.r.t. to the measured parameters eta,
+  // and dydeta is the derivative of the set of equations
+  // w.r.t eta, i.e. simply d^2 chi^2 / d a d eta.
+  // Now, if chi2 = (a-eta)^T*Vinv((a-eta), we have simply
+  // d^2 chi^2 / d a d eta = - d^2 chi^2 / d a d a
+  // and can use the method addToGlobalChi2DerMatrix.
+  
+  gsl_matrix_set_zero (M1);
+  gsl_matrix_set_zero (M2);
+  // First, all terms d^2 chi^2/dx1 dx2
+  for (FitObjectIterator i = fitobjects.begin(); i != fitobjects.end(); ++i) {
+    BaseFitObject *fo = *i;
+    assert (fo);
+    fo->addToGlobalChi2DerMatrix (M1->block->data, M1->tda);
+    fo->addToGlobCov (M2->block->data, M2->tda);
+  }
+  // multiply by -1
+  gsl_matrix_scale (M1, -1);
+  
+  // JL: dy/eta are the derivatives of the "objective function" with respect to the MEASURED parameters.
+  // Since the soft constraints do not depend on the measured, but only on the fitted (!) parameters, 
+  // dy/deta stays -1*M1 also in the presence of soft constraints!   
+  gsl_matrix_view dydeta  = gsl_matrix_submatrix (M1, 0, 0, idim, npar);
+  gsl_matrix_view Cov_eta = gsl_matrix_submatrix (M2, 0, 0, npar, npar);
+  
+  cout << "NewFitterGSL::calcCovMatrix\n";
+  debug_print (&dydeta.matrix, "dydeta");
+  debug_print (&Cov_eta.matrix, "Cov_eta");
+  
+  // JL: calculates d^2 chi^2 / dx1 dx2 + first (!) derivatives of hard & soft constraints, and the
+  // second derivatives of the soft constraints times the values of the fitted parameters 
+  // - all of the with respect to the FITTED parameters, therefore with soft constraints like in the fit itself.
+  assembleM(MatW, vecx, true);
+  
+  if (debug > 3) {
+    debug_print (MatW, "MatW");
+  }  
+  
+  // Now, solve M*dadeta = dydeta
+
+  // Calculate LU decomposition of M into M3
+  int signum;
+  int result = gsl_linalg_LU_decomp (MatW, permW, &signum);
+ 
+  if (debug > 3) {
+    cout << "calcCovMatrix: gsl_linalg_LU_decomp result=" << result << endl;
+    debug_print (MatW, "M_LU"); 
+  }  
+
+  // Calculate inverse of M, store in M3
+  int ifail = gsl_linalg_LU_invert (MatW, permW, M3);
+  
+  if (debug > 3) {
+    cout << "calcCovMatrix: gsl_linalg_LU_invert ifail=" << ifail << endl;
+    debug_print (M3, "Minv");
+  }  
+ 
+  // Calculate dadeta = M3*dydeta
+  gsl_matrix_set_zero (M4);
+  gsl_matrix_view dadeta   = gsl_matrix_submatrix (M4, 0, 0, idim, npar);
+
+  if (debug > 3) {
+    debug_print (&dadeta.matrix, "dadeta");
+  }
+  
+  // dadeta = 1*M*dydeta + 0*dadeta
+  gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, M3, &dydeta.matrix, 0, &dadeta.matrix);
+  
+  
+  // Now calculate Cov_a = dadeta*Cov_eta*dadeta^T
+
+  // First, calculate M3 = Cov_eta*dadeta^T as 
+  gsl_matrix_view M3part   = gsl_matrix_submatrix (M3, 0, 0, npar, idim);
+  gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, &Cov_eta.matrix, &dadeta.matrix, 0, &M3part.matrix);
+  // Now Cov_a = dadeta*M3part
+  gsl_matrix_set_zero (M5);
+  gsl_matrix_view  Cov_a = gsl_matrix_submatrix (M5, 0, 0, npar, npar);
+  gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dadeta.matrix, &M3part.matrix, 0, M5);
+  gsl_matrix_memcpy(CCinv,M5);
+
+  if (debug > 3) {
+    debug_print (&Cov_a.matrix, "Cov_a");
+    debug_print (CCinv, "full Cov from err prop");
+    debug_print (M1, "uncorr Cov from err prop");
+  }
+
+    // Finally, copy covariance matrix
+  if (cov && covDim != npar) {
+    delete[] cov;
+    cov = 0;
+  }
+  covDim = npar;
+  if (!cov) cov = new double[covDim*covDim];
+  for (int i = 0; i < covDim; ++i) {
+    for (int j = 0; j < covDim; ++j) {
+      cov[i*covDim+j] = gsl_matrix_get (&Cov_a.matrix, i, j);
+    }
+  }    
+  covValid = true;
+}
   
 void NewFitterGSL::determineLambdas (gsl_vector *vecxnew, 
                                      const gsl_matrix *MatM, const gsl_vector *vecx, 

@@ -363,6 +363,13 @@ double NewtonFitterGSL::fit() {
     if (tracer) tracer->finish (*this);
 #endif   
 
+  if (debug > 0) {
+    cout << "NewtonFitterGSL::fit: converged=" << converged
+         << ", nit=" << nit << ", fitprob=" << fitprob << endl;
+  }
+
+  if (ierr > 0) fitprob = -1;
+
   return fitprob;
     
 }
@@ -766,7 +773,7 @@ int NewtonFitterGSL::calcM (bool errorpropagation) {
     fo->addToGlobalChi2DerMatrix (M->block->data, M->tda);
   }
   if (debug > 3) { 
-    cout << "After adding covariances from fit ojects:\n";
+    cout << "After adding covariances from fit objects:\n";
     //printMy ((double*) M, (double*) y, (int) idim);
     debug_print (M, "M");
   }
@@ -805,6 +812,12 @@ int NewtonFitterGSL::calcM (bool errorpropagation) {
     assert (bsc);
     bsc->add2ndDerivativesToMatrix (M->block->data, M->tda);
   }
+  if (debug > 3) { 
+    cout << "After adding soft constraints::\n";
+    //printMy ((double*) M, (double*) y, (int) idim);
+    debug_print (M, "M");
+    cout << "===========================================::\n";
+  }  
 
   // Rescale columns and rows by perr
   for (unsigned int i = 0; i < idim; ++i) 
@@ -1034,8 +1047,9 @@ void NewtonFitterGSL::calcCovMatrix() {
   // multiply by -1  
   gsl_matrix_scale (M1, -1);
   
-  // JL: need to add derivatives of soft constraints here!
-  
+  // JL: dy/eta are the derivatives of the "objective function" with respect to the MEASURED parameters.
+  // Since the soft constraints do not depend on the measured, but only on the fitted (!) parameters, 
+  // dy/deta stays -1*M1 also in the presence of soft constraints!   
   gsl_matrix_view dydeta  = gsl_matrix_submatrix (M1, 0, 0, idim, npar);
   gsl_matrix_view Cov_eta = gsl_matrix_submatrix (M2, 0, 0, npar, npar);
   
@@ -1045,7 +1059,9 @@ void NewtonFitterGSL::calcCovMatrix() {
     debug_print (&Cov_eta.matrix, "Cov_eta");\
   }  
   
-  // JL: calculates d^2 chi^2 / dx1 dx2 + first (!) derivatives of hard constraints
+  // JL: calculates d^2 chi^2 / dx1 dx2 + first (!) derivatives of hard & soft constraints, and the
+  // second derivatives of the soft constraints times the values of the fitted parameters 
+  // - all of the with respect to the FITTED parameters, therefore with soft constraints like in the fit itself.
   calcM (true);
 
   if (debug > 3) {

@@ -87,6 +87,11 @@ class SoftGaussParticleConstraint: public BaseSoftConstraint {
       fitobjects.push_back (&fitobject);
       flags.push_back (flag);
     }; 
+    /// Resests ParticleFitObject list
+    virtual void resetFOList(){
+      fitobjects.resize (0);
+      flags.resize (0);
+    }; 
     
     /// Returns the value of the constraint function
     virtual double getValue() const = 0;

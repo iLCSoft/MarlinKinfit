@@ -149,7 +149,7 @@ class NewFitterGSL : public BaseFitter {
     void fillperr(gsl_vector *vece);
     
     // Fill matrix MatM, using lambdas from vecx
-    void assembleM (gsl_matrix *MatM, const gsl_vector *vecx);
+    void assembleM (gsl_matrix *MatM, const gsl_vector *vecx, bool errorpropagation = false);
     
     // Fill matrix MatM with 2nd derivative of Lagrangian, using lambdas from vecx
     void assembleG (gsl_matrix *MatM, const gsl_vector *vecx);
@@ -249,7 +249,7 @@ class NewFitterGSL : public BaseFitter {
     
     int invertM();
   
-//    void calcCovMatrix();
+    void calcCovMatrix(gsl_matrix *MatW, gsl_permutation *permW, gsl_vector *vecx);
     
     enum {NPARMAX=50, NCONMAX=10, NUNMMAX=10};
     
@@ -345,11 +345,12 @@ class NewFitterGSL : public BaseFitter {
     gsl_matrix *W;
     gsl_matrix *W2;
     gsl_matrix *W3;
-//     gsl_matrix *M1;
-//     gsl_matrix *M2;
-//     gsl_matrix *M3;
-//     gsl_matrix *M4;
-//     gsl_matrix *M5;
+    // these are only used locally in calcCovMatrix
+    gsl_matrix *M1;
+    gsl_matrix *M2;
+    gsl_matrix *M3;
+    gsl_matrix *M4;
+    gsl_matrix *M5;
 //     gsl_matrix *Mevec;
     gsl_matrix *CC;
     gsl_matrix *CC1;
