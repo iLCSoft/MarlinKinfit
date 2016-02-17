@@ -8,7 +8,9 @@
 | v00-02 |
  --------
 
- ... to be done ...
+ moved example processors now into separate package MarlinKinfitProcessors,
+ added ZinvisibleFitObject,
+ debugged covariance matrix on fitted 4-momenta. 
 
  ----------
 | v00-01-05|
