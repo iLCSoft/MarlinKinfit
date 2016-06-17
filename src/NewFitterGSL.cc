@@ -1372,9 +1372,12 @@ void NewFitterGSL::calcCovMatrix(gsl_matrix *MatW,
   gsl_matrix_view dydeta  = gsl_matrix_submatrix (M1, 0, 0, idim, npar);
   gsl_matrix_view Cov_eta = gsl_matrix_submatrix (M2, 0, 0, npar, npar);
   
-  cout << "NewFitterGSL::calcCovMatrix\n";
-  debug_print (&dydeta.matrix, "dydeta");
-  debug_print (&Cov_eta.matrix, "Cov_eta");
+  cout << "hallo\n";
+//   if (debug > 10) {
+//     cout << "NewFitterGSL::calcCovMatrix\n";
+//     debug_print (&dydeta.matrix, "dydeta");
+//     debug_print (&Cov_eta.matrix, "Cov_eta");
+//   }  
   
   // JL: calculates d^2 chi^2 / dx1 dx2 + first (!) derivatives of hard & soft constraints, and the
   // second derivatives of the soft constraints times the values of the fitted parameters 
