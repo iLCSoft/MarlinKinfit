@@ -195,7 +195,7 @@ double NeutrinoFitObject::getSecondDerivative( int iMeta, int ilocal , int jloca
 
   if ( jlocal<ilocal ) {
     int temp=jlocal;
-    ilocal=jlocal;
+    jlocal=ilocal;
     ilocal=temp;
   }
   

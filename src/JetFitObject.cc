@@ -298,7 +298,7 @@ double JetFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , i
 
   if ( jlocal<ilocal ) {
     int temp=jlocal;
-    ilocal=jlocal;
+    jlocal=ilocal;
     ilocal=temp;
   }
 

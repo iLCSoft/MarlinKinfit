@@ -231,7 +231,7 @@ double ISRPhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int jloc
 
   if ( jlocal<ilocal ) {
     int temp=jlocal;
-    ilocal=jlocal;
+    jlocal=ilocal;
     ilocal=temp;
   }
 

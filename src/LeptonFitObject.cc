@@ -1,11 +1,14 @@
 /*! \file 
  *  \brief Implements class LeptonFitObject
- *  LeptonFitObject works similiar to JetFitObject, but it uses a 1/pt, eta, phi parametrization for the 
- *  leptons, which is e.g. more appropriate for electrons.
- *  Especially the covarianz matrix differs from a common E, theta, phi parametrization.
+ *  LeptonFitObject works similiar to JetFitObject, but it uses a q/pt, theta, phi parametrization for the 
+ *  leptons, which is e.g. more appropriate for muons and other particles reconstructed from track helices.
+ *  The covariance matrix differs from the common E, theta, phi parametrization.
+ *  Updated so that q/pt (ptinv) includes the sign of the geometric curvature (scaled version of Omega).
  */ 
 
 #include "LeptonFitObject.h"
+#include "EVENT/Track.h"
+#include "lcio.h"
 #include <cmath>
 #include <cassert>
 #include <iostream>
@@ -15,6 +18,8 @@ using std::sin;
 using std::cos;
 using std::cout; 
 using std::endl;
+
+using namespace lcio;
 
 // constructor
 LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,  
@@ -35,6 +40,83 @@ LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,
   setError (0, Dptinv);
   setError (1, Dtheta);
   setError (2, Dphi);
+
+  // parameter 2 repeats every 2*pi
+  paramCycl[2]=2.*M_PI;
+
+  invalidateCache();
+}
+
+// extended constructor
+LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,  
+                           double Dptinv, double Dtheta, double Dphi,
+                           double Rhoptinvtheta, double Rhoptinvphi, double Rhothetaphi, 
+                           double m) {
+
+  assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
+
+  initCov();                         
+  setMass (m);
+  adjustPtinvThetaPhi (m, ptinv, theta, phi);
+  setParam (0, ptinv, true);
+  setParam (1, theta, true);
+  setParam (2, phi, true);
+  setMParam (0, ptinv);
+  setMParam (1, theta);
+  setMParam (2, phi);
+  setError (0, Dptinv);
+  setError (1, Dtheta);
+  setError (2, Dphi);
+  setCov (0, 1, Rhoptinvtheta*Dptinv*Dtheta);
+  setCov (0, 2, Rhoptinvphi*Dptinv*Dphi);
+  setCov (1, 2, Rhothetaphi*Dtheta*Dphi);
+
+  // parameter 2 repeats every 2*pi
+  paramCycl[2]=2.*M_PI;
+
+  invalidateCache();
+}
+
+// constructor based on Track
+LeptonFitObject::LeptonFitObject(Track* track, double Bfield, double m) {
+
+  assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
+
+  const double c = 2.99792458e8; // m*s^-1
+//  const double Bfield = 3.5;          // Tesla       should not be hard-coded here
+  const double mm2m = 1e-3;
+  const double eV2GeV = 1e-9;
+  const double eB = Bfield*c*mm2m*eV2GeV;
+
+  double omega = track->getOmega();
+  double ptinv = omega/eB;                   // signed q/pT in GeV^-1
+  double tanl = track->getTanLambda();
+  double theta = std::atan(1.0/tanl);  
+  if (theta<0.0) theta += M_PI;
+  double phi = track->getPhi();
+
+  double d3 = 1.0/eB;                        // d(ptinv)/dOmega
+  double d5 = -(1.0/(1.0+tanl*tanl));        // d(theta)/d(tanl)  
+
+  FloatVec covT(15, 0.0);
+  covT = track->getCovMatrix();
+
+  initCov();                         
+  setMass (m);
+  adjustPtinvThetaPhi (m, ptinv, theta, phi);
+  setParam (0, ptinv, true);
+  setParam (1, theta, true);
+  setParam (2, phi, true);
+  setMParam (0, ptinv);
+  setMParam (1, theta);
+  setMParam (2, phi);
+
+  setError (0, d3*std::sqrt(covT[5]) );
+  setError (1, d5*std::sqrt(covT[14]) );
+  setError (2, std::sqrt(covT[2]) );
+  setCov (0, 1, d3*d5*covT[12] );            
+  setCov (0, 2, d3*covT[4] );
+  setCov (1, 2, d5*covT[11] );
 
   // parameter 2 repeats every 2*pi
   paramCycl[2]=2.*M_PI;
@@ -95,7 +177,8 @@ bool LeptonFitObject::updateParams (double p[], int idim) {
   assert (ith    >= 0 && ith     < idim);
   assert (iph    >= 0 && iph     < idim);
   
-  double ptinv  = std::abs(p[iptinv]);
+//  double ptinv  = std::abs(p[iptinv]);
+  double ptinv  = p[iptinv];                    // can be +ve or -ve.
   double th = p[ith];
   double ph = p[iph];
   
@@ -108,7 +191,10 @@ bool LeptonFitObject::updateParams (double p[], int idim) {
   par[2] = ph;
   p[iptinv] = par[0];         
   p[ith]    = par[1];         
-  p[iph]    = par[2];         
+  p[iph]    = par[2]; 
+
+  // std::cout << "GWW hello from LeptonFitObject::updateParams()" << par[0] << " " << par[1] << " " << par[2] << std::endl;
+        
   return result;
 }  
 
@@ -119,8 +205,7 @@ double LeptonFitObject::getDPx(int ilocal) const {
   if (!cachevalid) updateCache();
   switch (ilocal) {
     case 0: return dpxdptinv;
-      //case 1: return dpxdtheta; 
-    case 1: return 0;
+    case 1: return 0;            // dpxdtheta = 0
     case 2: return dpxdphi;
   }
   return 0; 
@@ -131,8 +216,7 @@ double LeptonFitObject::getDPy(int ilocal) const {
   if (!cachevalid) updateCache();
   switch (ilocal) {
     case 0: return dpydptinv;
-      // case 1: return dpydtheta;
-    case 1: return 0;
+    case 1: return 0;            // dpydtheta = 0
     case 2: return dpydphi;
   }
   return 0; 
@@ -144,7 +228,7 @@ double LeptonFitObject::getDPz(int ilocal) const {
   switch (ilocal) {
     case 0: return dpzdptinv; 
     case 1: return dpzdtheta;
-    case 2: return 0;
+    case 2: return 0;            // dpzdphi = 0
   }
   return 0; 
 }
@@ -155,7 +239,7 @@ double LeptonFitObject::getDE(int ilocal) const {
   switch (ilocal) {
     case 0: return dEdptinv;
     case 1: return dEdtheta;
-    case 2: return 0;
+    case 2: return 0;            // dEdphi = 0
   }
   return 0; 
 }
@@ -185,48 +269,50 @@ double LeptonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet 
   }
 }
 
-double LeptonFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const {
+double LeptonFitObject::getSecondDerivative( int iMeta, int ilocal, int jlocal, int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
   if ( jlocal<ilocal ) {
-    int temp=jlocal;
-    ilocal=jlocal;
+    int temp=jlocal; 
+    jlocal=ilocal;   
     ilocal=temp;
   }
 
-  // daniel hasn't checked these, copied from orig code
-  double d2Edp2 = mass*mass/(e2*e);
+  // Evaluated and checked with Mathematica using (px, py, pz) = q/k [cos(phi), sin(phi), cot(theta)]
+  // with local parameters of (k, theta, phi)
+  // q is the sign of the track curvature (+-1) and k the signed 1/pT. So pT = q/k for either charge.
+  // The four non-zero off-diagonal elements are sensitive to the charge sign (qsign).
+  // Graham Wilson
+
   switch (iMeta) {
   case 0: // E
-    if      ( ilocal==0 && jlocal==0 ) return (2.*pt3/stheta)*dEdp + dpdptinv*dpdptinv*d2Edp2;
-    else if ( ilocal==0 && jlocal==1 ) return pt2*cottheta/stheta*dEdp + dpdptinv*dpdtheta*d2Edp2;
-    else if ( ilocal==1 && jlocal==1 ) return pt/stheta*(2*cottheta*cottheta + 1);
+    if      ( ilocal==0 && jlocal==0 ) return (2*e2+mass*mass)*pt2*p*p/(e2*e);
+    else if ( ilocal==0 && jlocal==1 ) return qsign*pt*p2*cottheta*(e2+mass*mass)/(e2*e);
+    else if ( ilocal==1 && jlocal==1 ) return (p2/(e*stheta2))*(1.0+ctheta*ctheta*(1.0+(mass*mass/e2)));
     else return 0;
     break;
   case 1: // px
     if      ( ilocal==0 && jlocal==0 ) return 2*pt3*cphi;
-    else if ( ilocal==0 && jlocal==2 ) return pt2*sphi;
-    //    else if ( ilocal==2 && jlocal==2 ) return px; // "-" in orig code, DJ fixed 2015may27
+    else if ( ilocal==0 && jlocal==2 ) return qsign*pt2*sphi;
     else if ( ilocal==2 && jlocal==2 ) return -px;
     else return 0;
     break;
   case 2: // py
     if      ( ilocal==0 && jlocal==0 ) return 2*pt3*sphi;
-    else if ( ilocal==0 && jlocal==2 ) return pt2*cphi;
+    else if ( ilocal==0 && jlocal==2 ) return -qsign*pt2*cphi;
     else if ( ilocal==2 && jlocal==2 ) return -py;
     else return 0;
     break;
   case 3: // pz
     if      ( ilocal==0 && jlocal==0 ) return 2*pt3*cottheta;
-    else if ( ilocal==0 && jlocal==1 ) return pt2/stheta2;
+    else if ( ilocal==0 && jlocal==1 ) return qsign*pt2/stheta2;
     else if ( ilocal==1 && jlocal==1 ) return 2*pt*cottheta/stheta2;
     else return 0;
     break;
   default:
     assert(0);
   }
-}
-         
+}         
 
 void LeptonFitObject::updateCache() const {
   // std::cout << "LeptonFitObject::updateCache" << std::endl;
@@ -236,7 +322,13 @@ void LeptonFitObject::updateCache() const {
   double theta = par[1];
   double phi   = par[2];
   
-  pt = 1/ptinv;
+  qsign = 1.0;
+  if(ptinv<0.0)qsign = -1.0;
+
+  ptinv2 = ptinv*ptinv;
+
+//  pt = 1/std::abs(ptinv);
+  pt = qsign/ptinv;
   pt2 = pt*pt;
   pt3 = pt2*pt;
 
@@ -253,26 +345,27 @@ void LeptonFitObject::updateCache() const {
   p2 = p*p;
   e2 = p2+mass*mass;
   e = std::sqrt(e2);
-  px = cphi*pt;
-  py = sphi*pt;
-  pz = cottheta*pt;
+  px = pt*cphi;
+  py = pt*sphi;
+  pz = pt*cottheta;
 
   fourMomentum.setValues( e, px, py, pz );
   
-  dpdptinv = -pt2/stheta;
-  dpxdptinv = -cphi*pt2;
-  dpydptinv = -sphi*pt2;
-  dpzdptinv = -cottheta*pt2;
+// Need to take care of charge sign for the d/dptinv terms.    Graham
+  dpdptinv = -qsign/(ptinv2*stheta);
+  dpxdptinv = -qsign*cphi/ptinv2;
+  dpydptinv = -qsign*sphi/ptinv2;
+  dpzdptinv = -qsign*cottheta/ptinv2;
 
-  dpdtheta = -(cottheta*pt/stheta);
-  dpzdtheta = -pt/stheta2;
+  dpdtheta = (qsign/ptinv)*(-cottheta/stheta);
+  dpzdtheta = (qsign/ptinv)*(-1.0/stheta2);
 
-  dpxdphi   = -sphi*pt;
-  dpydphi   =  cphi*pt;
+  dpxdphi   = (qsign/ptinv)*(-sphi);
+  dpydphi   = (qsign/ptinv)*cphi;
 
   dEdp      = p/e;
-  dEdptinv  = dpdptinv*dEdp;
-  dEdtheta  = dpdtheta*dEdp;
+  dEdptinv  = dEdp*dpdptinv;
+  dEdtheta  = dEdp*dpdtheta;
  
   cachevalid = true;
 }
@@ -285,11 +378,13 @@ void LeptonFitObject::updateCache() const {
 bool LeptonFitObject::adjustPtinvThetaPhi (double& m, double &ptinv, double& theta, double& phi) {
   bool result = false;
   
+/*  Keep the sign information - off-diagonal terms of the error matrix care about this ...  Graham
   if (ptinv<0) {
-    // cout << "LeptonFitObject::adjustEThetaPhi: mirrored E!\n";
+    // cout << "LeptonFitObject::adjustPtinvThetaPhi: mirrored E!\n";
     ptinv  = -ptinv;
     result = true;
   }
+*/
   if (theta < -M_PI || theta > M_PI) {
     while (theta < -M_PI) theta += 2*M_PI;
     while (theta >  M_PI) theta -= 2*M_PI;
@@ -297,13 +392,13 @@ bool LeptonFitObject::adjustPtinvThetaPhi (double& m, double &ptinv, double& the
   }
   
   if (theta<0) {
-    // cout << "LeptonFitObject::adjustEThetaPhi: mirrored theta!\n";
+    // cout << "LeptonFitObject::adjustPtinvThetaPhi: mirrored theta!\n";
     theta = -theta;
     phi = phi > 0 ? phi-M_PI : phi+M_PI;
     result = true;
   }
   else if (theta>M_PI) {
-    // cout << "LeptonFitObject::adjustEThetaPhi: mirrored theta!\n";
+    // cout << "LeptonFitObject::adjustPtinvThetaPhi: mirrored theta!\n";
     theta = 2*M_PI-theta;
     phi = phi > 0 ? phi-M_PI : phi+M_PI;
     result = true;
@@ -316,5 +411,3 @@ bool LeptonFitObject::adjustPtinvThetaPhi (double& m, double &ptinv, double& the
 
   return result;
 }
-
-

@@ -202,6 +202,10 @@ class BaseFitObject {
     virtual double getCov (int ilocal,    ///< Local parameter number i
                            int jlocal     ///< Local parameter number j
                           ) const;
+    /// Get correlation coefficient between parameters ilocal and jlocal
+    virtual double getRho (int ilocal,    ///< Local parameter number i
+                           int jlocal     ///< Local parameter number j
+                          ) const;
     /// Get measured flag for parameter ilocal
     virtual bool isParamMeasured (int ilocal    ///< Local parameter number
                                    ) const;
@@ -231,8 +235,20 @@ class BaseFitObject {
                                     int jlocal    ///< Local parameter number j
                                    ) const;
     
-    /// print the parameters
+    /// print the parameters and errors
     virtual std::ostream& printParams (std::ostream& os  ///< The output stream
+                                      ) const;
+
+    /// print the correlation coefficients
+    virtual std::ostream& printRhoValues (std::ostream& os  ///< The output stream
+                                      ) const;
+
+    /// print the 1st derivatives wrt metaSet 0 (E, px, py, pz)
+    virtual std::ostream& print1stDerivatives (std::ostream& os  ///< The output stream
+                                      ) const;
+
+    /// print the 2nd derivatives wrt metaSet 0 (E, px, py, pz)
+    virtual std::ostream& print2ndDerivatives (std::ostream& os  ///< The output stream
                                       ) const;
     
     /// print object to ostream
@@ -243,12 +259,6 @@ class BaseFitObject {
     /// invalidate any cached quantities
     virtual void invalidateCache() const {cachevalid=false;};
     virtual void updateCache() const=0;
-
-
-
-
-
-
 
     // these are the mothods that fill the fitter's matrices/vectors
 
@@ -272,7 +282,7 @@ class BaseFitObject {
     virtual void addToGlobalChi2DerVector (double *y,     ///< Vector of chi2 derivatives
                                            int idim,      ///< Vector size 
                                            double lambda, ///< The lambda value
-                                           double der[], ///< derivatices of constraint wrt intermediate variables (e.g. 4-vector with dg/dE, dg/dpx, dg/dpy, dg/dpz)
+                                           double der[], ///< derivatives of constraint wrt intermediate variables (e.g. 4-vector with dg/dE, dg/dpx, dg/dpy, dg/dpz)
 					   int metaSet  ///< which set of intermediate variables
                                            ) const;
         

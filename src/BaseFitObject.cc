@@ -129,11 +129,54 @@ std::ostream& BaseFitObject::printParams(std::ostream& os) const {
   os << "(";
   for (int i = 0; i < getNPar(); ++i) {
     if (i>0) os << ", ";
-    os << getParam(i);
+    os << " " << getParam(i);
     if (isParamFixed (i))  os << " fix";
-    else if (getError(i)>0) os << " \261 " << getError(i);
+//    else if (getError(i)>0) os << " \261 " << getError(i);
+    else if (getError(i)>0) os << " +- " << getError(i);     // " \261 " appeared as <B1> in ASCII ...    Graham
   }
   os << ")";  
+  return os;
+}
+
+std::ostream& BaseFitObject::printRhoValues(std::ostream& os) const {
+  os << "{";
+  for (int i = 0; i < getNPar(); ++i) {
+      for (int j = 0; j < getNPar(); ++j) {
+          if (i>0 && j==0) os << ",";
+          os << " " << getRho(i,j);
+      }
+  }
+  os << "}" << std::endl;  
+  return os;
+}
+
+std::ostream& BaseFitObject::print1stDerivatives(std::ostream& os) const {
+  int metaSet = 0;
+  os << "#";
+  for (int i = 0; i < BaseDefs::nMetaVars[metaSet]; ++i) {
+      for (int j = 0; j < getNPar(); ++j) {
+          if (i>0 && j==0) os << ",";
+          os << " " << getFirstDerivative(i,j,metaSet);
+      }
+  }
+  os << "#" << std::endl;  
+  return os;
+}
+
+std::ostream& BaseFitObject::print2ndDerivatives(std::ostream& os) const {
+  int metaSet = 0;
+  os << "##";
+  for (int i = 0; i < BaseDefs::nMetaVars[metaSet]; ++i) {
+      if(i>0) os << std::endl << "  ";
+      for (int j = 0; j < getNPar(); ++j) {
+          for (int k = 0; k < getNPar(); ++k) {
+//              if (i>0 && k==0) os << ",";
+              os << " " << getSecondDerivative(i,j,k,metaSet);
+              if (k == getNPar()-1) os << ",";
+          }
+      }
+  }
+  os << "##" << std::endl;  
   return os;
 }
 
@@ -363,6 +406,11 @@ double BaseFitObject::getCov (int ilocal, int jlocal) const {
   assert (ilocal >= 0 && ilocal < getNPar());
   assert (jlocal >= 0 && jlocal < getNPar());
   return cov[ilocal][jlocal];
+}
+double BaseFitObject::getRho (int ilocal, int jlocal) const { 
+  assert (ilocal >= 0 && ilocal < getNPar());
+  assert (jlocal >= 0 && jlocal < getNPar());
+  return cov[ilocal][jlocal]/std::sqrt(cov[ilocal][ilocal]*cov[jlocal][jlocal]);
 }
 bool BaseFitObject::isParamMeasured (int ilocal) const {
   // DANIEL moved to BaseFitObject 

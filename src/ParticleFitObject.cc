@@ -157,6 +157,7 @@ std::ostream&  ParticleFitObject::print (std::ostream& os) const {
   printParams(os);
   os << " => ";
   print4Vector(os);
+  os << std::endl;
   return os;
 }
 

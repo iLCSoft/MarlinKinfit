@@ -227,7 +227,7 @@ double ZinvisibleFitObject::getSecondDerivative( int iMeta, int ilocal , int jlo
 
   if ( jlocal<ilocal ) {
     int temp=jlocal;
-    ilocal=jlocal;
+    jlocal=ilocal;
     ilocal=temp;
   }
 

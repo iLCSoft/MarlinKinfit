@@ -200,7 +200,7 @@ double SimplePhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int j
 
   if ( jlocal<ilocal ) {
     int temp=jlocal;
-    ilocal=jlocal;
+    jlocal=ilocal;
     ilocal=temp;
   }
   

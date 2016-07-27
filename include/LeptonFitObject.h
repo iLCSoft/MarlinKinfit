@@ -8,9 +8,13 @@
 #define __LEPTONFITOBJECT_H
 
 #include "ParticleFitObject.h"
+#include "EVENT/Track.h"
+#include "lcio.h"
+
+using namespace lcio ;
 
 // Class LeptonFitObject
-/// Class for leptons with (1/pt, eta, phi) in kinematic fits
+// Class for leptons with (q/pt, theta, phi) in kinematic fits
 
 class LeptonFitObject : public ParticleFitObject {
   public:
@@ -18,6 +22,15 @@ class LeptonFitObject : public ParticleFitObject {
     LeptonFitObject(double ptinv, double theta, double phi,
                   double Dptinv, double Dtheta, double Dphi,
                   double m = 0);
+
+    /// Extended constructor with correlation coefficients
+    LeptonFitObject(double ptinv, double theta, double phi,
+                  double Dptinv, double Dtheta, double Dphi,
+                  double Rhoptinvtheta, double Rhoptinvphi, double Rhothetaphi,
+                  double m = 0);
+
+    /// Extended constructor based simply on LCIO Track
+    LeptonFitObject(Track* track, double Bfield, double m = 0);
                  
     /// Copy constructor
     LeptonFitObject (const LeptonFitObject& rhs              ///< right hand side
@@ -53,9 +66,8 @@ class LeptonFitObject : public ParticleFitObject {
     /// Get chi squared from measured and fitted parameters
     //  virtual double getChi2() const;
 
-    double getFirstDerivative( int iMeta, int ilocal , int metaSet ) const; // derivative of intermediate variable iMeta wrt local parameter ilocal
-    double getSecondDerivative( int iMeta, int ilocal , int jlocal, int metaSet ) const; // derivative of intermediate variable iMeta wrt local parameter ilocal
-
+    double getFirstDerivative( int iMeta, int ilocal , int metaSet ) const; // first derivative of intermediate variable iMeta wrt local parameter ilocal
+    double getSecondDerivative( int iMeta, int ilocal , int jlocal, int metaSet ) const; // second derivative of intermediate variable iMeta wrt local parameters ilocal and jlocal
     virtual int getNPar() const {return NPAR;}
 
   protected:
@@ -68,8 +80,8 @@ class LeptonFitObject : public ParticleFitObject {
 
     mutable double ctheta, stheta, stheta2, cphi, sphi, cottheta,
       p2, p, e, e2, pt, pt2, pt3, px, py, pz, dpdptinv, dpdtheta, dptdptinv,
-      dpxdptinv, dpydptinv, dpzdptinv, dpxdtheta, dpydtheta, dpzdtheta, dpxdphi, dpydphi,
-      chi2, dEdptinv, dEdtheta, dEdp;
+      dpxdptinv, dpydptinv, dpzdptinv, dpxdtheta, dpydtheta, dpzdtheta, dpxdphi, dpydphi, dpzdphi,
+      chi2, dEdptinv, dEdtheta, dEdp, qsign, ptinv2;
 
     static bool adjustPtinvThetaPhi (double& m, double &ptinv, double& theta, double& phi);
 
