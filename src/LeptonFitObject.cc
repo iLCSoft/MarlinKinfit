@@ -124,6 +124,54 @@ LeptonFitObject::LeptonFitObject(Track* track, double Bfield, double m) {
   invalidateCache();
 }
 
+// constructor based on TrackState
+LeptonFitObject::LeptonFitObject(const TrackState* trackstate, double Bfield, double m) {
+
+  assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
+
+  const double c = 2.99792458e8; // m*s^-1
+//  const double Bfield = 3.5;          // Tesla       should not be hard-coded here
+  const double mm2m = 1e-3;
+  const double eV2GeV = 1e-9;
+  const double eB = Bfield*c*mm2m*eV2GeV;
+
+  double omega = trackstate->getOmega();
+  double ptinv = omega/eB;                   // signed q/pT in GeV^-1
+  double tanl = trackstate->getTanLambda();
+  double theta = std::atan(1.0/tanl);  
+  if (theta<0.0) theta += M_PI;
+  double phi = trackstate->getPhi();
+
+  double d3 = 1.0/eB;                        // d(ptinv)/dOmega
+  double d5 = -(1.0/(1.0+tanl*tanl));        // d(theta)/d(tanl)  
+
+  FloatVec covT(15, 0.0);
+  covT = trackstate->getCovMatrix();
+
+  initCov();                         
+  setMass (m);
+  adjustPtinvThetaPhi (m, ptinv, theta, phi);
+  setParam (0, ptinv, true);
+  setParam (1, theta, true);
+  setParam (2, phi, true);
+  setMParam (0, ptinv);
+  setMParam (1, theta);
+  setMParam (2, phi);
+
+  setError (0, d3*std::sqrt(covT[5]) );
+  setError (1, d5*std::sqrt(covT[14]) );
+  setError (2, std::sqrt(covT[2]) );
+  setCov (0, 1, d3*d5*covT[12] );            
+  setCov (0, 2, d3*covT[4] );
+  setCov (1, 2, d5*covT[11] );
+
+  // parameter 2 repeats every 2*pi
+  paramCycl[2]=2.*M_PI;
+
+  invalidateCache();
+}
+
+
 // destructor
 LeptonFitObject::~LeptonFitObject() {}
 

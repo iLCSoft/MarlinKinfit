@@ -31,6 +31,9 @@ class LeptonFitObject : public ParticleFitObject {
 
     /// Extended constructor based simply on LCIO Track
     LeptonFitObject(Track* track, double Bfield, double m = 0);
+
+    /// Extended constructor based on LCIO TrackState
+    LeptonFitObject(const TrackState* trackstate, double Bfield, double m = 0);
                  
     /// Copy constructor
     LeptonFitObject (const LeptonFitObject& rhs              ///< right hand side
