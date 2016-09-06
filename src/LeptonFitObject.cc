@@ -24,7 +24,12 @@ using namespace lcio;
 // constructor
 LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,  
                            double Dptinv, double Dtheta, double Dphi, 
-                           double m) {
+                           double m) 
+  : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
+    p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
+    dpxdptinv(0), dpydptinv(0), dpzdptinv(0), dpxdtheta(0), dpydtheta(0), dpzdtheta(0), dpxdphi(0), dpydphi(0), dpzdphi(0),
+    chi2(0), dEdptinv(0), dEdtheta(0), dEdp(0), qsign(0), ptinv2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -49,9 +54,14 @@ LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,
 
 // extended constructor
 LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,  
-                           double Dptinv, double Dtheta, double Dphi,
-                           double Rhoptinvtheta, double Rhoptinvphi, double Rhothetaphi, 
-                           double m) {
+				 double Dptinv, double Dtheta, double Dphi,
+				 double Rhoptinvtheta, double Rhoptinvphi, double Rhothetaphi, 
+				 double m)  
+  : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
+    p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
+    dpxdptinv(0), dpydptinv(0), dpzdptinv(0), dpxdtheta(0), dpydtheta(0), dpzdtheta(0), dpxdphi(0), dpydphi(0), dpzdphi(0),
+    chi2(0), dEdptinv(0), dEdtheta(0), dEdp(0), qsign(0), ptinv2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -78,7 +88,12 @@ LeptonFitObject::LeptonFitObject(double ptinv, double theta, double phi,
 }
 
 // constructor based on Track
-LeptonFitObject::LeptonFitObject(Track* track, double Bfield, double m) {
+LeptonFitObject::LeptonFitObject(Track* track, double Bfield, double m) 
+  : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
+    p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
+    dpxdptinv(0), dpydptinv(0), dpzdptinv(0), dpxdtheta(0), dpydtheta(0), dpzdtheta(0), dpxdphi(0), dpydphi(0), dpzdphi(0),
+    chi2(0), dEdptinv(0), dEdtheta(0), dEdp(0), qsign(0), ptinv2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -125,7 +140,12 @@ LeptonFitObject::LeptonFitObject(Track* track, double Bfield, double m) {
 }
 
 // constructor based on TrackState
-LeptonFitObject::LeptonFitObject(const TrackState* trackstate, double Bfield, double m) {
+LeptonFitObject::LeptonFitObject(const TrackState* trackstate, double Bfield, double m) 
+  : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
+    p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
+    dpxdptinv(0), dpydptinv(0), dpzdptinv(0), dpxdtheta(0), dpydtheta(0), dpzdtheta(0), dpxdphi(0), dpydphi(0), dpzdphi(0),
+    chi2(0), dEdptinv(0), dEdtheta(0), dEdp(0), qsign(0), ptinv2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -176,6 +196,10 @@ LeptonFitObject::LeptonFitObject(const TrackState* trackstate, double Bfield, do
 LeptonFitObject::~LeptonFitObject() {}
 
 LeptonFitObject::LeptonFitObject (const LeptonFitObject& rhs)
+  : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
+    p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
+    dpxdptinv(0), dpydptinv(0), dpzdptinv(0), dpxdtheta(0), dpydtheta(0), dpzdtheta(0), dpxdphi(0), dpydphi(0), dpzdphi(0),
+    chi2(0), dEdptinv(0), dEdtheta(0), dEdp(0), qsign(0), ptinv2(0)
 {
   //std::cout << "copying LeptonFitObject with name" << rhs.name << std::endl;
   LeptonFitObject::assign (rhs);
@@ -215,7 +239,7 @@ const char *LeptonFitObject::getParamName (int ilocal) const {
 }
 
  
-bool LeptonFitObject::updateParams (double p[], int idim) {
+bool LeptonFitObject::updateParams (double pp[], int idim) {
   invalidateCache();
   
   int iptinv = getGlobalParNum(0);
@@ -226,9 +250,9 @@ bool LeptonFitObject::updateParams (double p[], int idim) {
   assert (iph    >= 0 && iph     < idim);
   
 //  double ptinv  = std::abs(p[iptinv]);
-  double ptinv  = p[iptinv];                    // can be +ve or -ve.
-  double th = p[ith];
-  double ph = p[iph];
+  double ptinv  = pp[iptinv];                    // can be +ve or -ve.
+  double th = pp[ith];
+  double ph = pp[iph];
   
   bool result = ((ptinv -par[0])*(ptinv -par[0]) > eps2*cov[0][0]) ||
                 ((th-par[1])*(th-par[1]) > eps2*cov[1][1]) ||
@@ -237,9 +261,9 @@ bool LeptonFitObject::updateParams (double p[], int idim) {
   par[0] = ptinv;
   par[1] = th;
   par[2] = ph;
-  p[iptinv] = par[0];         
-  p[ith]    = par[1];         
-  p[iph]    = par[2]; 
+  pp[iptinv] = par[0];         
+  pp[ith]    = par[1];         
+  pp[iph]    = par[2]; 
 
   // std::cout << "GWW hello from LeptonFitObject::updateParams()" << par[0] << " " << par[1] << " " << par[2] << std::endl;
         
@@ -315,6 +339,7 @@ double LeptonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet 
   default:
     assert(0);
   }
+  return -999;
 }
 
 double LeptonFitObject::getSecondDerivative( int iMeta, int ilocal, int jlocal, int metaSet ) const {
@@ -360,6 +385,7 @@ double LeptonFitObject::getSecondDerivative( int iMeta, int ilocal, int jlocal, 
   default:
     assert(0);
   }
+  return -999;
 }         
 
 void LeptonFitObject::updateCache() const {

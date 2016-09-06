@@ -75,7 +75,11 @@ using std::endl;
 // constructor
 JetFitObject::JetFitObject(double E, double theta, double phi,  
                            double DE, double Dtheta, double Dphi, 
-                           double m) {
+                           double m)
+  : ctheta(0), stheta(0), cphi(0), sphi(0),
+    p2(0), p(0), pt(0), px(0), py(0), pz(0), dpdE(0), dptdE(0), 
+    dpxdE(0), dpydE(0), dpzdE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -113,6 +117,9 @@ JetFitObject::JetFitObject(double E, double theta, double phi,
 JetFitObject::~JetFitObject() {}
 
 JetFitObject::JetFitObject (const JetFitObject& rhs)
+  : ctheta(0), stheta(0), cphi(0), sphi(0),
+    p2(0), p(0), pt(0), px(0), py(0), pz(0), dpdE(0), dptdE(0), 
+    dpxdE(0), dpydE(0), dpzdE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
 {
   //std::cout << "copying JetFitObject with name " << rhs.name << std::endl;
   JetFitObject::assign (rhs);
@@ -152,7 +159,7 @@ const char *JetFitObject::getParamName (int ilocal) const {
 }
 
  
-bool JetFitObject::updateParams (double p[], int idim) {
+bool JetFitObject::updateParams (double pp[], int idim) {
   invalidateCache();
   
   int iE  = getGlobalParNum(0);
@@ -162,9 +169,9 @@ bool JetFitObject::updateParams (double p[], int idim) {
   assert (ith >= 0 && ith < idim);
   assert (iph >= 0 && iph < idim);
   
-  double e  = p[iE];
-  double th = p[ith];
-  double ph = p[iph];
+  double e  = pp[iE];
+  double th = pp[ith];
+  double ph = pp[iph];
   
   if (e<0) {
     // cout << "JetFitObject::updateParams: mirrored E!\n";
@@ -183,9 +190,9 @@ bool JetFitObject::updateParams (double p[], int idim) {
   par[0] = e;
   par[1] = th;
   par[2] = ph;
-  p[iE]  = par[0];         
-  p[ith] = par[1];         
-  p[iph] = par[2];         
+  pp[iE]  = par[0];         
+  pp[ith] = par[1];         
+  pp[iph] = par[2];         
   return result;
 }  
 
@@ -288,7 +295,7 @@ double JetFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) c
     assert(0);
 
   }
-
+  return -999;
 }
 
 

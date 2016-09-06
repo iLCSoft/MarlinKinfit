@@ -33,7 +33,8 @@ DijetEventILC::DijetEventILC()
   pxc (0, 1, 0, 0, 0),
   pyc (0, 0, 1, 0, 0),
   pzc (0, 0, 0, 1, 0),
-  ec  (1, 0, 0, 0, 500)
+  ec  (1, 0, 0, 0, 500),
+  mc( MassConstraint() )
   {
   for (int i = 0; i < NFV; ++i) fv[i] = 0;
   for (int i = 0; i < NBFO; ++i) bfo[i] = bfosmear[i] = 0;

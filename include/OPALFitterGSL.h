@@ -186,7 +186,7 @@ class OPALFitterGSL : public BaseFitter {
     gsl_vector *y;           
     gsl_vector *y_eta;           
     gsl_vector *Vinvy_eta;           
-    gsl_matrix *Feta; 
+    //    gsl_matrix *Feta; //<-- DJeans: not used/needed
     gsl_matrix *FetaV; 
     
     gsl_permutation *permS; ///< Helper permutation vector

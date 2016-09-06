@@ -65,8 +65,14 @@ static const double pi_ = 3.14159265358979323846264338328,
                     a   = 8./3./pi_*(pi_-3.)/(4.-pi_);    // = ca. 0.140012289
 
 // constructor
-ISRPhotonFitObject::ISRPhotonFitObject(double px, double py, double pz,
-                                         double b_, double PzMaxB_, double PzMinB_) {
+ISRPhotonFitObject::ISRPhotonFitObject(double px, double py, double ppz,
+                                         double b_, double PzMaxB_, double PzMinB_) 
+  : cachevalid(false),    
+    pt2(0), p2(0), p(0), pz(0),
+    dpx0(0), dpy0(0), dpz0(0), dE0(0), dpx1(0), dpy1(0), dpz1(0), dE1(0),
+    dpx2(0), dpy2(0), dpz2(0), dE2(0), d2pz22(0), d2E22(0),
+    chi2(0), b(0), PzMinB(0), PzMaxB(0), dp2zFact(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -88,7 +94,7 @@ ISRPhotonFitObject::ISRPhotonFitObject(double px, double py, double pz,
   assert(PzMinB >= 0.);
   assert(PzMaxB > PzMinB);
   dp2zFact = (PzMaxB-PzMinB)/b*sqrt(2./pi_);
-  double pg = PgFromPz(pz);         // using internally Gauss-distributed parameter p_g instead of p_z
+  double pg = PgFromPz(ppz);         // using internally Gauss-distributed parameter p_g instead of p_z
   setParam (0, px, true, true);
   setParam (1, py, true, true);
   setParam (2, pg, true);
@@ -108,6 +114,11 @@ ISRPhotonFitObject::~ISRPhotonFitObject() {}
 
 
 ISRPhotonFitObject::ISRPhotonFitObject (const ISRPhotonFitObject& rhs)
+  : cachevalid(false),    
+    pt2(0), p2(0), p(0), pz(0),
+    dpx0(0), dpy0(0), dpz0(0), dE0(0), dpx1(0), dpy1(0), dpz1(0), dE1(0),
+    dpx2(0), dpy2(0), dpz2(0), dE2(0), d2pz22(0), d2E22(0),
+    chi2(0), b(0), PzMinB(0), PzMaxB(0), dp2zFact(0)
 {
   //std::cout << "copying ISRPhotonFitObject with name" << rhs.name << std::endl;
   ISRPhotonFitObject::assign (rhs);
@@ -146,17 +157,17 @@ const char *ISRPhotonFitObject::getParamName (int ilocal) const {
   return "undefined";
 }
  
-bool ISRPhotonFitObject::updateParams (double p[], int idim) {
+bool ISRPhotonFitObject::updateParams (double pp[], int idim) {
   invalidateCache();
   int i2 = getGlobalParNum(2);
   assert (i2 >= 0 && i2 < idim);
-  double p2 = p[i2];
+  double pp2 = pp[i2];
   #ifdef DEBUG
-    std::cout << "ISRPhotonFitObject::updateParams:   p2(new) = " << p[i2] << "   par[2](old) = " << par[2] << endl;
+    std::cout << "ISRPhotonFitObject::updateParams:   p2(new) = " << pp[i2] << "   par[2](old) = " << par[2] << endl;
   #endif
-  bool result = ((p2-par[2])*(p2-par[2]) > eps2*cov[2][2]);
-  par[2] = p2;
-  p[i2] = par[2];
+  bool result = ((pp2-par[2])*(pp2-par[2]) > eps2*cov[2][2]);
+  par[2] = pp2;
+  pp[i2] = par[2];
   return result;
 }  
 
@@ -223,6 +234,7 @@ double ISRPhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaS
   default:
     assert(0);
   }
+  return -999;
 }
 
 double ISRPhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal, int metaSet ) const {
@@ -258,10 +270,10 @@ double ISRPhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int jloc
 
 
          
-double ISRPhotonFitObject::PgFromPz(double pz){
+double ISRPhotonFitObject::PgFromPz(double ppz){
 
-  int sign = (pz>0.) - (pz<0.);
-  double u = ( pow(fabs(pz),b) - PzMinB ) / (PzMaxB-PzMinB);
+  int sign = (ppz>0.) - (ppz<0.);
+  double u = ( pow(fabs(ppz),b) - PzMinB ) / (PzMaxB-PzMinB);
 
    if(u<0.){
    #ifdef NO_MARLIN

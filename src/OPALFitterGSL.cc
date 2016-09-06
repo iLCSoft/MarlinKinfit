@@ -70,10 +70,13 @@ static int debug = 0;
 // constructor
 OPALFitterGSL::OPALFitterGSL() 
 : npar(0), nmea(0), nunm(0), ncon(0), ierr (0), nit (0),
+  fitprob(0), chi2(0),
   f(0), r(0), Fetaxi (0), S(0), Sinv (0), SinvFxi(0), SinvFeta (0), 
   W1(0), G (0), H (0), HU (0), IGV (0), V(0), VLU(0), Vinv(0), Vnew (0), 
   dxi(0), Fxidxi (0), lambda(0), FetaTlambda(0),
-  etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), FetaV (0),
+  etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), 
+  //  Feta(0), 
+  FetaV (0),
   permS (0), permU(0), permV(0)
 {}
 
@@ -878,12 +881,13 @@ bool OPALFitterGSL::initialize() {
 
 }
   
-bool OPALFitterGSL::updateFitObjects (double etaxi[]) {
+bool OPALFitterGSL::updateFitObjects (double eetaxi[]) {
+  // changed etaxi -> eetaxi to avoid clash with class member DJeans
   //bool debug = false;
   bool result = true;
   for (unsigned int ifitobj = 0; ifitobj < fitobjects.size(); ++ifitobj) {
     for (int ilocal = 0; ilocal < fitobjects[ifitobj]->getNPar(); ++ilocal) {
-      fitobjects[ifitobj]->updateParams (etaxi, npar);
+      fitobjects[ifitobj]->updateParams (eetaxi, npar);
 //       int iglobal = fitobjects[ifitobj]->getGlobalParNum (ilocal); 
 //       if (!fitobjects[ifitobj]->isParamFixed (ilocal) && iglobal >= 0) {
 //         if (debug) cout << "Parameter " << iglobal 

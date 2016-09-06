@@ -26,7 +26,8 @@
 #include <cmath>
 
 TextTracer::TextTracer(std::ostream& os_)
-: os (os_)
+  : os (os_),
+istep(0),isubstep(0),chi2fo(0),chi2sc(0),sumhc(0),sumhcscal(0)
 {}
 
 TextTracer::~TextTracer()

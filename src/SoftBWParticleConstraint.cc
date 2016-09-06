@@ -35,7 +35,11 @@
 using namespace std;
 
 SoftBWParticleConstraint::SoftBWParticleConstraint(double gamma_, double emin_, double emax_)
-: gamma (gamma_), emin (emin_), emax (emax_)
+: 
+  fitobjects( FitObjectContainer() ), derivatives( std::vector <double> () ), flags ( std::vector <int> () ),
+  gamma (gamma_), emin (emin_), emax (emax_),
+  cachevalid(false),
+  atanxmin(0),atanxmax(0), diffatanx(0)
 {
   invalidateCache();
 }

@@ -36,7 +36,7 @@ using std::isfinite;
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_linalg.h>
 
-BaseFitObject::BaseFitObject(): name(0) {
+BaseFitObject::BaseFitObject(): name(0), covinvvalid(false), cachevalid(false) {
   setName ("???");
   invalidateCache();
 
@@ -50,7 +50,7 @@ BaseFitObject::BaseFitObject(): name(0) {
 }
 
 BaseFitObject::BaseFitObject (const BaseFitObject& rhs)
-: name(0)
+  : name(0), covinvvalid(false), cachevalid(false)
 {
   //std::cout << "copying BaseFitObject with name" << rhs.name << std::endl;
   BaseFitObject::assign (rhs);

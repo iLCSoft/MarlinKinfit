@@ -131,7 +131,7 @@ void MassConstraint::setMass (double mass_) {
   mass = mass_;
 }
 
-bool MassConstraint::secondDerivatives (int i, int j, double *derivatives) const 
+bool MassConstraint::secondDerivatives (int i, int j, double *dderivatives) const 
 {
   // cout << "MassConstraint::secondDerivatives: i=" << i << ", j=" << j << endl;
   int index = (flags[i] == 1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
@@ -162,23 +162,23 @@ bool MassConstraint::secondDerivatives (int i, int j, double *derivatives) const
   if (index) m = -m;
   double minv3 = 1/(m*m*m);
 
-  assert (derivatives);
-  for (int k = 0; k<16; ++k) derivatives[k] = 0;
-  derivatives[4*0+0] =                      (m2-totE *totE) *minv3;
-  derivatives[4*0+1] = derivatives[4*1+0] =     totE *totpx *minv3;
-  derivatives[4*0+2] = derivatives[4*2+0] =     totE *totpy *minv3;
-  derivatives[4*0+3] = derivatives[4*3+0] =     totE *totpz *minv3;
-  derivatives[4*1+1] =                     -(m2+totpx*totpx)*minv3;
-  derivatives[4*1+2] = derivatives[4*2+1] =    -totpx*totpy *minv3;
-  derivatives[4*1+3] = derivatives[4*3+1] =    -totpx*totpz *minv3;
-  derivatives[4*2+2] =                     -(m2+totpy*totpy)*minv3;
-  derivatives[4*2+3] = derivatives[4*3+2] =    -totpy*totpz *minv3;
-  derivatives[4*3+3] =                     -(m2+totpz*totpz)*minv3;
+  assert (dderivatives);
+  for (int k = 0; k<16; ++k) dderivatives[k] = 0;
+  dderivatives[4*0+0] =                      (m2-totE *totE) *minv3;
+  dderivatives[4*0+1] = dderivatives[4*1+0] =     totE *totpx *minv3;
+  dderivatives[4*0+2] = dderivatives[4*2+0] =     totE *totpy *minv3;
+  dderivatives[4*0+3] = dderivatives[4*3+0] =     totE *totpz *minv3;
+  dderivatives[4*1+1] =                     -(m2+totpx*totpx)*minv3;
+  dderivatives[4*1+2] = dderivatives[4*2+1] =    -totpx*totpy *minv3;
+  dderivatives[4*1+3] = dderivatives[4*3+1] =    -totpx*totpz *minv3;
+  dderivatives[4*2+2] =                     -(m2+totpy*totpy)*minv3;
+  dderivatives[4*2+3] = dderivatives[4*3+2] =    -totpy*totpz *minv3;
+  dderivatives[4*3+3] =                     -(m2+totpz*totpz)*minv3;
   // cout << "   ...minv=" << minv << endl; 
   return true;
 }
 
-bool MassConstraint::firstDerivatives (int i, double *derivatives) const {
+bool MassConstraint::firstDerivatives (int i, double *dderivatives) const {
   double totE = 0;
   double totpx = 0; 
   double totpy = 0; 
@@ -203,10 +203,10 @@ bool MassConstraint::firstDerivatives (int i, double *derivatives) const {
   double m = std::sqrt(std::abs(totE*totE-totpx*totpx-totpy*totpy-totpz*totpz));
   if (index) m = -m;
 
-  derivatives[0] = totE/m;
-  derivatives[1] = -totpx/m;
-  derivatives[2] = -totpy/m;
-  derivatives[3] = -totpz/m;
+  dderivatives[0] = totE/m;
+  dderivatives[1] = -totpx/m;
+  dderivatives[2] = -totpy/m;
+  dderivatives[3] = -totpz/m;
   return true;
 }
 

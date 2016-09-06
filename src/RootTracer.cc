@@ -30,7 +30,9 @@
 using namespace std;
 
 RootTracer::RootTracer(const char* filename, const char *option)
-: file (0), tree(0)
+  : file (0), tree(0), eventtree(0),
+    istep(0), isubstep(0),
+    eventnumber(0), stepnumber(0), substepnumber(0), chi2(0)
 {
   file = new TFile (filename, option);
   tree = new TTree ("trace", "Fit Tracing");

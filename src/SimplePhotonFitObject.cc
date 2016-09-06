@@ -40,8 +40,8 @@ using std::cout;
 using std::endl;
 
 // constructor
-SimplePhotonFitObject::SimplePhotonFitObject(double px, double py, double pz,  
-                           double Dpz) {
+SimplePhotonFitObject::SimplePhotonFitObject(double px, double py, double pz, double Dpz) : pt2(0), p2(0), p(0),dE0(0), dE1(0), dE2(0),chi2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -60,7 +60,7 @@ SimplePhotonFitObject::SimplePhotonFitObject(double px, double py, double pz,
 // destructor
 SimplePhotonFitObject::~SimplePhotonFitObject() {}
 
-SimplePhotonFitObject::SimplePhotonFitObject (const SimplePhotonFitObject& rhs)
+SimplePhotonFitObject::SimplePhotonFitObject (const SimplePhotonFitObject& rhs) : pt2(0), p2(0), p(0),dE0(0), dE1(0), dE2(0),chi2(0)
 {
   //std::cout << "copying SimplePhotonFitObject with name" << rhs.name << std::endl;
   SimplePhotonFitObject::assign (rhs);
@@ -99,7 +99,7 @@ const char *SimplePhotonFitObject::getParamName (int ilocal) const {
   return "undefined";
 }
  
-bool SimplePhotonFitObject::updateParams (double p[], int idim) {
+bool SimplePhotonFitObject::updateParams (double pp[], int idim) {
   invalidateCache();
   
   int i2 = getGlobalParNum(2);
@@ -107,13 +107,13 @@ bool SimplePhotonFitObject::updateParams (double p[], int idim) {
 // std::cout << "updateParams: idim = " << idim << "\n";
   assert (i2 >= 0 && i2 < idim);
   
-  double p2 = p[i2];
+  double pp2 = pp[i2];
 // std::cout << "updateParams: p2 = " << p[i2] << "   par[2] = " << par[2] << "\n";
   
-  bool result = ((p2-par[2])*(p2-par[2]) > eps2*cov[2][2]);
+  bool result = ((pp2-par[2])*(pp2-par[2]) > eps2*cov[2][2]);
 
-  par[2] = p2;
-  p[i2] = par[2];         
+  par[2] = pp2;
+  pp[i2] = par[2];         
   return result;
 }  
 
@@ -188,9 +188,10 @@ double SimplePhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int me
     return getDPz(ilocal);
     break;
   default:
-    assert(0);
+    assert(0); // should never get here
   }
-
+  // should really never get here! just to get rid of compiler warning
+  return -999;
 }
 
 

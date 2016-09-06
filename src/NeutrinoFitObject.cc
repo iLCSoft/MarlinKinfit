@@ -22,7 +22,10 @@ using std::endl;
 
 // constructor
 NeutrinoFitObject::NeutrinoFitObject(double E, double theta, double phi, 
-                                     double DE, double Dtheta, double Dphi) {
+                                     double DE, double Dtheta, double Dphi) 
+  : ctheta(0), stheta(0), cphi(0), sphi(0), pt(0), px(0), py(0), pz(0), dptdE(0), 
+    dpxdE(0), dpydE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
+{
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
 
@@ -40,6 +43,8 @@ NeutrinoFitObject::NeutrinoFitObject(double E, double theta, double phi,
 NeutrinoFitObject::~NeutrinoFitObject() {}
 
 NeutrinoFitObject::NeutrinoFitObject (const NeutrinoFitObject& rhs)
+  : ctheta(0), stheta(0), cphi(0), sphi(0), pt(0), px(0), py(0), pz(0), dptdE(0), 
+    dpxdE(0), dpydE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
 {
   //std::cout << "copying NeutrinoFitObject with name" << rhs.name << std::endl;
   NeutrinoFitObject::assign (rhs);
@@ -79,7 +84,7 @@ const char *NeutrinoFitObject::getParamName (int ilocal) const {
 }
 
  
-bool NeutrinoFitObject::updateParams (double p[], int idim) {
+bool NeutrinoFitObject::updateParams (double pp[], int idim) {
 
   invalidateCache();
   
@@ -90,9 +95,9 @@ bool NeutrinoFitObject::updateParams (double p[], int idim) {
   assert (ith >= 0 && ith < idim);
   assert (iph >= 0 && iph < idim);
   
-  double e  = p[iE];
-  double th = p[ith];
-  double ph = p[iph];
+  double e  = pp[iE];
+  double th = pp[ith];
+  double ph = pp[iph];
   if (e<0) {
     // cout << "NeutrinoFitObject::updateParams: mirrored E!\n";
     e  = -e;
@@ -113,9 +118,9 @@ bool NeutrinoFitObject::updateParams (double p[], int idim) {
             th : std::acos (std::cos (th));
   if (std::abs(ph) > M_PI) ph = atan2 (sin(ph), cos (ph));          
   par[2] = ph; 
-  p[iE]  = par[0];         
-  p[ith] = par[1];         
-  p[iph] = par[2];         
+  pp[iE]  = par[0];         
+  pp[ith] = par[1];         
+  pp[iph] = par[2];         
   return result;
 }  
 
@@ -186,6 +191,7 @@ double NeutrinoFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSe
   default:
     assert(0);
   }
+  return -999;
 }
 
 
@@ -229,7 +235,7 @@ double NeutrinoFitObject::getSecondDerivative( int iMeta, int ilocal , int jloca
   default:
     assert(0);
   }
-
+  return -999;
 }
 
     

@@ -79,13 +79,18 @@ static int nitsvd = 0;
 
 // constructor
 NewtonFitterGSL::NewtonFitterGSL() 
-: npar (0), ncon (0), nsoft (0), idim (0),
-  x(0), xold(0), xbest(0), dx(0), dxscal (0), grad(0), y(0), yscal(0), 
-  perr(0), v1 (0), v2(0), Meval (0),
-  M(0), Mscal (0), M1(0), M2 (0), M3 (0), M4 (0), M5 (0), Mevec (0), 
-  CC (0), CC1 (0), CCinv (0), permM(0), ws(0),
-  imerit (1),
-  debug (debuglevel)
+  : npar (0), ncon (0), nsoft (0), nunm(0), ierr(0), nit(0), fitprob(0), chi2(0),
+    idim (0),
+    x(0), xold(0), xbest(0), dx(0), dxscal (0), grad(0), y(0), yscal(0), 
+    perr(0), v1 (0), v2(0), Meval (0),
+    M(0), Mscal (0), M1(0), M2 (0), M3 (0), M4 (0), M5 (0), Mevec (0), 
+    CC (0), CC1 (0), CCinv (0), permM(0), ws(0),
+    wsdim(0), chi2best(0),
+    chi2new(0),
+    chi2old(0),
+    fvalbest(0),scale(0),scalebest(0),stepsize(0),stepbest(0),
+    imerit (1),
+    debug (debuglevel)
 {}
 
 // destructor

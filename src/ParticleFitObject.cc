@@ -63,7 +63,7 @@ using std::endl;
 
 
 ParticleFitObject::ParticleFitObject()
-: mass (0)
+  : mass (0), fourMomentum( FourVector(0,0,0,0) )
 {
   for (int i=0; i<BaseDefs::MAXPAR; i++)
     paramCycl[i]=-1;
@@ -73,6 +73,7 @@ ParticleFitObject::~ParticleFitObject()
 {}
 
 ParticleFitObject::ParticleFitObject (const ParticleFitObject& rhs)
+  : mass(0), fourMomentum( FourVector(0,0,0,0) )
 {
   //std::cout << "copying ParticleFitObject with name" << rhs.name << std::endl;
   ParticleFitObject::assign (rhs);
@@ -246,33 +247,33 @@ double ParticleFitObject::num1stDerivative (int ilocal, double eps) {
     return result;
 }
 
-double ParticleFitObject::num2ndDerivative (int ilocal1, double eps1,
-                                            int ilocal2, double eps2) {
+double ParticleFitObject::num2ndDerivative (int ilocal1, double eeps1,
+                                            int ilocal2, double eeps2) {
   double result;
 
   if (ilocal1 == ilocal2) {
     double save = getParam (ilocal1);
     double v0 = getChi2();
-    setParam (ilocal1, save+eps1);
+    setParam (ilocal1, save+eeps1);
     double v1 = getChi2();
-    setParam (ilocal1, save-eps1);
+    setParam (ilocal1, save-eeps1);
     double v2 = getChi2();
-    result = (v1+v2-2*v0)/(eps1*eps1);
+    result = (v1+v2-2*v0)/(eeps1*eeps1);
     setParam (ilocal1, save);
   }
   else {
     double save1 = getParam (ilocal1);
     double save2 = getParam (ilocal2);
-    setParam (ilocal1, save1+eps1);
-    setParam (ilocal2, save2+eps2);
+    setParam (ilocal1, save1+eeps1);
+    setParam (ilocal2, save2+eeps2);
     double v11 = getChi2();
-    setParam (ilocal2, save2-eps2);
+    setParam (ilocal2, save2-eeps2);
     double v12 = getChi2();
-    setParam (ilocal1, save1-eps1);
+    setParam (ilocal1, save1-eeps1);
     double v22 = getChi2();
-    setParam (ilocal2, save2+eps2);
+    setParam (ilocal2, save2+eeps2);
     double v21 = getChi2();
-    result = (v11+v22-v12-v21)/(4*eps1*eps2);
+    result = (v11+v22-v12-v21)/(4*eeps1*eeps2);
     setParam (ilocal1, save1);
     setParam (ilocal2, save2);
   }

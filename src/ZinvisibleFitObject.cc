@@ -19,7 +19,11 @@ using std::endl;
 
 // constructor
 ZinvisibleFitObject::ZinvisibleFitObject(double E, double theta, double phi, 
-					 double DE, double Dtheta, double Dphi, double m) {  //hier double m
+					 double DE, double Dtheta, double Dphi, double m) 
+  : cachevalid(false), ctheta(0), stheta(0), cphi(0), sphi(0),p2(0), p(0), dpdE(0), pt(0), px(0), py(0), pz(0), dptdE(0),
+    dpxdE(0), dpydE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
+
+{  //hier double m
 
   assert( int(NPAR) <= int(BaseDefs::MAXPAR) );
   setMass (m);  
@@ -36,6 +40,8 @@ ZinvisibleFitObject::ZinvisibleFitObject(double E, double theta, double phi,
 ZinvisibleFitObject::~ZinvisibleFitObject() {}
 
 ZinvisibleFitObject::ZinvisibleFitObject (const ZinvisibleFitObject& rhs)
+  : cachevalid(false), ctheta(0), stheta(0), cphi(0), sphi(0),p2(0), p(0), dpdE(0), pt(0), px(0), py(0), pz(0), dptdE(0),
+    dpxdE(0), dpydE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
 {
   //std::cout << "copying ZinvisibleFitObject with name" << rhs.name << std::endl;
   ZinvisibleFitObject::assign (rhs);
@@ -74,7 +80,7 @@ const char *ZinvisibleFitObject::getParamName (int ilocal) const {
   return "undefined";
 }
 
-bool ZinvisibleFitObject::updateParams (double p[], int idim) {
+bool ZinvisibleFitObject::updateParams (double pp[], int idim) {
 
   invalidateCache();
   int iE  = getGlobalParNum(0);
@@ -84,9 +90,9 @@ bool ZinvisibleFitObject::updateParams (double p[], int idim) {
   assert (ith >= 0 && ith < idim);
   assert (iph >= 0 && iph < idim);
   
-  double e  = p[iE];
-  double th = p[ith];
-  double ph = p[iph];
+  double e  = pp[iE];
+  double th = pp[ith];
+  double ph = pp[iph];
   if (e<0) {
     // cout << "ZinvisibleFitObject::updateParams: mirrored E!\n";
     e  = -e;
@@ -112,9 +118,9 @@ bool ZinvisibleFitObject::updateParams (double p[], int idim) {
             th : std::acos (std::cos (th));
   if (std::abs(ph) > M_PI) ph = atan2 (sin(ph), cos (ph));          
   par[2] = ph; 
-  p[iE]  = par[0];         
-  p[ith] = par[1];         
-  p[iph] = par[2];         
+  pp[iE]  = par[0];         
+  pp[ith] = par[1];         
+  pp[iph] = par[2];         
   return result;
 }  
 
@@ -219,6 +225,7 @@ double ZinvisibleFitObject::getFirstDerivative( int iMeta, int ilocal , int meta
   default:
     assert(0);
   }
+  return -999;
 }
 
 double ZinvisibleFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const {
@@ -261,6 +268,7 @@ double ZinvisibleFitObject::getSecondDerivative( int iMeta, int ilocal , int jlo
   default:
     assert(0);
   }
+  return -999;
 }
 
 void ZinvisibleFitObject::invalidateCache() const {

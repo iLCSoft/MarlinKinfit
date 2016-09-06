@@ -24,9 +24,13 @@
 #include <cassert>
 
 BaseFitter::BaseFitter()  
-: covDim (0), cov(0), covValid (false)
+  : fitobjects( FitObjectContainer() ),
+    constraints( ConstraintContainer() ),
+    softconstraints( SoftConstraintContainer() ),
+    covDim (0), cov(0), covValid (false)
 #ifndef FIT_TRACEOFF    
-  , tracer (0)
+  , tracer (0),
+    traceValues( std::map<std::string, double> () )
 #endif     
 {}
 

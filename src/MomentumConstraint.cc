@@ -28,7 +28,8 @@ MomentumConstraint::MomentumConstraint (double efact_, double pxfact_, double py
   pyfact (pyfact_),
   pzfact (pzfact_),
   value (value_),
-  cachevalid(false)
+  cachevalid(false),
+  nparams(0)
 {}
 
 // destructor
@@ -91,15 +92,15 @@ void MomentumConstraint::updateCache() const {
   cachevalid = true;
 }
   
-bool MomentumConstraint::secondDerivatives (int i, int j, double *derivatives) const {
+bool MomentumConstraint::secondDerivatives (int i, int j, double *dderivatives) const {
   return false;
 }  
   
-bool MomentumConstraint::firstDerivatives (int i, double *derivatives) const {
-  derivatives[0] = efact;
-  derivatives[1] = pxfact;
-  derivatives[2] = pyfact;
-  derivatives[3] = pzfact;
+bool MomentumConstraint::firstDerivatives (int i, double *dderivatives) const {
+  dderivatives[0] = efact;
+  dderivatives[1] = pxfact;
+  dderivatives[2] = pyfact;
+  dderivatives[3] = pzfact;
   return true;
 }
 
