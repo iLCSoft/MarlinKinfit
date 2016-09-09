@@ -66,8 +66,8 @@ class SimplePhotonFitObject : public ParticleFitObject {
     virtual double getDPz(int ilocal) const;
     virtual double getDE(int ilocal) const;
 
-    virtual double getFirstDerivative( int iMeta, int ilocal , int metaSet ) const;
-    virtual double getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const;
+    virtual double getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const;
+    virtual double getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal , int metaSet ) const;
 
     virtual int getNPar() const {return NPAR;}
   

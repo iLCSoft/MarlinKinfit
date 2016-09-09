@@ -97,14 +97,14 @@ class ParticleConstraint: public BaseHardConstraint {
     virtual void setFOList(std::vector <ParticleFitObject*> *fitobjects_ ///< A list of BaseFitObject objects
                           ){
       for (int i = 0; i < (int) fitobjects_->size(); i++) {
-        fitobjects.push_back ((*fitobjects_)[i]);
+	fitobjects.push_back (  reinterpret_cast < BaseFitObject* >  ( (*fitobjects_)[i] ) );
         flags.push_back (1);
       }  
     }; 
     /// Adds one ParticleFitObject objects to the list
     virtual void addToFOList(ParticleFitObject& fitobject, int flag = 1
                              ){
-      fitobjects.push_back (&fitobject);
+      fitobjects.push_back ( reinterpret_cast < BaseFitObject* >  ( &fitobject ) );
       flags.push_back (flag);
     }; 
     /// Resests ParticleFitObject list
@@ -112,98 +112,17 @@ class ParticleConstraint: public BaseHardConstraint {
       fitobjects.resize (0);
       flags.resize (0);
     }; 
-    /// Returns the value of the constraint
-    virtual double getValue() const = 0;
-    
-    /// Returns the error on the value of the constraint
-    virtual double getError() const;
-    
-    /// Get first order derivatives. 
-    /// Call this with a predefined array "der" with the necessary number of entries!
-    virtual void getDerivatives(int idim,      ///< First dimension of the array
-                                double der[]   ///< Array of derivatives, at least idim x idim 
-                               ) const = 0;
-    /// Adds first order derivatives to global covariance matrix M
-    virtual void add1stDerivativesToMatrix(double *M,      ///< Covariance matrix, at least idim x idim 
-                                           int idim        ///< First dimension of the array
-                                           ) const;
-    /// Adds second order derivatives, multiplied by lambda, to global covariance matrix M
-    virtual void add2ndDerivativesToMatrix(double *M,     ///< Covariance matrix, at least idim x idim 
-                                           int idim,      ///< First dimension of the array
-                                           double lambda  ///< Factor for derivatives
-                                          ) const;
 
-    /// Add lambda times derivatives of chi squared to global derivative matrix
-    virtual void addToGlobalChi2DerVector (double *y,   ///< Vector of chi2 derivatives
-                                           int idim,    ///< Vector size 
-                                           double lambda //< The lambda value
-                                           ) const;
-    
-    /// Accesses position of constraint in global constraint list
-    virtual int  getGlobalNum() const 
-    {return globalNum;}
-    /// Sets position of constraint in global constraint list
-    virtual void setGlobalNum (int iglobal                ///< Global constraint number
-                              ) 
-    {globalNum = iglobal;}
-    
     /// Invalidates any cached values for the next event
     virtual void invalidateCache() const 
     {}
-    
-    void test1stDerivatives ();
-    void test2ndDerivatives ();
-    
-    /// Evaluates numerically the 1st derivative w.r.t. a parameter
-    double num1stDerivative (int ifo,     ///< Number of  FitObject
-                             int ilocal,  ///< Local parameter number 
-                             double eps   ///< variation of  local parameter 
-                            );
-    /// Evaluates numerically the 2nd derivative w.r.t. 2 parameters
-    double num2ndDerivative (int ifo1,    ///< Number of 1st FitObject
-                             int ilocal1, ///< 1st local parameter number 
-                             double eps1, ///< variation of 1st local parameter 
-                             int ifo2,    ///< Number of 1st FitObject
-                             int ilocal2, ///< 1st local parameter number 
-                             double eps2  ///< variation of 2nd local parameter 
-                            );
-                              
-    virtual int getVarBasis() const = 0;
-  
+      
   protected:
-  
-    /// Second derivatives with respect to the 4-vectors of Fit objects i and j; result false if all derivatives are zero 
-    virtual bool secondDerivatives (int i,                        ///< number of 1st FitObject
-                                    int j,                        ///< number of 2nd FitObject
-                                    double *derivatives           ///< The result 4x4 matrix 
-                                   ) const = 0;
-    /// First derivatives with respect to the 4-vector of Fit objects i; result false if all derivatives are zero 
-    virtual bool firstDerivatives (int i,                        ///< number of 1st FitObject
-                                   double *derivatives           ///< The result 4-vector
-                                  ) const = 0;
-  
-  
-    /// Vector of pointers to ParticleFitObjects 
-    typedef std::vector <ParticleFitObject *> FitObjectContainer;    
-    /// Iterator through vector of pointers to ParticleFitObjects 
-    typedef FitObjectContainer::iterator FitObjectIterator;
-    /// Constant iterator through vector of pointers to ParticleFitObjects 
-    typedef FitObjectContainer::const_iterator ConstFitObjectIterator;
-    ///  The FitObjectContainer
-    FitObjectContainer fitobjects;
-    ///  The derivatives
-    std::vector <double> derivatives;
-    ///  The flags can be used to divide the FitObjectContainer into several subsets 
-    ///  used for example to implement an equal mass constraint (see MassConstraint). 
-    std::vector <int> flags;
-    
-    /// Position of constraint in global constraint list
-    int globalNum;
 
 };
 
 ParticleConstraint::ParticleConstraint() 
-: fitobjects( FitObjectContainer() ), derivatives( std::vector <double> () ), flags( std::vector <int> () ), globalNum(-999)
+// : fitobjects( FitObjectContainer() ), derivatives( std::vector <double> () ), flags( std::vector <int> () ), globalNum(-999)
 {
   invalidateCache();
 }

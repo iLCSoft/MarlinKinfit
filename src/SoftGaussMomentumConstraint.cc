@@ -17,6 +17,7 @@
 
 #include<iostream>
 #include<cmath>
+#undef NDEBUG
 #include<cassert>
 
 using std::cerr;

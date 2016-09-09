@@ -25,6 +25,7 @@
 
 #include <gsl/gsl_vector.h>
 
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 

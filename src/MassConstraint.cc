@@ -16,6 +16,8 @@
 
 #include<iostream>
 #include<cmath>
+
+#undef NDEBUG
 #include<cassert>
 
 using std::cerr;
@@ -40,10 +42,12 @@ double MassConstraint::getValue() const {
   double totpz[2] = {0,0}; 
   for (unsigned int i = 0; i < fitobjects.size(); i++) {
     int index = (flags[i] == 1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
-    totE[index] += fitobjects[i]->getE(); 
-    totpx[index] += fitobjects[i]->getPx(); 
-    totpy[index] += fitobjects[i]->getPy(); 
-    totpz[index] += fitobjects[i]->getPz(); 
+    ParticleFitObject* pfo = dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+    assert(pfo);
+    totE[index]  += pfo->getE(); 
+    totpx[index] += pfo->getPx(); 
+    totpy[index] += pfo->getPy(); 
+    totpz[index] += pfo->getPz(); 
   }
   double result = -mass;
   result += std::sqrt(std::abs(totE[0]*totE[0]-totpx[0]*totpx[0]-totpy[0]*totpy[0]-totpz[0]*totpz[0]));
@@ -65,10 +69,12 @@ void MassConstraint::getDerivatives(int idim, double der[]) const {
   for (unsigned int i = 0; i < fitobjects.size(); i++) {
     int index = (flags[i]==1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
     valid[index] = true;
-    totE[index]  += fitobjects[i]->getE(); 
-    totpx[index] += fitobjects[i]->getPx(); 
-    totpy[index] += fitobjects[i]->getPy(); 
-    totpz[index] += fitobjects[i]->getPz(); 
+    ParticleFitObject* pfo = dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+    assert(pfo);
+    totE[index]  += pfo->getE(); 
+    totpx[index] += pfo->getPx(); 
+    totpy[index] += pfo->getPy(); 
+    totpz[index] += pfo->getPz(); 
   }
   double m2[2]; 
   double m_inv[2] = {0,0}; 
@@ -81,8 +87,14 @@ void MassConstraint::getDerivatives(int idim, double der[]) const {
       for (unsigned int j = 0; j < fitobjects.size(); j++) {
         int jndex = (flags[j]==1) ? 0 : 1; 
         if (jndex == index) {
-          cerr << fitobjects[j]->getName() << ": E=" << fitobjects[j]->getE() << ", px=" << fitobjects[j]->getPx()
-               << ", py=" << fitobjects[j]->getPy() << ", pz=" << fitobjects[j]->getPz() << endl;
+
+	  ParticleFitObject* pfo = dynamic_cast < ParticleFitObject* > ( fitobjects[j] );
+	  assert(pfo);
+          cerr << pfo->getName() << 
+	    ": E =" << pfo->getE() << 
+	    ", px=" << pfo->getPx() << 
+	    ", py=" << pfo->getPy() << 
+	    ", pz=" << pfo->getPz() << endl;
         }
       }
       cerr << "sum: E=" << totE[index] << ", px=" << totpx[index]
@@ -98,10 +110,14 @@ void MassConstraint::getDerivatives(int idim, double der[]) const {
         int iglobal = fitobjects[i]->getGlobalParNum (ilocal);
         assert (iglobal >= 0 && iglobal < idim);
         if (m2[index] != 0) {
-          der[iglobal] =   totE[index]  * fitobjects[i]->getDE (ilocal)
-                         - totpx[index] * fitobjects[i]->getDPx (ilocal)
-                         - totpy[index] * fitobjects[i]->getDPy (ilocal)
-                         - totpz[index] * fitobjects[i]->getDPz (ilocal);
+
+	  ParticleFitObject* pfo = dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+	  assert(pfo);
+
+          der[iglobal] =   totE[index]  * pfo->getDE (ilocal)
+                         - totpx[index] * pfo->getDPx (ilocal)
+                         - totpy[index] * pfo->getDPy (ilocal)
+                         - totpz[index] * pfo->getDPz (ilocal);
           der[iglobal] *= m_inv[index];
         }
         else der[iglobal] = 1; 
@@ -118,10 +134,13 @@ double MassConstraint::getMass (int flag) {
   double totpz = 0; 
   for (unsigned int i = 0; i < fitobjects.size(); i++) {
     if (flags[i] == flag) {
-      totE += fitobjects[i]->getE(); 
-      totpx += fitobjects[i]->getPx(); 
-      totpy += fitobjects[i]->getPy(); 
-      totpz += fitobjects[i]->getPz(); 
+
+      const ParticleFitObject *fok = dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+      assert(fok);
+      totE  += fok->getE(); 
+      totpx += fok->getPx(); 
+      totpy += fok->getPy(); 
+      totpz += fok->getPz(); 
     }
   }
   return std::sqrt(std::abs(totE*totE-totpx*totpx-totpy*totpy-totpz*totpz));
@@ -143,7 +162,7 @@ bool MassConstraint::secondDerivatives (int i, int j, double *dderivatives) cons
   double totpz = 0; 
   for (unsigned int k = 0; k < fitobjects.size(); ++k) {
     int kndex = (flags[k] == 1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
-    const ParticleFitObject *fok = fitobjects[k];
+    const ParticleFitObject *fok = dynamic_cast < ParticleFitObject* > ( fitobjects[k] );
     assert (fok);
     if (index == kndex) {
       totE  += fok->getE(); 
@@ -186,7 +205,7 @@ bool MassConstraint::firstDerivatives (int i, double *dderivatives) const {
   int index = (flags[i] == 1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
   for (unsigned int j = 0; j < fitobjects.size(); ++j) {
     int jndex = (flags[j] == 1) ? 0 : 1; // default is 1, but 2 may indicate fitobjects for a second W -> equal mass constraint!
-    const ParticleFitObject *foj = fitobjects[j];
+    const ParticleFitObject *foj =  dynamic_cast < ParticleFitObject* > ( fitobjects[j] );
     assert (foj);
     if (index == jndex) {
       totE  += foj->getE(); 

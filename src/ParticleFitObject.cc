@@ -51,6 +51,7 @@
 #include "ParticleFitObject.h"
 
 #include <iostream>
+#undef NDEBUG
 #include <cassert>
 #include <cmath>
 using std::isfinite;

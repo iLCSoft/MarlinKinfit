@@ -8,7 +8,10 @@
 
 #include "ZinvisibleFitObject.h"
 #include <cmath>
+
+#undef NDEBUG
 #include <cassert>
+
 #include <algorithm>
 
 using std::sqrt;
@@ -202,7 +205,7 @@ double ZinvisibleFitObject::getDE(int ilocal) const {
   return 0; 
 }
 
-double ZinvisibleFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
+double ZinvisibleFitObject::getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const {
   // iMeta = intermediate variable (i.e. E,px,py,pz)
   // ilocal = local variable (E, theta, phi)
   // metaSet = which set of intermediate varlables
@@ -228,7 +231,7 @@ double ZinvisibleFitObject::getFirstDerivative( int iMeta, int ilocal , int meta
   return -999;
 }
 
-double ZinvisibleFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const {
+double ZinvisibleFitObject::getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal , int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
 

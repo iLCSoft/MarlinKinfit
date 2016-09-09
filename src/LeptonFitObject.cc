@@ -10,7 +10,10 @@
 #include "EVENT/Track.h"
 #include "lcio.h"
 #include <cmath>
+
+#undef NDEBUG
 #include <cassert>
+
 #include <iostream>
 
 using std::sqrt;
@@ -316,7 +319,7 @@ double LeptonFitObject::getDE(int ilocal) const {
   return 0; 
 }
 
-double LeptonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
+double LeptonFitObject::getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const {
   // iMeta = intermediate variable (i.e. E,px,py,pz)
   // ilocal = local variable (ptinv, theta, phi)
   // metaSet = which set of intermediate varlables
@@ -342,7 +345,7 @@ double LeptonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet 
   return -999;
 }
 
-double LeptonFitObject::getSecondDerivative( int iMeta, int ilocal, int jlocal, int metaSet ) const {
+double LeptonFitObject::getSecondDerivative_Meta_Local( int iMeta, int ilocal, int jlocal, int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
   if ( jlocal<ilocal ) {

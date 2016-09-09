@@ -27,7 +27,10 @@
  */ 
  
 #include "BaseFitObject.h"
+
+#undef NDEBUG
 #include <cassert>
+
 #include <cstring>
 #include <iostream>
 #include <cmath>
@@ -156,7 +159,7 @@ std::ostream& BaseFitObject::print1stDerivatives(std::ostream& os) const {
   for (int i = 0; i < BaseDefs::nMetaVars[metaSet]; ++i) {
       for (int j = 0; j < getNPar(); ++j) {
           if (i>0 && j==0) os << ",";
-          os << " " << getFirstDerivative(i,j,metaSet);
+          os << " " << getFirstDerivative_Meta_Local(i,j,metaSet);
       }
   }
   os << "#" << std::endl;  
@@ -171,7 +174,7 @@ std::ostream& BaseFitObject::print2ndDerivatives(std::ostream& os) const {
       for (int j = 0; j < getNPar(); ++j) {
           for (int k = 0; k < getNPar(); ++k) {
 //              if (i>0 && k==0) os << ",";
-              os << " " << getSecondDerivative(i,j,k,metaSet);
+              os << " " << getSecondDerivative_Meta_Local(i,j,k,metaSet);
               if (k == getNPar()-1) os << ",";
           }
       }
@@ -521,7 +524,7 @@ void BaseFitObject::addToGlobalChi2DerVector (double *y, int idim,
     int iglobal = globalParNum[ilocal];
     if ( iglobal>=0 ) {
       for (int j=0; j<BaseDefs::nMetaVars[metaSet]; j++) {
-	y[iglobal] += lambda * der[j] * getFirstDerivative( j , ilocal , metaSet );
+	y[iglobal] += lambda * der[j] * getFirstDerivative_Meta_Local( j , ilocal , metaSet );
       }
     }
   }
@@ -536,7 +539,7 @@ void BaseFitObject::addTo1stDerivatives (double M[], int idim,
     int iglobal = globalParNum[ilocal];
     if (iglobal>=0) {
       for (int j=0; j<BaseDefs::nMetaVars[metaSet]; j++) {
-	double x = der[j] * getFirstDerivative( j, ilocal , metaSet);
+	double x = der[j] * getFirstDerivative_Meta_Local( j, ilocal , metaSet);
 	M[idim*kglobal + iglobal] += x;
 	M[idim*iglobal + kglobal] += x;
       }
@@ -563,7 +566,7 @@ void   BaseFitObject::addTo2ndDerivatives (double der2[], int idim,
       if ( jglobal<0 ) continue;
       double sum(0);
       for ( int imeta=0; imeta<BaseDefs::nMetaVars[metaSet]; imeta++) {
-	sum+=factor[imeta]*getSecondDerivative( imeta, ilocal , jlocal , metaSet );
+	sum+=factor[imeta]*getSecondDerivative_Meta_Local( imeta, ilocal , jlocal , metaSet );
       }
       der2[idim*iglobal+jglobal] += sum;
       if ( iglobal!=jglobal ) der2[idim*jglobal+iglobal] += sum;
@@ -581,23 +584,24 @@ void   BaseFitObject::addTo2ndDerivatives (double M[], int idim,  double lambda,
   return;
 }
 
-void BaseFitObject::addToDerivatives (double der[], int idim, 
-				      double factor[], int metaSet
-				      ) const {
-  // DANIEL moved to BaseFitObject 
-  if (!cachevalid) updateCache();
-  for (int ilocal=0; ilocal<getNPar(); ilocal++) {
-    int iglobal = globalParNum[ilocal];
-    if ( iglobal >= 0 ) {
-      double der_sum(0);
-      for ( int iInter=0; iInter<BaseDefs::nMetaVars[metaSet]; iInter++) {
-	der_sum += factor[iInter]*getFirstDerivative( iInter , ilocal , metaSet );
-      }
-      der[iglobal] += der_sum;
-    }
-  }
-  return;
-}
+// seems not used
+// void BaseFitObject::addToDerivatives (double der[], int idim, 
+// 				      double factor[], int metaSet
+// 				      ) const {
+//   // DANIEL moved to BaseFitObject 
+//   if (!cachevalid) updateCache();
+//   for (int ilocal=0; ilocal<getNPar(); ilocal++) {
+//     int iglobal = globalParNum[ilocal];
+//     if ( iglobal >= 0 ) {
+//       double der_sum(0);
+//       for ( int iInter=0; iInter<BaseDefs::nMetaVars[metaSet]; iInter++) {
+// 	der_sum += factor[iInter]*getFirstDerivative( iInter , ilocal , metaSet );
+//       }
+//       der[iglobal] += der_sum;
+//     }
+//   }
+//   return;
+// }
 
 
 void BaseFitObject::initCov()  {
@@ -616,17 +620,14 @@ double BaseFitObject::getError2 (double der[], int metaSet) const {
   double totError(0);
   for (int i=0; i<BaseDefs::nMetaVars[metaSet]; i++) {
     for (int j=0; j<BaseDefs::nMetaVars[metaSet]; j++) {
-
       double cov_i_j=0; // this will become the covariance of intermediate variables i and j
       for (int k=0; k<getNPar(); k++) {
 	for (int l=0; l<getNPar(); l++) {
-	  cov_i_j += getFirstDerivative( i , k , metaSet ) * cov[k][l] * getFirstDerivative( j , l , metaSet );
+	  cov_i_j += getFirstDerivative_Meta_Local( i , k , metaSet ) * cov[k][l] * getFirstDerivative_Meta_Local( j , l , metaSet );
 	}
       }
       totError+=der[i]*der[j]*cov_i_j;
-
     }
   }
-
   return totError;
 }

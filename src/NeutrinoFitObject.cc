@@ -11,7 +11,10 @@
 
 #include "NeutrinoFitObject.h"
 #include <cmath>
+
+#undef NDEBUG
 #include <cassert>
+
 #include <algorithm>
 
 using std::sqrt;
@@ -168,7 +171,7 @@ double NeutrinoFitObject::getDE(int ilocal) const {
   return 0; 
 }
 
-double NeutrinoFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
+double NeutrinoFitObject::getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const {
   // iMeta = intermediate variable (i.e. E,px,py,pz)
   // ilocal = local variable (E, theta, phi)
   // metaSet = which set of intermediate varlables
@@ -195,7 +198,7 @@ double NeutrinoFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSe
 }
 
 
-double NeutrinoFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const {
+double NeutrinoFitObject::getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal , int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
 

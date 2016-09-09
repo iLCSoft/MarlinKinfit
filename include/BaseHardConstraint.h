@@ -19,7 +19,11 @@
 #ifndef __BASEHARDCONSTRAINT_H
 #define __BASEHARDCONSTRAINT_H
 
+#include "BaseDefs.h"
 #include "BaseConstraint.h"
+#include "BaseFitObject.h"
+
+#include <vector>
 
 class BaseFitObject;
 
@@ -64,6 +68,8 @@ class BaseFitObject;
 
 class BaseHardConstraint: public BaseConstraint {
   public:
+
+  inline BaseHardConstraint();
     
     /// Virtual destructor
     virtual ~BaseHardConstraint();
@@ -71,18 +77,18 @@ class BaseHardConstraint: public BaseConstraint {
     /// Adds first order derivatives to global covariance matrix M
     virtual void add1stDerivativesToMatrix (double *M,      ///< Global covariance matrix, dimension at least idim x idim
                                             int idim        ///< First dimension of array der
-                                            ) const = 0;
+                                            ) const;
        
     /// Adds second order derivatives to global covariance matrix M
     virtual void add2ndDerivativesToMatrix (double *M,      ///< Global covariance matrix, dimension at least idim x idim
                                             int idim,       ///< First dimension of array der
                                             double lambda   ///< Lagrange multiplier for this constraint
-                                            ) const = 0;
+                                            ) const;
     /// Add lambda times derivatives of chi squared to global derivative vector
     virtual void addToGlobalChi2DerVector (double *y,   ///< Vector of chi2 derivatives
                                            int idim,    ///< Vector size 
                                            double lambda //< The lambda value
-                                           ) const = 0;
+                                           ) const;
     /// Calculate directional derivative 
     virtual double dirDer                 (double *p,   ///< Vector of direction
                                            double *w,   ///< Work vector
@@ -97,13 +103,86 @@ class BaseHardConstraint: public BaseConstraint {
                                            double mu=1  ///< optional multiplier
                                           );
    
+    /// Second derivatives with respect to the meta-variables of Fit objects i and j; result false if all derivatives are zero 
+    virtual bool secondDerivatives (int i,                        ///< number of 1st FitObject
+                                    int j,                        ///< number of 2nd FitObject
+                                    double *derivatives           ///< The result 4x4 matrix 
+                                   ) const = 0;
+    /// First derivatives with respect to the meta-variables of Fit objects i; result false if all derivatives are zero 
+    virtual bool firstDerivatives (int i,                        ///< number of 1st FitObject
+                                   double *derivatives           ///< The result 4-vector
+                                  ) const = 0;
+
+    virtual int getVarBasis() const = 0;
+
+    /// Returns the value of the constraint
+    virtual double getValue() const = 0;
+        
+    /// Returns the error on the value of the constraint
+    virtual double getError() const;
+
+    /// Get first order derivatives. 
+    /// Call this with a predefined array "der" with the necessary number of entries!
+    virtual void getDerivatives(int idim,      ///< First dimension of the array
+                                double der[]   ///< Array of derivatives, at least idim x idim 
+                               ) const = 0;
+
     /// Accesses position of constraint in global constraint list
-    virtual int  getGlobalNum() const = 0;
+    virtual int  getGlobalNum() const 
+    {return globalNum;}
     /// Sets position of constraint in global constraint list
-    virtual void setGlobalNum (int iglobal                  ///< The global constraint number
-                              ) = 0;
+    virtual void setGlobalNum (int iglobal                ///< Global constraint number
+                              ) 
+    {globalNum = iglobal;}
+
+    virtual void printFirstDerivatives() const;
+    virtual void printSecondDerivatives() const;
+
+    virtual void test1stDerivatives ();
+    virtual void test2ndDerivatives ();
+    
+    /// Evaluates numerically the 1st derivative w.r.t. a parameter
+    virtual double num1stDerivative (int ifo,     ///< Number of  FitObject
+                             int ilocal,  ///< Local parameter number 
+                             double eps   ///< variation of  local parameter 
+                            );
+    /// Evaluates numerically the 2nd derivative w.r.t. 2 parameters
+    virtual double num2ndDerivative (int ifo1,    ///< Number of 1st FitObject
+                             int ilocal1, ///< 1st local parameter number 
+                             double eps1, ///< variation of 1st local parameter 
+                             int ifo2,    ///< Number of 1st FitObject
+                             int ilocal2, ///< 1st local parameter number 
+                             double eps2  ///< variation of 2nd local parameter 
+                            );
+                              
+
+
+    
+
+ protected:
+
+    /// Vector of pointers to ParticleFitObjects 
+    typedef std::vector <BaseFitObject*> FitObjectContainer;    
+    /// Iterator through vector of pointers to ParticleFitObjects 
+    typedef FitObjectContainer::iterator FitObjectIterator;
+    /// Constant iterator through vector of pointers to ParticleFitObjects 
+    typedef FitObjectContainer::const_iterator ConstFitObjectIterator;
+    ///  The FitObjectContainer
+    FitObjectContainer fitobjects;
+    ///  The derivatives
+    std::vector <double> derivatives;
+    ///  The flags can be used to divide the FitObjectContainer into several subsets 
+    ///  used for example to implement an equal mass constraint (see MassConstraint). 
+    std::vector <int> flags;
+    
+    /// Position of constraint in global constraint list
+    int globalNum;
                                  
 };
 
+BaseHardConstraint::BaseHardConstraint() 
+: fitobjects( FitObjectContainer() ), derivatives( std::vector <double> () ), flags( std::vector <int> () ), globalNum(0)
+{
+}
 
 #endif // __BASEHARDCONSTRAINT_H

@@ -5,7 +5,7 @@ class BaseDefs {
  public:
 
   // define labels for bases (sets of intermediate variables)
-  enum { VARBASIS_EPXYZ=0, VARBASIS_TRKNORMAL, NMETASET };
+  enum { VARBASIS_EPXYZ=0, VARBASIS_VXYZ, VARBASIS_TRKNORMAL, NMETASET };
 
   // max # of variables in the above bases
   enum {MAXINTERVARS=4};
@@ -19,3 +19,5 @@ class BaseDefs {
 };
 
 #endif
+
+

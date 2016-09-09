@@ -31,6 +31,7 @@
 
 #include "SimplePhotonFitObject.h"
 #include <cmath>
+#undef NDEBUG
 #include <cassert>
 #include <iostream>
 //#include "marlin/Processor.h"
@@ -171,7 +172,7 @@ double SimplePhotonFitObject::getDE(int ilocal) const {
   return 0; 
 }
 
-double SimplePhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
+double SimplePhotonFitObject::getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const {
 
   assert ( metaSet==0 );
   switch ( iMeta ) {
@@ -195,7 +196,7 @@ double SimplePhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int me
 }
 
 
-double SimplePhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal , int metaSet ) const {
+double SimplePhotonFitObject::getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal , int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
 

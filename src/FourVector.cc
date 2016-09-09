@@ -13,6 +13,8 @@
 #include "FourVector.h"
 
 #include <cmath>
+
+#undef NDEBUG
 #include <cassert>
 
 #include <TRandom3.h>

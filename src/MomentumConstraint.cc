@@ -16,6 +16,8 @@
 #include "ParticleFitObject.h"
 
 #include<iostream>
+
+#undef NDEBUG
 #include<cassert>
 
 using std::cout;
@@ -44,10 +46,14 @@ double MomentumConstraint::getValue() const {
   double totpz = 0;
   double totE = 0;
   for (unsigned int i = 0; i < fitobjects.size(); i++) {
-    if (pxfact != 0) totpx += fitobjects[i]->getPx(); 
-    if (pyfact != 0) totpy += fitobjects[i]->getPy(); 
-    if (pzfact != 0) totpz += fitobjects[i]->getPz(); 
-    if (efact  != 0) totE  += fitobjects[i]->getE(); 
+
+    const ParticleFitObject *foi =  dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+    assert(foi);
+
+    if (pxfact != 0) totpx += foi->getPx(); 
+    if (pyfact != 0) totpy += foi->getPy(); 
+    if (pzfact != 0) totpz += foi->getPz(); 
+    if (efact  != 0) totE  += foi->getE(); 
   }
   return pxfact*totpx + pyfact*totpy + pzfact*totpz + efact*totE - value;
 }
@@ -64,10 +70,12 @@ void MomentumConstraint::getDerivatives(int idim, double der[]) const {
         int iglobal = fitobjects[i]->getGlobalParNum (ilocal);
         assert (iglobal >= 0 && iglobal < idim);
         double d = 0;
-        if (pxfact != 0) d += pxfact*fitobjects[i]->getDPx (ilocal);
-        if (pyfact != 0) d += pyfact*fitobjects[i]->getDPy (ilocal);
-        if (pzfact != 0) d += pzfact*fitobjects[i]->getDPz (ilocal);
-        if (efact  != 0) d +=  efact*fitobjects[i]->getDE  (ilocal);
+	const ParticleFitObject *foi =  dynamic_cast < ParticleFitObject* > ( fitobjects[i] );
+	assert(foi);
+        if (pxfact != 0) d += pxfact*foi->getDPx (ilocal);
+        if (pyfact != 0) d += pyfact*foi->getDPy (ilocal);
+        if (pzfact != 0) d += pzfact*foi->getDPz (ilocal);
+        if (efact  != 0) d +=  efact*foi->getDE  (ilocal);
         der[iglobal] = d;
       }
     }

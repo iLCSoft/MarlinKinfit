@@ -21,6 +21,8 @@
 #include "BaseFitter.h"
 #include "BaseSoftConstraint.h"
 #include "BaseHardConstraint.h"
+
+#undef NDEBUG
 #include <cassert>
 
 BaseFitter::BaseFitter()  
@@ -55,6 +57,7 @@ void BaseFitter::addFitObject (BaseFitObject& fitobject_)
 void BaseFitter::addConstraint (BaseConstraint* constraint_)  
 {
   covValid = false;
+
   if (BaseHardConstraint *hc = dynamic_cast<BaseHardConstraint *>(constraint_))
     constraints.push_back(hc);
   else if (BaseSoftConstraint *sc = dynamic_cast<BaseSoftConstraint *>(constraint_))

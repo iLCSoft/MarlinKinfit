@@ -44,6 +44,8 @@
 
 #include<iostream>
 #include<cmath>
+
+#undef NDEBUG
 #include<cassert>
 
 #include "OPALFitterGSL.h" 
@@ -218,6 +220,9 @@ double OPALFitterGSL::fit() {
   gsl_vector_view eta = gsl_vector_subvector (etaxi, 0, nmea);
 
   // Feta is the part of Fetaxi containing the measured quantities
+
+  //  cout << "==== " << ncon << " " << nmea << endl;
+
   gsl_matrix_view Feta = gsl_matrix_submatrix (Fetaxi, 0, 0, ncon, nmea);
   
   gsl_matrix_view Vetaeta   = gsl_matrix_submatrix (V, 0, 0, nmea, nmea);
@@ -238,7 +243,7 @@ double OPALFitterGSL::fit() {
     }
   }
   
-  
+  //  cout << "hello1" << endl;
 
   /// initialize Fetaxi ( = d F / d eta,xi)
   gsl_matrix_set_zero (Fetaxi);
@@ -265,7 +270,6 @@ double OPALFitterGSL::fit() {
   double chimxw = 10000.; // 1000.;
   double almin = 0.05;
  
-
   // repeat with or with out smaller steps size 
   bool repeat = true;
   bool scut = false;
@@ -274,6 +278,7 @@ double OPALFitterGSL::fit() {
 #ifndef FIT_TRACEOFF
   if (tracer) tracer->initialize (*this);
 #endif   
+
  
   // start of iterations
   while (repeat) {
@@ -288,6 +293,7 @@ double OPALFitterGSL::fit() {
         return -1;
       }
       
+
       gsl_matrix_set_zero (Fetaxi);
       for (int k = 0; k < ncon; ++k)  {
         constraints[k]->getDerivatives(Fetaxi->size2, Fetaxi->block->data+k*Fetaxi->tda);
@@ -413,13 +419,24 @@ double OPALFitterGSL::fit() {
       // Compute rights hand side first
       // Sinv*r was already calculated and is stored in lambda
       // dxi = -alph*Fxi^T*lambda + 0*dxi
+
+      //if (debug>1) cout << "alph = " << alph << endl;
+      //if (debug>1) debug_print (lambda, "lambda");
+      //if (debug>1) debug_print (&(Fxi.matrix), "Fxi");
+
       gsl_blas_dgemv (CblasTrans, -alph, &Fxi.matrix, lambda, 0, dxi);
       
+      //if (debug>1) debug_print (dxi, "dxi0");
+      //if (debug>1) debug_print (W1, "W1");
+
       // now solve the system
       // Note added 23.12.04: W1 is symmetric and positive definite,
-// so we can use the Cholesky instead of LU decomposition
+      // so we can use the Cholesky instead of LU decomposition
       gsl_linalg_cholesky_decomp (W1);
       inverr = gsl_linalg_cholesky_svx (W1, dxi);
+
+      //if (debug>1) debug_print (dxi, "dxi1");
+
       
       if (inverr != 0) {
         cerr << "W1: gsl_linalg_cholesky_svx error " << inverr << endl;
@@ -876,7 +893,6 @@ bool OPALFitterGSL::initialize() {
   assert (nunm==0 || (permU && (int)permU->size == nunm));
   assert (permV && (int)permV->size == nmea);
 
-  
   return true;
 
 }

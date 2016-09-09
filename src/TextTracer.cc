@@ -21,6 +21,7 @@
 #include "BaseConstraint.h"
 #include "BaseHardConstraint.h"
 #include "BaseSoftConstraint.h"
+#undef NDEBUG
 #include <cassert>
 #include <cstring>
 #include <cmath>

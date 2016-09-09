@@ -69,8 +69,8 @@ class LeptonFitObject : public ParticleFitObject {
     /// Get chi squared from measured and fitted parameters
     //  virtual double getChi2() const;
 
-    double getFirstDerivative( int iMeta, int ilocal , int metaSet ) const; // first derivative of intermediate variable iMeta wrt local parameter ilocal
-    double getSecondDerivative( int iMeta, int ilocal , int jlocal, int metaSet ) const; // second derivative of intermediate variable iMeta wrt local parameters ilocal and jlocal
+    double getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const; // first derivative of intermediate variable iMeta wrt local parameter ilocal
+    double getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal, int metaSet ) const; // second derivative of intermediate variable iMeta wrt local parameters ilocal and jlocal
     virtual int getNPar() const {return NPAR;}
 
   protected:

@@ -21,6 +21,7 @@
 #include<iostream>
 #include<cmath>
 #include<limits>
+#undef NDEBUG
 #include<cassert>
 
 using std::cerr;

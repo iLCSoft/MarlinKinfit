@@ -9,7 +9,10 @@
  */ 
  
 #include "BaseConstraint.h"
+
+#undef NDEBUG
 #include <cassert>
+
 #include <cstring>
 #include <iostream>
 

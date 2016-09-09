@@ -286,9 +286,9 @@ class BaseFitObject {
 					   int metaSet  ///< which set of intermediate variables
                                            ) const;
         
-
-    virtual void addToDerivatives (double der[], int idim, 
-				   double factor[], int metaSet) const;
+    // seems not to be used DJeans
+    //    virtual void addToDerivatives (double der[], int idim, 
+    //				   double factor[], int metaSet) const;
 
     virtual void addTo1stDerivatives (double M[], 
 				      int idim, 
@@ -303,12 +303,12 @@ class BaseFitObject {
     // DANIEL added
     // derivatives of intermediate variables wrt object's local parameters
     // these must be implemented by the derived classes for each type of object
-    virtual double getFirstDerivative( int iMeta , 
+    virtual double getFirstDerivative_Meta_Local( int iMeta , 
 				       int ilocal ,
 				       int metaSet 
 				       ) const = 0;
 
-    virtual double getSecondDerivative( int iMeta, 
+    virtual double getSecondDerivative_Meta_Local( int iMeta, 
 					int ilocal , 
 					int jlocal , 
 					int metaSet 
@@ -318,21 +318,12 @@ class BaseFitObject {
 
     virtual double getError2 (double der[], int metaset) const;
 
-    //// DANIEL
-    //// these are some definitions of max # parameters, intermediate parameters, and of the different sets of intermediate parameters
-    //// they should probably be moved out of BaseFitObject into a separate class...?
-    //enum { VARBASIS_EPXYZ=0, VARBASIS_TRKNORMAL, NMETASET }; // define labels for bases (sets of intermediate variables)
-    //enum { maxInter=4 };                  // max # of variables in the above bases
-    //static const int nMetaVars[NMETASET]; // this is used to store how many variables in each base (should be <= maxInter)
-    ///// maximum number of parameters for a fit object
-    //enum {MAXPAR = 10};
-    //// end definitions
+    virtual void getDerivatives (double der[], int idim) const = 0;
 
 
     protected:
       char *name;  
       const static double eps2;                           
-
 
       // DANIEL moved all of this stuff to BaseFitObject
       // it costs some extra memory, since everything has dimension of largest # of parameters

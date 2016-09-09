@@ -46,7 +46,10 @@
 #define NO_MARLIN		// if defined: all output via cout, Marlin inclusion not required
 #include "ISRPhotonFitObject.h"
 #include <cmath>
+
+#undef NDEBUG
 #include <cassert>
+
 #include <iostream>
 #ifndef NO_MARLIN
 #include "marlin/Processor.h"
@@ -61,7 +64,7 @@ using std::endl;
 using namespace marlin;
 #endif
 
-static const double pi_ = 3.14159265358979323846264338328,
+static const double pi_ = M_PI, // 3.14159265358979323846264338328,
                     a   = 8./3./pi_*(pi_-3.)/(4.-pi_);    // = ca. 0.140012289
 
 // constructor
@@ -216,7 +219,7 @@ double ISRPhotonFitObject::getDE(int ilocal) const {
 }
  
 
-double ISRPhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaSet ) const {
+double ISRPhotonFitObject::getFirstDerivative_Meta_Local( int iMeta, int ilocal , int metaSet ) const {
   assert ( metaSet==0 );
   switch ( iMeta ) {
   case 0:
@@ -237,7 +240,7 @@ double ISRPhotonFitObject::getFirstDerivative( int iMeta, int ilocal , int metaS
   return -999;
 }
 
-double ISRPhotonFitObject::getSecondDerivative( int iMeta, int ilocal , int jlocal, int metaSet ) const {
+double ISRPhotonFitObject::getSecondDerivative_Meta_Local( int iMeta, int ilocal , int jlocal, int metaSet ) const {
   assert ( metaSet==0 );
   if (!cachevalid) updateCache();
 
