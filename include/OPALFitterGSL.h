@@ -177,6 +177,9 @@ class OPALFitterGSL : public BaseFitter {
     gsl_matrix *VLU; 
     gsl_matrix *Vinv; 
     gsl_matrix *Vnew; 
+    gsl_matrix *Minv; 
+    gsl_matrix *dxdt; 
+    gsl_matrix *Vdxdt; 
     gsl_vector *dxi; 
     gsl_vector *Fxidxi;
     gsl_vector *lambda;

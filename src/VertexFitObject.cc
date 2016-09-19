@@ -183,6 +183,7 @@ void VertexFitObject::addVertexConstraints (BaseFitter& fitter, int axis) {
     it->track->releaseVertexParam( iTrkVtx );
 
     VertexConstraint *con = new VertexConstraint (*this, *(it->track), iTrkVtx, axis);
+    con->setName (this->getName());
 
     //    cout << "vertex constraint value = " << con->getValue() << endl;
 

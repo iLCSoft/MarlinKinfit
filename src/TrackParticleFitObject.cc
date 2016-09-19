@@ -5,7 +5,7 @@
  *   "decay plane" is the plane defined by the IP and the tangent to the track at PCA
  *  At present it considers the track only at the PCA:
  *    i.e. the momentum/decay plane are considered only at the PCA, not at a general position along the helix
- *    thie means it's no good for fitting (significantly) displaced vertices 
+ *    this means it's no good for fitting (significantly) displaced vertices 
  *       in which the tracks have bent significantly between the PCA and vertex positions 
  *    this should be improved in a future update by including extra parameters (as was done for the original Track-based classes)
  */

@@ -19,7 +19,7 @@
 // #include "PxConstraint.h"
 // #include "PyConstraint.h"
 #include "MassConstraint.h"
-#include "SoftGaussMassConstraint.h"
+//#include "SoftGaussMassConstraint.h"
 
 class TopEventILC : public BaseEvent {
   public: 
@@ -34,12 +34,12 @@ class TopEventILC : public BaseEvent {
     MomentumConstraint& getPyConstraint() {return pyc;};
     MomentumConstraint& getPzConstraint() {return pzc;};
     MomentumConstraint& getEConstraint()  {return ec;};
-    //MassConstraint& getW1Constraint() {return w1;};
-    //MassConstraint& getW2Constraint() {return w2;};
-    //MassConstraint& getTopConstraint() {return w;};
-    SoftGaussMassConstraint& getW1Constraint() {return w1;};
-    SoftGaussMassConstraint& getW2Constraint() {return w2;};
-    SoftGaussMassConstraint& getTopConstraint() {return w;};
+    MassConstraint& getW1Constraint() {return w1;};
+    MassConstraint& getW2Constraint() {return w2;};
+    MassConstraint& getTopConstraint() {return w;};
+    //SoftGaussMassConstraint& getW1Constraint() {return w1;};
+    //SoftGaussMassConstraint& getW2Constraint() {return w2;};
+    //SoftGaussMassConstraint& getTopConstraint() {return w;};
     
     double getW1Mass()  {return w1.getMass();};
     double getW2Mass()  {return w2.getMass();};
@@ -70,12 +70,12 @@ class TopEventILC : public BaseEvent {
     MomentumConstraint pyc;
     MomentumConstraint pzc;
     MomentumConstraint ec;
-    //MassConstraint w1;
-    //MassConstraint w2;
-    //MassConstraint w;
-    SoftGaussMassConstraint w1;
-    SoftGaussMassConstraint w2;
-    SoftGaussMassConstraint w;
+    MassConstraint w1;
+    MassConstraint w2;
+    MassConstraint w;
+    //SoftGaussMassConstraint w1;
+    //SoftGaussMassConstraint w2;
+    //SoftGaussMassConstraint w;
     
     
 

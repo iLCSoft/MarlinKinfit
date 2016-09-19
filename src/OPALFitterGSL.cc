@@ -10,6 +10,9 @@
  *
  * \b CVS Log messages:
  * - $Log: OPALFitterGSL.cc,v $
+ * - Revision 1.4  2016/09/16 09:48:13  boehmej
+ * - Fixed error calculation for unmeasured parameters
+ * -
  * - Revision 1.3  2009/09/01 09:48:13  blist
  * - Added tracer mechanism, added access to fit covariance matrix
  * -
@@ -75,6 +78,7 @@ OPALFitterGSL::OPALFitterGSL()
   fitprob(0), chi2(0),
   f(0), r(0), Fetaxi (0), S(0), Sinv (0), SinvFxi(0), SinvFeta (0), 
   W1(0), G (0), H (0), HU (0), IGV (0), V(0), VLU(0), Vinv(0), Vnew (0), 
+  Minv(0), dxdt(0), Vdxdt(0),
   dxi(0), Fxidxi (0), lambda(0), FetaTlambda(0),
   etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), 
   //  Feta(0), 
@@ -102,6 +106,9 @@ OPALFitterGSL::~OPALFitterGSL()
   if (VLU) gsl_matrix_free (VLU);
   if (Vinv) gsl_matrix_free (Vinv);
   if (Vnew) gsl_matrix_free (Vnew);
+  if (Minv) gsl_matrix_free (Minv);
+  if (dxdt) gsl_matrix_free (dxdt);
+  if (Vdxdt) gsl_matrix_free (Vdxdt);
   if (dxi) gsl_vector_free (dxi);
   if (Fxidxi) gsl_vector_free (Fxidxi);
   if (lambda) gsl_vector_free (lambda);
@@ -132,6 +139,9 @@ OPALFitterGSL::~OPALFitterGSL()
   VLU=0;
   Vinv=0;
   Vnew=0;
+  Minv=0;
+  dxdt=0;
+  Vdxdt=0;
   dxi=0;
   Fxidxi=0;
   lambda=0;
@@ -161,14 +171,17 @@ double OPALFitterGSL::fit() {
   //           ( xi  )  nunm   | 
   //           (     )   v     v
 
-  //            <- ncon -> 
-  //           (          )   ^     ^
-  //           (   Feta   )  nmea   |
-  //           (          )   v     |
-  //  Fetaxi = ( -------- )  ---   npar
-  //           (          )   ^     |
-  //           (   Fxi    )  nunm   | 
-  //           (          )   v     v
+  //              <- ncon -> 
+  //             (          )   ^     ^
+  //             (   Feta^T )  nmea   |
+  //             (          )   v     |
+  //  Fetaxi^T = ( -------- )  ---   npar
+  //             (          )   ^     |
+  //             (   Fxi^T  )  nunm   | 
+  //             (          )   v     v
+  //
+  //  Fetaxi are the derivatives of the constraints wrt the fitted parameters, thus A_theta/xi in book
+  
   
   //      
   //            <- nmea ->|<- nunm -> 
@@ -179,6 +192,24 @@ double OPALFitterGSL::fit() {
   //           (          |          )   ^     |
   //           (  Vxieta  |  Vxixi   )  nunm   | 
   //           (          |          )   v     v
+  //
+  //  V is the covariance matrix. Before the fit only Vetaeta is non-zero (covariance of measured parameters)
+
+  //      
+  //                 <- nmea ->|<- nunm -> 
+  //                (          |         )   ^    
+  //     dxdt^T =   (   detadt |   dxidt )  nmea  
+  //                (          |         )   v    
+  //
+  //  dxdt are the partial derivates of the fitted parameters wrt the measured parameters, 
+  //      
+  //                 <- nmea ->|<- nunm -> 
+  //                (          |          )   ^    
+  //     Vdxdt  =   ( Vdetadt  |  Vdxidt  )  nmea  
+  //                (          |          )   v    
+  //
+  //  Vdxdt is Vetaeta * dxdt^T, thus Vdxdt[nmea][npar]
+  //  both needed for calculation of the full covariance matrix of the fitted parameters
 
   // cout statements
   int inverr = 0;
@@ -197,11 +228,14 @@ double OPALFitterGSL::fit() {
   assert (G && (int)G->size1 == nmea && (int)G->size2 == nmea);
   assert (nunm==0 || (H && (int)H->size1 == nmea && (int)H->size2 == nunm));
   assert (nunm==0 || (HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm));
-  assert (IGV && (int)IGV->size1 == nmea && (int)IGV->size2 == nmea);
-  assert (V && (int)V->size1 == npar && (int)V->size2 == npar);
-  assert (VLU && (int)VLU->size1 == nmea && (int)VLU->size2 == nmea);
+  assert (IGV  && (int)IGV->size1  == nmea && (int)IGV->size2  == nmea);
+  assert (V    && (int)V->size1    == npar && (int)V->size2    == npar);
+  assert (VLU  && (int)VLU->size1  == nmea && (int)VLU->size2  == nmea);
   assert (Vinv && (int)Vinv->size1 == nmea && (int)Vinv->size2 == nmea);
   assert (Vnew && (int)Vnew->size1 == npar && (int)Vnew->size2 == npar);
+  assert (Minv && (int)Minv->size1 == npar && (int)Minv->size2 == npar);
+  assert (dxdt && (int)dxdt->size1 == npar && (int)dxdt->size2 == nmea);
+  assert (Vdxdt  && (int)Vdxdt->size1  == nmea && (int)Vdxdt->size2  == npar);
   assert (nunm==0 || (dxi && (int)dxi->size == nunm));
   assert (nunm==0 || (Fxidxi &&  (int)Fxidxi->size == ncon));
   assert (lambda && (int)lambda->size == ncon);
@@ -221,7 +255,7 @@ double OPALFitterGSL::fit() {
 
   // Feta is the part of Fetaxi containing the measured quantities
 
-  //  cout << "==== " << ncon << " " << nmea << endl;
+  if (debug>1) cout << "==== " << ncon << " " << nmea << endl;
 
   gsl_matrix_view Feta = gsl_matrix_submatrix (Fetaxi, 0, 0, ncon, nmea);
   
@@ -237,13 +271,13 @@ double OPALFitterGSL::fit() {
           assert (iglobal < nmea);
           gsl_vector_set (y, iglobal, fitobjects[i]->getMParam(ilocal));
         }
-        //if (debug) cout << "etaxi[" << iglobal << "] = " << etaxi[iglobal] 
-        //                << " for jet " << i << " and ilocal = " << ilocal << endl;
+                if (debug) cout << "etaxi[" << iglobal << "] = " << gsl_vector_get (etaxi,iglobal) 
+                        << " for jet " << i << " and ilocal = " << ilocal << endl;
       }
     }
   }
   
-  //  cout << "hello1" << endl;
+  if (debug>1) cout << "hello1" << endl;
 
   /// initialize Fetaxi ( = d F / d eta,xi)
   gsl_matrix_set_zero (Fetaxi);
@@ -394,7 +428,7 @@ double OPALFitterGSL::fit() {
       // W1 = Fxi^T * Sinv * Fxi
       // SinvFxi = 1*Sinv*Fxi + 0*SinvFxi
       gsl_blas_dsymm (CblasLeft, CblasUpper, 1, Sinv, &Fxi.matrix, 0,  SinvFxi);
-      // W1 = 1*Fxi^T*SinvFxi + 0*W1
+      // W1 = 1*FOPALFitterGSL::fitxi^T*SinvFxi + 0*W1
       gsl_blas_dgemm (CblasTrans, CblasNoTrans, 1, &Fxi.matrix, SinvFxi, 0, W1);
       
       if (debug > 1) {
@@ -420,14 +454,15 @@ double OPALFitterGSL::fit() {
       // Sinv*r was already calculated and is stored in lambda
       // dxi = -alph*Fxi^T*lambda + 0*dxi
 
-      //if (debug>1) cout << "alph = " << alph << endl;
-      //if (debug>1) debug_print (lambda, "lambda");
-      //if (debug>1) debug_print (&(Fxi.matrix), "Fxi");
+      if (debug>1) cout << "alph = " << alph << endl;
+      if (debug>1) debug_print (lambda, "lambda");
+      if (debug>1) debug_print (&(Fxi.matrix), "Fxi");
 
       gsl_blas_dgemv (CblasTrans, -alph, &Fxi.matrix, lambda, 0, dxi);
-      
-      //if (debug>1) debug_print (dxi, "dxi0");
-      //if (debug>1) debug_print (W1, "W1");
+          gsl_blas_dsymm (CblasRight, CblasUpper, 1, &Vetaeta.matrix, &Feta.matrix, 0,  FetaV);
+
+      if (debug>1) debug_print (dxi, "dxi0");
+      if (debug>1) debug_print (W1, "W1");
 
       // now solve the system
       // Note added 23.12.04: W1 is symmetric and positive definite,
@@ -435,7 +470,7 @@ double OPALFitterGSL::fit() {
       gsl_linalg_cholesky_decomp (W1);
       inverr = gsl_linalg_cholesky_svx (W1, dxi);
 
-      //if (debug>1) debug_print (dxi, "dxi1");
+      if (debug>1) debug_print (dxi, "dxi1");
 
       
       if (inverr != 0) {
@@ -613,20 +648,36 @@ double OPALFitterGSL::fit() {
   }   // end of while (repeat)
   
 // *-- End of iterations - calculate errors.
-// The result will be stored in Vnew
+
+// The result will (ultimately) be stored in Vnew
 
   gsl_matrix_set_zero (Vnew);
+  gsl_matrix_set_zero (Minv);
+    if (debug > 2) {
+      for (int i = 0; i < npar; ++i) {
+        for (int j = 0; j < npar; ++j) {
+          cout << "Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+        }
+      }
+    }
+  
+  if (debug) cout << "OPALFitterGSL: calcerr = " << calcerr << endl;
   
   if (calcerr) {
   
+// *-- As a first step, calculate Minv as in 9.4.2 of Benno's book chapter 
+//                    (in O.Behnke et al "Data Analysis in High Energy Physics")
+
+
 // *-- Evaluate S and invert.
 
     if (debug>2) debug_print (&Vetaeta.matrix, "V");
     if (debug>2) debug_print (&Feta.matrix, "Feta");
     
-    //FetaV = 1*Feta*V + 0*FetaV
+    // CblasRight means C = alpha B A + beta C with symmetric matrix A
+    //FetaV[ncon][nmea] = 1*Feta[ncon][nmea]*V[nmea][nmea] + 0*FetaV
     gsl_blas_dsymm (CblasRight, CblasUpper, 1, &Vetaeta.matrix, &Feta.matrix, 0,  FetaV);
-    // S = 1 * FetaV * Feta^T + 0*S
+    // S[ncon][ncon] = 1 * FetaV[ncon][nmea] * Feta^T[nmea][ncon] + 0*S
     gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, FetaV, &Feta.matrix, 0, S);
 
     
@@ -637,7 +688,7 @@ double OPALFitterGSL::fit() {
 
       // Fxi is the part of Fetaxi containing the unmeasured quantities, if any    
       gsl_matrix_view Fxi = gsl_matrix_submatrix (Fetaxi,  0, nmea, ncon, nunm);
-      //S = 1*Fxi*Fxi^T + 1*S
+      //S[ncon][ncon] = 1*Fxi[ncon][nunm]*Fxi^T[nunm][ncon] + 1*S[ncon][ncon]
       gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, &Fxi.matrix, &Fxi.matrix, 1, S);    
    }
    
@@ -662,9 +713,9 @@ double OPALFitterGSL::fit() {
 //  (same as W1, but for measured parameters) 
 // G = Feta^T * Sinv * Feta
 
-    // SinvFeta = 1*Sinv*Feta + 0*SinvFeta
+    // SinvFeta[ncon][nmea] = 1*Sinv[ncon][ncon]*Feta[ncon][nmea] + 0*SinvFeta
     gsl_blas_dsymm (CblasLeft, CblasUpper, 1, Sinv, &Feta.matrix, 0,  SinvFeta);
-    // G = 1*Feta^T*SinvFeta + 0*G
+    // G[nmea][nmea] = 1*Feta^T[nmea][ncon]*SinvFeta[ncon][nmea] + 0*G
     gsl_blas_dgemm (CblasTrans, CblasNoTrans, 1, &Feta.matrix, SinvFeta, 0, G);
 
     if (debug>2) debug_print (G, "G(1)");
@@ -677,27 +728,34 @@ double OPALFitterGSL::fit() {
       // Fxi is the part of Fetaxi containing the unmeasured quantities, if any    
       gsl_matrix_view Fxi = gsl_matrix_submatrix (Fetaxi,  0, nmea, ncon, nunm);
       // H = Feta^T * Sinv * Fxi
-      // SinvFxi = 1*Sinv*Fxi + 0*SinvFxi
+      // SinvFxi[ncon][nunm] = 1*Sinv[ncon][ncon]*Fxi[ncon][nunm] + 0*SinvFxi
       gsl_blas_dsymm (CblasLeft, CblasUpper, 1, Sinv, &Fxi.matrix, 0,  SinvFxi);
-      // H = 1*Feta^T*SinvFxi + 0*H
+      // H[nmea][nunm] = 1*Feta^T[nmea][ncon]*SinvFxi[ncon][nunm] + 0*H
       gsl_blas_dgemm (CblasTrans, CblasNoTrans, 1, &Feta.matrix, SinvFxi, 0, H);
 
       if (debug>2) debug_print (H, "H");
       
 // *-- Calculate U**-1 and invert.
 //   (same as W1)
-//   U is a part of Vnew
+//   U is a part of Minv
        
       gsl_matrix *Uinv = W1;
-      gsl_matrix_view U = gsl_matrix_submatrix (Vnew, nmea, nmea, nunm, nunm);
-      // H = Fxi^T * Sinv * Fxi
-      // H = 1*Fxi^T*SinvFxi + 0*W1
+      gsl_matrix_view U = gsl_matrix_submatrix (Minv, nmea, nmea, nunm, nunm);
+      // Uinv = Fxi^T * Sinv * Fxi
+      // Uinv[nunm][nunm] = 1*Fxi^T[nunm][ncon]*SinvFxi[ncon][nunm] + 0*W1
       gsl_blas_dgemm (CblasTrans, CblasNoTrans, 1, &Fxi.matrix, SinvFxi, 0, Uinv);
       
       gsl_linalg_LU_decomp (Uinv, permU, &signum);
       inverr = gsl_linalg_LU_invert (Uinv, permU, &U.matrix); 
             
       if (debug>2) debug_print (&U.matrix, "U"); 
+    if (debug > 2) {
+      for (int i = 0; i < npar; ++i) {
+        for (int j = 0; j < npar; ++j) {
+          cout << "after U Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+        }
+      }
+    }
       
       if (inverr != 0) {
         cerr << "U: gsl_linalg_LU_invert error " << inverr << endl;
@@ -706,17 +764,31 @@ double OPALFitterGSL::fit() {
 
 // *-- Covariance matrix between measured and unmeasured parameters.
 
-//    HU = 1*H*U + 0*HU
+//    HU[nmea][nunm] = 1*H[nmea][nunm]*U[nunm][nunm] + 0*HU
       gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, H, &U.matrix, 0, HU);
 //    Vnewetaxi is a view of Vnew      
-      gsl_matrix_view Vnewetaxi = gsl_matrix_submatrix (Vnew, 0, nmea, nmea, nunm);
-      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, -1, &Vetaeta.matrix, HU, 0, &Vnewetaxi.matrix);
+      gsl_matrix_view Minvetaxi = gsl_matrix_submatrix (Minv, 0, nmea, nmea, nunm);
+      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, -1, &Vetaeta.matrix, HU, 0, &Minvetaxi.matrix);
+    if (debug > 2) {
+      for (int i = 0; i < npar; ++i) {
+        for (int j = 0; j < npar; ++j) {
+          cout << "after etaxi Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+        }
+      }
+    }
            
       
 // *-- Fill in symmetric part:
 //    Vnewxieta is a view of Vnew      
-      gsl_matrix_view Vnewxieta = gsl_matrix_submatrix (Vnew, nmea, 0, nunm, nmea);
-      gsl_matrix_transpose_memcpy (&Vnewxieta.matrix, &Vnewetaxi.matrix);
+      gsl_matrix_view Minvxieta = gsl_matrix_submatrix (Minv, nmea, 0, nunm, nmea);
+      gsl_matrix_transpose_memcpy (&Minvxieta.matrix, &Minvetaxi.matrix);
+    if (debug > 2) {
+      for (int i = 0; i < npar; ++i) {
+        for (int j = 0; j < npar; ++j) {
+          cout << "after symmetric: Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+        }
+      }
+    }
       
 // *-- Calculate G-HUH^T:
 //    G = -1*HU*H^T +1*G
@@ -731,21 +803,93 @@ double OPALFitterGSL::fit() {
    gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, -1, G, &Vetaeta.matrix, 1, IGV);
 
 // *-- And finally error matrix on fitted parameters.
-   gsl_matrix_view Vnewetaeta = gsl_matrix_submatrix (Vnew, 0, 0, nmea, nmea);
+   gsl_matrix_view Minvetaeta = gsl_matrix_submatrix (Minv, 0, 0, nmea, nmea);
 
    // Vnewetaeta = 1*Vetaeta*IGV + 0*Vnewetaeta
-   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &Vetaeta.matrix, IGV, 0, &Vnewetaeta.matrix);
+   gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &Vetaeta.matrix, IGV, 0, &Minvetaeta.matrix);
 
     if (debug > 2) {
-      for (int i = 0; i < nmea; ++i) {
-        for (int j = 0; j < nmea; ++j) {
-          cout << "Vnew[" << i << "," << j << "]=" << gsl_matrix_get(Vnew,i,j) << endl;
+      for (int i = 0; i < npar; ++i) {
+        for (int j = 0; j < npar; ++j) {
+          cout << "complete Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
         }
       }
     }
+    
+// *-- now Minv should be complete, can calculate new covariance matrix Vnew  
+//       Vnew = (dx / dt)^T  * V_t * dx / dt
+//       x are the fitted parameters, t are the measured parameters, 
+//       V_t is the covariance matrix of the measured parameters
+//       thus in OPALFitter variables:  V_t = Vetaeta,  x = (eta, xi) = etaxi 
+//       d eta / dt and d xi / dt are given by eqns 9.54 and 9.55, respectively,
+//       as deta/dt = - Minvetaeta * Fetat and dxi/dt = - Minvxieta * Fetat
+//       Fetat is d^2 chi^2 / deta dt = - V^-1, even in presence of soft constraints, since 
+//       the soft constraints don't depend on the _measured_ parameters t (but on the fitted ones)
+//       HERE,  V (and Vinv) do not include the second derivatives of the soft constraints
+//       so we can use them right away
+//       Note that "F" is used for completely different things:
+//       in OPALFitter it is the derivatives of the constraints wrt to the parameters (A in book)
+//       in the book, F are the second derivatives of the objective function wrt the parameters
+
+      
+      gsl_matrix_view detadt = gsl_matrix_submatrix (dxdt, 0, 0, nmea, nmea);
+      if (debug > 3) cout << "after detadt" << endl;
+      //  Vdxdt is Vetaeta * dxdt^T, thus Vdxdt[nmea][npar]
+      gsl_matrix_view Vdetadt = gsl_matrix_submatrix (Vdxdt, 0, 0, nmea, nmea);
+      if (debug > 3) cout << "after Vdetadt" << endl;
+      
+      // detadt = - Minvetaeta * Fetat = -1 * Minvetaeta * (-1) * Vinv + 0 * detadt   // replace by symm?
+      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &Minvetaeta.matrix, Vinv, 0, &detadt.matrix);
+      if (debug>2) debug_print (&detadt.matrix, "deta/dt");
+      
+      // Vdetadt = 1 * Vetaeta * detadt^T + 0* Vdetadt
+      gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, &Vetaeta.matrix, &detadt.matrix, 0, &Vdetadt.matrix);  // ok
+      if (debug>2) debug_print (&Vdetadt.matrix, "Vetata * deta/dt");
+      
+      gsl_matrix_view Vnewetaeta = gsl_matrix_submatrix (Vnew, 0, 0, nmea, nmea);   //[nmea],[nmea]
+      // Vnewetaeta = 1 * detadt * Vdetadt + 0* Vnewetaeta
+      gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &detadt.matrix, &Vdetadt.matrix, 0, &Vnewetaeta.matrix);
+      
+      if (debug>2) debug_print (Vnew, "Vnew after part for measured parameters");
+      
+      
+      if (nunm > 0) {        
+        
+        gsl_matrix_view Minvxieta = gsl_matrix_submatrix (Minv, nmea, 0, nunm, nmea);  //[nunm][nmea]
+        if (debug > 3) cout << "after Minvxieta" << endl;
+        if (debug>2) debug_print (&Minvxieta.matrix, "Minvxieta");
+      
+        gsl_matrix_view dxidt = gsl_matrix_submatrix (dxdt, nmea, 0, nunm, nmea);      //[nunm][nmea]
+        if (debug > 3) cout << "after dxidt" << endl;
+        // dxidt[nunm][nmea] = - Minvxieta * Fetat = -1 * Minvxieta[nunm][nmea] * Vinv[nmea][nmea] + 0 * dxidt
+        gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &Minvxieta.matrix, Vinv, 0, &dxidt.matrix);   //ok
+        if (debug>2) debug_print (&dxidt.matrix, "dxi/dt");
+     
+        // Vdxdt = V * dxdt^T => Vdxdt[nmea][npar]
+        gsl_matrix_view Vdxidt = gsl_matrix_submatrix (Vdxdt, 0, nmea, nmea, nunm);    //[nmea][nunm]
+        if (debug > 3) cout << "after Vdxidt" << endl;
+        // Vdxidt = 1 * Vetaeta[nmea][nmea] * dxidt^T[nmea][nunm] + 0* Vdxidt => Vdxidt[nmea][nunm]
+        gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1, &Vetaeta.matrix, &dxidt.matrix, 0, &Vdxidt.matrix);  // ok
+        if (debug>2) debug_print (&Vdxidt.matrix, "Vetaeta * dxi/dt^T");
+      
+        gsl_matrix_view Vnewetaxi = gsl_matrix_submatrix (Vnew, 0, nmea, nmea, nunm);    //[nmea][nunm]
+        gsl_matrix_view Vnewxieta = gsl_matrix_submatrix (Vnew, nmea, 0, nunm, nmea);    //[nunm][nmea]
+        gsl_matrix_view Vnewxixi = gsl_matrix_submatrix (Vnew, nmea, nmea, nunm, nunm);  //[nunm][nunm]
+      
+        // Vnewxieta[nunm][nmea] = 1 * dxidt[nunm][nmea] * Vdetadt[nmea][nmea] + 0* Vnewxieta
+        gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dxidt.matrix, &Vdetadt.matrix, 0, &Vnewxieta.matrix);  // ok
+        if (debug>2) debug_print (Vnew, "Vnew after xieta part");
+        // Vnewetaxi[nmea][nunm] = 1 * detadt[nmea][nmea] * Vdxidt[nmea][nunm] + 0* Vnewetaxi
+        gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &detadt.matrix, &Vdxidt.matrix, 0, &Vnewetaxi.matrix);  // ok
+        if (debug>2) debug_print (Vnew, "Vnew after etaxi part");
+        // Vnewxixi[nunm][nunm] = 1 * dxidt[nunm][nmea] * Vdxidt[nmea][nunm] + 0* Vnewxixi
+        gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1, &dxidt.matrix, &Vdxidt.matrix, 0, &Vnewxixi.matrix);
+        if (debug>2) debug_print (Vnew, "Vnew after xixi part");
+     }
+    
+// *-- now we finally have Vnew, fill into fitobjects    
 
     // update errors in fitobjects
-    // (consider only diagonal elements of VETA for the moment...)
     for (unsigned int ifitobj = 0; ifitobj < fitobjects.size(); ++ifitobj) {
       for (int ilocal = 0; ilocal < fitobjects[ifitobj]->getNPar(); ++ilocal) {
         int iglobal = fitobjects[ifitobj]->getGlobalParNum (ilocal); 
@@ -772,6 +916,11 @@ double OPALFitterGSL::fit() {
     covValid = true;
     
   } // endif calcerr == true
+  
+  if (!calcerr) {
+    ierr = -1;
+    if (debug) cout << "OPALFItterGSL::fit: not able to calculate errors - setting ierr = -1" << endl; 
+  }
 
 // *-- Turn chisq into probability.
   fitprob = (ncon-nunm > 0) ? gsl_cdf_chisq_Q(chinew,ncon-nunm) : 0.5;
@@ -844,6 +993,9 @@ bool OPALFitterGSL::initialize() {
   ini_gsl_matrix (VLU, nmea, nmea);
   ini_gsl_matrix (Vinv, nmea, nmea);
   ini_gsl_matrix (Vnew, npar, npar);
+  ini_gsl_matrix (Minv, npar, npar);
+  ini_gsl_matrix (dxdt, npar, nmea);
+  ini_gsl_matrix (Vdxdt, nmea, npar);
   
   ini_gsl_vector (dxi, nunm);
   ini_gsl_vector (Fxidxi, ncon);
