@@ -137,6 +137,9 @@ class OPALFitterGSL : public BaseFitter {
     
     virtual bool initialize();
   
+    /// Set the Debug Level
+    virtual void setDebug (int debuglevel);
+    
   protected:
     
     
@@ -196,6 +199,7 @@ class OPALFitterGSL : public BaseFitter {
     gsl_permutation *permU; ///< Helper permutation vector
     gsl_permutation *permV; ///< Helper permutation vector
     
+    int debug;
     
 };
 

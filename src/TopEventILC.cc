@@ -15,7 +15,7 @@
 #include "LeptonFitObject.h"
 #include "NeutrinoFitObject.h"
 #include "MassConstraint.h"
-//#include "SoftGaussMassConstraint.h"
+#include "SoftGaussMassConstraint.h"
 
 #include <iostream>              // - cout
 #include <cmath>            
@@ -44,12 +44,12 @@ TopEventILC::TopEventILC()
   pyc (0, 0, 1),
   pzc (0, 0, 0, 1),
   ec  (1, 0, 0, 0, 500), 
-//   w1 (2.1/(2.*sqrt(0.805)), 80.4),  // Thesis Jenny p44
-//   w2 (2.1/(2.*sqrt(0.805)), 80.4),
-//   w (1.4/sqrt(0.805))
-  w1 (80.4),  
-  w2 (80.4),
-  w (0)
+  w1 (2.1/(2.*sqrt(0.805)), 80.4),  // Thesis Jenny p44
+  w2 (2.1/(2.*sqrt(0.805)), 80.4),
+  w (1.4/sqrt(0.805))
+//   w1 (80.4),  
+//   w2 (80.4),
+//   w (0)
   {
   for (int i = 0; i < NFV; ++i) fv[i] = 0;
   for (int i = 0; i < NBFO; ++i) bfo[i] = bfosmear[i] = 0;

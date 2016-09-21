@@ -121,7 +121,6 @@ void BaseFitter::reset()
   constraints.resize(0);
   softconstraints.resize(0);
   covValid = false;
-  tracer = 0;
 }  
     
 BaseTracer *BaseFitter::getTracer() { 

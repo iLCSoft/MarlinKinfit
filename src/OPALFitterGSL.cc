@@ -49,6 +49,7 @@
 #include<cmath>
 
 #undef NDEBUG
+#undef FIT_TRACEOFF
 #include<cassert>
 
 #include "OPALFitterGSL.h" 
@@ -70,7 +71,6 @@ using std::cerr;
 using std::endl;
 using std::abs;
 
-static int debug = 0;
 
 // constructor
 OPALFitterGSL::OPALFitterGSL() 
@@ -83,7 +83,7 @@ OPALFitterGSL::OPALFitterGSL()
   etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), 
   //  Feta(0), 
   FetaV (0),
-  permS (0), permU(0), permV(0)
+  permS (0), permU(0), permV(0), debug(0)
 {}
 
 // destructor
@@ -1112,6 +1112,10 @@ void OPALFitterGSL::ini_gsl_matrix (gsl_matrix *&m, unsigned int size1, unsigned
   }
   else 
     if (size1*size2 > 0) m = gsl_matrix_alloc (size1, size2);
+}
+
+void OPALFitterGSL::setDebug (int debuglevel) {
+  debug = debuglevel;
 }
 
 void OPALFitterGSL::debug_print (gsl_matrix *m, const char *name) {
