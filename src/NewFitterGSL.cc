@@ -325,6 +325,7 @@ bool NewFitterGSL::initialize() {
 //    if (debug) cout << "Constraint " << icon << " -> global " << c->getGlobalNum() << endl;
   }
   
+  // JL: should soft constraints have numbers assigned as well?
   nsoft = softconstraints.size();
   
   if (nunm > ncon+nsoft) {
@@ -332,6 +333,7 @@ bool NewFitterGSL::initialize() {
          << ncon << "+" << nsoft << endl;
   }
   
+  // dimension of "big M" matrix
   idim = npar+ncon;
   
   ini_gsl_vector (x, idim);
