@@ -16,8 +16,6 @@
 #include "BaseEvent.h"
 #include "JetFitObject.h"
 #include "MomentumConstraint.h"
-// #include "PxConstraint.h"
-// #include "PyConstraint.h"
 #include "MassConstraint.h"
 #include "SoftGaussMassConstraint.h"
 
@@ -30,20 +28,17 @@ class TopEventILC : public BaseEvent {
 
     double bwrandom (double r, double e0, double gamma, double emin, double emax) const;
     
-    MomentumConstraint& getPxConstraint() {return pxc;};
-    MomentumConstraint& getPyConstraint() {return pyc;};
-    MomentumConstraint& getPzConstraint() {return pzc;};
-    MomentumConstraint& getEConstraint()  {return ec;};
-    //MassConstraint& getW1Constraint() {return w1;};
-    //MassConstraint& getW2Constraint() {return w2;};
-    //MassConstraint& getTopConstraint() {return w;};
-    SoftGaussMassConstraint& getW1Constraint() {return w1;};
-    SoftGaussMassConstraint& getW2Constraint() {return w2;};
-    SoftGaussMassConstraint& getTopConstraint() {return w;};
+    BaseConstraint*  getPxConstraint() {return &pxc;};
+    BaseConstraint*  getPyConstraint() {return &pyc;};
+    BaseConstraint*  getPzConstraint() {return &pzc;};
+    BaseConstraint*  getEConstraint()  {return &ec;};
+    BaseConstraint* getW1Constraint() {return softmasses ? (BaseConstraint*) &sw1 : (BaseConstraint*) &w1;};
+    BaseConstraint* getW2Constraint() {return softmasses ? (BaseConstraint*) &sw2 : (BaseConstraint*) &w2;};
+    BaseConstraint* getTopConstraint() {return softmasses ? (BaseConstraint*) &sw : (BaseConstraint*) &w;};
     
-    double getW1Mass()  {return w1.getMass();};
-    double getW2Mass()  {return w2.getMass();};
-    double getTopMass(int flag)  {return w.getMass(flag);};
+    double getW1Mass()  {return softmasses ? w1.getMass() : sw1.getMass();};
+    double getW2Mass()  {return softmasses ? w2.getMass() : sw2.getMass();};
+    double getTopMass(int flag)  {return softmasses ? w.getMass(flag) : sw.getMass();};
     double getTop1Mass()  {return fvsmear[1]->getM();};
     double getTop2Mass()  {return fvsmear[2]->getM();};
     
@@ -54,7 +49,7 @@ class TopEventILC : public BaseEvent {
     ParticleFitObject* getFittedFitObject (int i) {return bfosmear[i];};
     FourVector* getTrueFourVector (int i) {return fv[i];};
     
-    bool leptonic, leptonasjet, debug;
+    bool softmasses, leptonic, leptonasjet, debug;
     
   protected:
   
@@ -70,12 +65,12 @@ class TopEventILC : public BaseEvent {
     MomentumConstraint pyc;
     MomentumConstraint pzc;
     MomentumConstraint ec;
-    //MassConstraint w1;
-    //MassConstraint w2;
-    //MassConstraint w;
-    SoftGaussMassConstraint w1;
-    SoftGaussMassConstraint w2;
-    SoftGaussMassConstraint w;
+    MassConstraint w1;
+    MassConstraint w2;
+    MassConstraint w;
+    SoftGaussMassConstraint sw1;
+    SoftGaussMassConstraint sw2;
+    SoftGaussMassConstraint sw;
     
     
 

@@ -289,12 +289,12 @@ double ISRPhotonFitObject::PgFromPz(double ppz){
    }
  
    if(u>=1.){
-   #ifdef NO_MARLIN
-     cout << 
-   #else
-     m_out(WARNING) << 
-   #endif
-     "ISRPhotonFitObject: Initial pz with abs(pz) >= pzMax adjusted." << std::endl;
+//    #ifdef NO_MARLIN
+//      cout << 
+//    #else
+//      m_out(WARNING) << 
+//    #endif
+//      "ISRPhotonFitObject: Initial pz with abs(pz) >= pzMax adjusted." << std::endl;
      u = 0.99999999;
    }
 

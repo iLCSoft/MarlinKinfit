@@ -47,9 +47,6 @@
 
 #include<iostream>
 #include<cmath>
-
-#undef NDEBUG
-#undef FIT_TRACEOFF
 #include<cassert>
 
 #include "OPALFitterGSL.h" 
@@ -80,9 +77,7 @@ OPALFitterGSL::OPALFitterGSL()
   W1(0), G (0), H (0), HU (0), IGV (0), V(0), VLU(0), Vinv(0), Vnew (0), 
   Minv(0), dxdt(0), Vdxdt(0),
   dxi(0), Fxidxi (0), lambda(0), FetaTlambda(0),
-  etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), 
-  //  Feta(0), 
-  FetaV (0),
+  etaxi(0), etasv(0), y(0), y_eta(0), Vinvy_eta(0), FetaV (0),
   permS (0), permU(0), permV(0), debug(0)
 {}
 
@@ -228,9 +223,9 @@ double OPALFitterGSL::fit() {
   assert (G && (int)G->size1 == nmea && (int)G->size2 == nmea);
   assert (nunm==0 || (H && (int)H->size1 == nmea && (int)H->size2 == nunm));
   assert (nunm==0 || (HU && (int)HU->size1 == nmea && (int)HU->size2 == nunm));
-  assert (IGV  && (int)IGV->size1  == nmea && (int)IGV->size2  == nmea);
-  assert (V    && (int)V->size1    == npar && (int)V->size2    == npar);
-  assert (VLU  && (int)VLU->size1  == nmea && (int)VLU->size2  == nmea);
+  assert (IGV && (int)IGV->size1 == nmea && (int)IGV->size2 == nmea);
+  assert (V && (int)V->size1 == npar && (int)V->size2 == npar);
+  assert (VLU && (int)VLU->size1 == nmea && (int)VLU->size2 == nmea);
   assert (Vinv && (int)Vinv->size1 == nmea && (int)Vinv->size2 == nmea);
   assert (Vnew && (int)Vnew->size1 == npar && (int)Vnew->size2 == npar);
   assert (Minv && (int)Minv->size1 == npar && (int)Minv->size2 == npar);
@@ -271,14 +266,12 @@ double OPALFitterGSL::fit() {
           assert (iglobal < nmea);
           gsl_vector_set (y, iglobal, fitobjects[i]->getMParam(ilocal));
         }
-                if (debug) cout << "etaxi[" << iglobal << "] = " << gsl_vector_get (etaxi,iglobal) 
+        if (debug) cout << "etaxi[" << iglobal << "] = " << gsl_vector_get (etaxi,iglobal) 
                         << " for jet " << i << " and ilocal = " << ilocal << endl;
       }
     }
   }
   
-  if (debug>1) cout << "hello1" << endl;
-
   /// initialize Fetaxi ( = d F / d eta,xi)
   gsl_matrix_set_zero (Fetaxi);
   for (int k=0; k < ncon; k++) {
@@ -428,7 +421,7 @@ double OPALFitterGSL::fit() {
       // W1 = Fxi^T * Sinv * Fxi
       // SinvFxi = 1*Sinv*Fxi + 0*SinvFxi
       gsl_blas_dsymm (CblasLeft, CblasUpper, 1, Sinv, &Fxi.matrix, 0,  SinvFxi);
-      // W1 = 1*FOPALFitterGSL::fitxi^T*SinvFxi + 0*W1
+      // W1 = 1*Fxi^T*SinvFxi + 0*W1
       gsl_blas_dgemm (CblasTrans, CblasNoTrans, 1, &Fxi.matrix, SinvFxi, 0, W1);
       
       if (debug > 1) {
@@ -459,7 +452,6 @@ double OPALFitterGSL::fit() {
       if (debug>1) debug_print (&(Fxi.matrix), "Fxi");
 
       gsl_blas_dgemv (CblasTrans, -alph, &Fxi.matrix, lambda, 0, dxi);
-          gsl_blas_dsymm (CblasRight, CblasUpper, 1, &Vetaeta.matrix, &Feta.matrix, 0,  FetaV);
 
       if (debug>1) debug_print (dxi, "dxi0");
       if (debug>1) debug_print (W1, "W1");
@@ -600,11 +592,13 @@ double OPALFitterGSL::fit() {
     if (nit > nitmax) {
 // *-- Out of iterations
       repeat = false;
+      calcerr = false;
       ierr = 1;
     }  
     else if (sconv && updatesuccess) {
 // *-- Converged
       repeat = false;
+      calcerr = true;
       ierr = 0;
     }  
     else if ( nit > 2 && chinew > chimxw  && updatesuccess) {
@@ -617,7 +611,6 @@ double OPALFitterGSL::fit() {
 // *-- ChiK increased, try smaller step
       if ( alph == almin ) {
         repeat = true;   // false;
-        calcerr = false;
         ierr = 3;
       }  
       else {
@@ -646,6 +639,10 @@ double OPALFitterGSL::fit() {
 #endif   
 
   }   // end of while (repeat)
+  
+// *-- Turn chisq into probability.
+  fitprob = (ncon-nunm > 0) ? gsl_cdf_chisq_Q(chinew,ncon-nunm) : 0.5;
+  chi2 = chinew;
   
 // *-- End of iterations - calculate errors.
 
@@ -703,8 +700,7 @@ double OPALFitterGSL::fit() {
 
    if (inverr != 0) {
      cerr << "S: gsl_linalg_LU_invert error " << inverr << " in error calculation" << endl;
-     ierr = 9;
-     calcerr = false;
+     ierr = -1;
      return -1;
    }
    
@@ -749,16 +745,17 @@ double OPALFitterGSL::fit() {
       inverr = gsl_linalg_LU_invert (Uinv, permU, &U.matrix); 
             
       if (debug>2) debug_print (&U.matrix, "U"); 
-    if (debug > 2) {
-      for (int i = 0; i < npar; ++i) {
-        for (int j = 0; j < npar; ++j) {
-          cout << "after U Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+      if (debug > 2) {
+        for (int i = 0; i < npar; ++i) {
+          for (int j = 0; j < npar; ++j) {
+            cout << "after U Minv[" << i << "," << j << "]=" << gsl_matrix_get(Minv,i,j) << endl;
+          }
         }
       }
-    }
       
       if (inverr != 0) {
-        cerr << "U: gsl_linalg_LU_invert error " << inverr << endl;
+        cerr << "U: gsl_linalg_LU_invert error " << inverr << " in error calculation " << endl;
+        ierr = -1;
         return -1;
       }
 
@@ -916,16 +913,7 @@ double OPALFitterGSL::fit() {
     covValid = true;
     
   } // endif calcerr == true
-  
-  if (!calcerr) {
-    ierr = -1;
-    if (debug) cout << "OPALFItterGSL::fit: not able to calculate errors - setting ierr = -1" << endl; 
-  }
-
-// *-- Turn chisq into probability.
-  fitprob = (ncon-nunm > 0) ? gsl_cdf_chisq_Q(chinew,ncon-nunm) : 0.5;
-  chi2 = chinew;
-  
+    
 #ifndef FIT_TRACEOFF
     if (tracer) tracer->finish (*this);
 #endif   

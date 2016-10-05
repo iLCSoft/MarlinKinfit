@@ -16,6 +16,7 @@
 #include "NeutrinoFitObject.h"
 #include "MassConstraint.h"
 #include "SoftGaussMassConstraint.h"
+#include "OPALFitterGSL.h"
 
 #include <iostream>              // - cout
 #include <cmath>            
@@ -44,21 +45,22 @@ TopEventILC::TopEventILC()
   pyc (0, 0, 1),
   pzc (0, 0, 0, 1),
   ec  (1, 0, 0, 0, 500), 
-  w1 (2.1/(2.*sqrt(0.805)), 80.4),  // Thesis Jenny p44
-  w2 (2.1/(2.*sqrt(0.805)), 80.4),
-  w (1.4/sqrt(0.805))
-//   w1 (80.4),  
-//   w2 (80.4),
-//   w (0)
+  sw1 (2.1/(2.*sqrt(0.805)), 80.4),  // Thesis Jenny p44
+  sw2 (2.1/(2.*sqrt(0.805)), 80.4),
+  sw (1.4/sqrt(0.805)),
+  w1 (80.4),  
+  w2 (80.4),
+  w (0)
   {
   for (int i = 0; i < NFV; ++i) fv[i] = 0;
   for (int i = 0; i < NBFO; ++i) bfo[i] = bfosmear[i] = 0;
-//   w1.setMass(80.4);
-//   w2.setMass(80.4);
   pxc.setName ("px=0");
   pyc.setName ("py=0");
   pzc.setName ("pz=0");
   ec.setName  ("E=500");
+  sw.setName ("top-equalmass-soft");
+  sw1.setName ("w1-mass-soft");
+  sw2.setName ("w2-mass-soft");
   w.setName ("top-equalmass");
   w1.setName ("w1-mass");
   w2.setName ("w2-mass");
@@ -89,6 +91,9 @@ void TopEventILC::genEvent(){
     pyc.resetFOList();
     pzc.resetFOList();
     ec.resetFOList();
+    sw1.resetFOList();
+    sw2.resetFOList();
+    sw.resetFOList();
     w1.resetFOList();
     w2.resetFOList();
     w.resetFOList();
@@ -321,6 +326,7 @@ void TopEventILC::genEvent(){
     pyc.addToFOList (*bfosmear[j]);
     pzc.addToFOList (*bfosmear[j]);
     ec.addToFOList (*bfosmear[j]);
+    sw.addToFOList (*bfosmear[j], j<3?1:2);
     w.addToFOList (*bfosmear[j], j<3?1:2);
       
   }
@@ -330,8 +336,12 @@ void TopEventILC::genEvent(){
   fvsmear[2] = new FourVector (*fvsmear[4]+*fvsmear[8]);
   fvsmear[0] = new FourVector (*fvsmear[1]+*fvsmear[2]);
   
+  sw1.addToFOList (*bfosmear[1]);
+  sw1.addToFOList (*bfosmear[2]);
   w1.addToFOList (*bfosmear[1]);
   w1.addToFOList (*bfosmear[2]);
+  sw2.addToFOList (*bfosmear[4]);
+  sw2.addToFOList (*bfosmear[5]);
   w2.addToFOList (*bfosmear[4]);
   w2.addToFOList (*bfosmear[5]);
     
@@ -390,12 +400,16 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
   fitter.addConstraint (pyc);
   fitter.addConstraint (pzc);
   fitter.addConstraint (ec);
-  fitter.addConstraint (w);
-  fitter.addConstraint (w1);
-  fitter.addConstraint (w2);
-  //fitter.addSoftConstraint (w);
-  //fitter.addSoftConstraint (w1);
-  //fitter.addSoftConstraint (w2);
+  if ( softmasses && !dynamic_cast<OPALFitterGSL*>(&fitter) ) {
+    fitter.addSoftConstraint (sw);
+    fitter.addSoftConstraint (sw1);
+    fitter.addSoftConstraint (sw2);
+  } 
+  else {  
+    fitter.addConstraint (w);
+    fitter.addConstraint (w1);
+    fitter.addConstraint (w2);
+  }
   
   double prob = fitter.fit();
   
@@ -408,11 +422,14 @@ int TopEventILC::fitEvent (BaseFitter& fitter){
     cout << "Constraint pxc: " << pxc.getValue() << endl;
     cout << "Constraint pyc: " << pyc.getValue() << endl;
     cout << "Constraint pzc: " << pzc.getValue() << endl;
+    cout << "Constraint sw:   " << sw.getValue() << ", top mass: " << sw.getMass() << endl;
+    cout << "Constraint sw1:  " << sw1.getValue() << ", W mass: " << sw1.getMass() << endl;
+    cout << "Constraint sw2:  " << sw2.getValue() << ", W mass: " << sw2.getMass() << endl;
     cout << "Constraint w:   " << w.getValue() << ", top mass: " << w.getMass() << endl;
     cout << "Constraint w1:  " << w1.getValue() << ", W mass: " << w1.getMass() << endl;
     cout << "Constraint w2:  " << w2.getValue() << ", W mass: " << w2.getMass() << endl;
 
-    cout << "fit probability = " << prob << ", top mass: " << w.getMass() << ", dof: " << fitter.getDoF() 
+    cout << "fit probability = " << prob << ", soft top mass: " << sw.getMass() << ", top mass: " << w.getMass() << ", dof: " << fitter.getDoF() 
          << ", iterations: " << fitter.getIterations() << endl;
   }       
 
