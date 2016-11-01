@@ -72,7 +72,6 @@ using std::cerr;
 using std::endl;
 using std::abs;
 
-static int debuglevel = 1;
 static int nitdebug = 100;
 static int nitcalc = 0;
 static int nitsvd = 0;
@@ -90,7 +89,7 @@ NewtonFitterGSL::NewtonFitterGSL()
     chi2old(0),
     fvalbest(0),scale(0),scalebest(0),stepsize(0),stepbest(0),
     imerit (1),
-    debug (debuglevel)
+    debug (0)
 {}
 
 // destructor
