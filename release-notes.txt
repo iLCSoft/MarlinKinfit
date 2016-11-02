@@ -1,0 +1,32 @@
+####################################################################
+# MarlinKinfit package
+#
+# jenny.list@desy.de
+# 
+####################################################################
+
+Release Notes:
+
+ --------
+| v00-04 |   - fixed error calculation in presence of unmeasured parameters in OPALFitter, New(ton)Fitter was ok already!
+ --------    - the OPALFitter does _not_ work with SoftConstraints (runs, but SCs don't "do" anything)
+
+ --------
+| v00-03 |   - LeptonFitObject with TrackState constructor
+ --------
+
+ --------
+| v00-02 |   - refactoring by D.Jeans   
+ --------    - ZInvisibleFitObject
+             - Error propagation for measured parameters 
+
+ --------
+| v00-01 |   - initial version including PhotonFitObject -
+ --------
+
+See also
+
+https://www.desy.de/~blist/kinfit/doc/html/
+
+and in the LCNotes LC-TOOL-2009-001 and LC-TOOL-2009-004 available from
+http://www-flc.desy.de/lcnotes/
