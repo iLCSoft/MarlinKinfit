@@ -1,5 +1,5 @@
 # MarlinKinfit
-[![Build Status](https://travis-ci.org/iLCSoft/MarlinKinfit.svg?branch=master)](https://travis-ci.org/iLCSoft/MarlinKinfit)
+[![linux](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/linux.yml/badge.svg)](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/linux.yml)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/12361/badge.svg)](https://scan.coverity.com/projects/ilcsoft-marlinkinfit)
 
 Kinematic fitting library for MarlinKinfit. Does not include the Processors, which have been moved
