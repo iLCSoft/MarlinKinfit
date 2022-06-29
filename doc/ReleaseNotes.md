@@ -1,3 +1,9 @@
+# v00-06-01
+
+* 2022-06-28 Thomas Madlener ([PR#2](https://github.com/iLCSoft/MarlinKinfit/pull/2))
+  - Migrate CI to github actions and remove travis CI
+  - Make doxygen cmake config work with newer cmakes (>= 3.17)
+
 # v00-06
 
 # v00-05
