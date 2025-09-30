@@ -43,6 +43,7 @@ class FourJetPairing : public BaseJetPairing {
   public:
     /// constructor
     FourJetPairing(std::array<JetFitObject*, NJETS> jets_);
+    FourJetPairing(JetFitObject* jets_[]) : FourJetPairing({jets_[0], jets_[1], jets_[2], jets_[3]}) {}
     FourJetPairing(const FourJetPairing&) = delete;
     FourJetPairing& operator=(const FourJetPairing&) = delete;
     FourJetPairing(FourJetPairing&&) = delete;

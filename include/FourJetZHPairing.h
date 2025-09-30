@@ -24,6 +24,8 @@ class FourJetZHPairing : public BaseJetPairing {
   public:
     /// constructor
     FourJetZHPairing (std::array<JetFitObject*, NJETS> jets_);
+    FourJetZHPairing(JetFitObject* jets_[]) : FourJetZHPairing({jets_[0], jets_[1], jets_[2], jets_[3]}) {}
+
     FourJetZHPairing(const FourJetZHPairing&) = delete;
     FourJetZHPairing& operator=(const FourJetZHPairing&) = delete;
     FourJetZHPairing(FourJetZHPairing&&) = delete;
