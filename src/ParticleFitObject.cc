@@ -70,15 +70,18 @@ ParticleFitObject::ParticleFitObject()
     paramCycl[i]=-1;
 }
 
-ParticleFitObject::~ParticleFitObject()
-{}
-
+// We get a warning that BaseFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 ParticleFitObject::ParticleFitObject (const ParticleFitObject& rhs)
   : mass(0), fourMomentum( FourVector(0,0,0,0) )
 {
   //std::cout << "copying ParticleFitObject with name" << rhs.name << std::endl;
   ParticleFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
 
 ParticleFitObject& ParticleFitObject::operator= (const ParticleFitObject& rhs) {
   if (this != &rhs) {
@@ -163,7 +166,7 @@ std::ostream&  ParticleFitObject::print (std::ostream& os) const {
   return os;
 }
 
-void ParticleFitObject::addToGlobalChi2DerVectorNum (double *y, int idim, double eps)  {
+void ParticleFitObject::addToGlobalChi2DerVectorNum (double *y, int, double eps)  {
   for (int ilocal = 0; ilocal < getNPar(); ++ilocal) {
     int iglobal = getGlobalParNum(ilocal);
     y[iglobal] += num1stDerivative (ilocal, eps);

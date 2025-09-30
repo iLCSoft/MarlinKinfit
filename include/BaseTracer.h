@@ -44,9 +44,14 @@ class BaseSoftConstraint;
  
 class BaseTracer {
   public:
-    BaseTracer();
+    BaseTracer() = default;
+    BaseTracer(const BaseTracer&) = delete;
+    BaseTracer& operator=(const BaseTracer&) = delete;
+    BaseTracer(BaseTracer&&) = delete;
+    BaseTracer& operator=(BaseTracer&&) = delete;
+
     
-    virtual ~BaseTracer();
+    virtual ~BaseTracer() = default;
     
     /// Called at the start of a new fit (during initialization)
     virtual void initialize (BaseFitter& fitter);
@@ -76,7 +81,7 @@ class BaseTracer {
     typedef ConstraintContainer::iterator ConstraintIterator;
     typedef SoftConstraintContainer::iterator SoftConstraintIterator;
     
-    BaseTracer *next;
+    BaseTracer *next{nullptr};
 };
 
 #endif // __BASETRACER_H

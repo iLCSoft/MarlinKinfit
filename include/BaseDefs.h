@@ -8,10 +8,10 @@ class BaseDefs {
   enum { VARBASIS_EPXYZ=0, VARBASIS_VXYZ, VARBASIS_TRKNORMAL, NMETASET };
 
   // max # of variables in the above bases
-  enum {MAXINTERVARS=4};
+  constexpr static int MAXINTERVARS = 4;
 
   // maximum number of parameters for a fit object
-  enum {MAXPAR = 10};
+  constexpr static int MAXPAR = 10;
 
   // this is used to store how many variables in each base (should be <= maxInter)
   static const int nMetaVars[NMETASET];

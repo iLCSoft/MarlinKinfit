@@ -19,7 +19,13 @@
 #include "MassConstraint.h"
 #include "SoftGaussMassConstraint.h"
 
+#include <array>
+
 class TopEventILC : public BaseEvent {
+  private:
+    constexpr static int NFV = 11;
+    constexpr static int  NBFO = 6;
+
   public: 
     TopEventILC();
     virtual ~TopEventILC();
@@ -49,17 +55,16 @@ class TopEventILC : public BaseEvent {
     ParticleFitObject* getFittedFitObject (int i) {return bfosmear[i];};
     FourVector* getTrueFourVector (int i) {return fv[i];};
     
-    bool softmasses, leptonic, leptonasjet, debug;
+    bool softmasses{false}, leptonic{false}, leptonasjet{false}, debug{false};
     
   protected:
   
-    enum {NFV = 11, NBFO = 6};
-    FourVector *fv[NFV];
-    FourVector *fvsmear[NFV];
-    FourVector *fvfinal[NFV];
-    ParticleFitObject *bfo[NBFO];
-    ParticleFitObject *bfostart[NBFO];
-    ParticleFitObject *bfosmear[NBFO];
+    std::array<FourVector*, NFV> fv{};
+    std::array<FourVector*, NFV> fvsmear{};
+    std::array<FourVector*, NFV> fvfinal{};
+    std::array<ParticleFitObject*, NBFO> bfo{};
+    std::array<ParticleFitObject*, NBFO> bfostart{};
+    std::array<ParticleFitObject*, NBFO> bfosmear{};
     
     MomentumConstraint pxc;
     MomentumConstraint pyc;

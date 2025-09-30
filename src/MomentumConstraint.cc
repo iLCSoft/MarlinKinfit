@@ -100,11 +100,11 @@ void MomentumConstraint::updateCache() const {
   cachevalid = true;
 }
   
-bool MomentumConstraint::secondDerivatives (int i, int j, double *dderivatives) const {
+bool MomentumConstraint::secondDerivatives (int, int, double *) const {
   return false;
 }  
   
-bool MomentumConstraint::firstDerivatives (int i, double *dderivatives) const {
+bool MomentumConstraint::firstDerivatives (int, double *dderivatives) const {
   dderivatives[0] = efact;
   dderivatives[1] = pxfact;
   dderivatives[2] = pyfact;

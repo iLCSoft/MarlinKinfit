@@ -42,6 +42,11 @@ class VertexConstraint: public BaseHardConstraint {
                       int ivertex_,
                       int axis
                      );
+    VertexConstraint(const VertexConstraint&) = delete;
+    VertexConstraint& operator=(const VertexConstraint&) = delete;
+    VertexConstraint(VertexConstraint&&) = delete;
+    VertexConstraint& operator=(VertexConstraint&&) = delete;
+
     /// Virtual destructor
     virtual ~VertexConstraint();
     
@@ -62,7 +67,7 @@ class VertexConstraint: public BaseHardConstraint {
     const VertexFitObject *vertex; 
     const TrackParticleFitObject *track; 
     int   ivertex;
-    ThreeVector factor;    
+    ThreeVector factor{};
 
 };
 

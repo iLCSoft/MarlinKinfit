@@ -115,7 +115,11 @@ ISRPhotonFitObject::ISRPhotonFitObject(double px, double py, double ppz,
 // destructor
 ISRPhotonFitObject::~ISRPhotonFitObject() {}
 
-
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 ISRPhotonFitObject::ISRPhotonFitObject (const ISRPhotonFitObject& rhs)
   : cachevalid(false),    
     pt2(0), p2(0), p(0), pz(0),
@@ -126,6 +130,7 @@ ISRPhotonFitObject::ISRPhotonFitObject (const ISRPhotonFitObject& rhs)
   //std::cout << "copying ISRPhotonFitObject with name" << rhs.name << std::endl;
   ISRPhotonFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
 
 ISRPhotonFitObject& ISRPhotonFitObject::operator= (const ISRPhotonFitObject& rhs) {
   if (this != &rhs) {

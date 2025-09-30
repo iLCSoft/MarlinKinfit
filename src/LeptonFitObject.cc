@@ -198,6 +198,12 @@ LeptonFitObject::LeptonFitObject(const TrackState* trackstate, double Bfield, do
 // destructor
 LeptonFitObject::~LeptonFitObject() {}
 
+
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 LeptonFitObject::LeptonFitObject (const LeptonFitObject& rhs)
   : ctheta(0), stheta(0), stheta2(0), cphi(0), sphi(0), cottheta(0),
     p2(0), p(0), e(0), e2(0), pt(0), pt2(0), pt3(0), px(0), py(0), pz(0), dpdptinv(0), dpdtheta(0), dptdptinv(0),
@@ -207,6 +213,7 @@ LeptonFitObject::LeptonFitObject (const LeptonFitObject& rhs)
   //std::cout << "copying LeptonFitObject with name" << rhs.name << std::endl;
   LeptonFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
 
 LeptonFitObject& LeptonFitObject::operator= (const LeptonFitObject& rhs) {
   if (this != &rhs) {
@@ -452,7 +459,7 @@ void LeptonFitObject::updateCache() const {
 //  return chi2;
 //}
 
-bool LeptonFitObject::adjustPtinvThetaPhi (double& m, double &ptinv, double& theta, double& phi) {
+bool LeptonFitObject::adjustPtinvThetaPhi (double&, double &, double& theta, double& phi) {
   bool result = false;
   
 /*  Keep the sign information - off-diagonal terms of the error matrix care about this ...  Graham

@@ -9,13 +9,12 @@
 //               
 ////////////////////////////////////////////////////////////////
 
-#include <iostream>
 #include "FourJetZHPairing.h"
+#include "BaseJetPairing.h"
 #include "JetFitObject.h"
 
-FourJetZHPairing::FourJetZHPairing (JetFitObject *jets_[])  {
-       
-  for (int i = 0; i < NJETS; ++i) jets[i] = jets_[i];
+FourJetZHPairing::FourJetZHPairing (std::array<JetFitObject*, NJETS> jets_) :
+  BaseJetPairing(), jets(jets_) {
   iperm = 0;
    
  

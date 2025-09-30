@@ -98,10 +98,10 @@ class TrackParticleFitObject : public ParticleFitObject {
 
   /// Set parameters such that track passes through a vertex with a given 4-momentum; return=success
   // only needed for unmeasured tracks, I think
-  virtual bool  setParameters (int ivertex,                  ///< Vertex number: 0=start, 1=stop
-			       const ThreeVector& vertex,    ///< Vertex position
-			       const FourVector& momentum,   ///< Four-momentum
-			       double charge_                ///< Charge (signed, in units of e)
+  virtual bool  setParameters (int,  ///< Vertex number: 0=start, 1=stop
+			       const ThreeVector&,     ///< Vertex position
+			       const FourVector&,      ///< Four-momentum
+			       double                  ///< Charge (signed, in units of e)
                                ) {assert(0);}
 
   /// Get helix that is tangential at a certain arc length s

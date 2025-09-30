@@ -32,7 +32,7 @@ class JetFitObject;
  */
 class BaseJetPairing {
   public:
-    virtual ~BaseJetPairing() {};
+    virtual ~BaseJetPairing() = default;
     
     // setters
     virtual void reset() {iperm = 0;};
@@ -44,7 +44,7 @@ class BaseJetPairing {
     virtual int nextPermutation (JetFitObject *permObjects[]) = 0;
     
   protected:
-    int iperm; 
+    int iperm{0};
 
 };
     

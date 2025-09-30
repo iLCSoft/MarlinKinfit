@@ -19,9 +19,11 @@
 #ifndef __FOURJETPAIRING_H
 #define __FOURJETPAIRING_H
 
-#include <iostream>
 #include "BaseJetPairing.h"
 #include "JetFitObject.h"
+
+#include <iostream>
+#include <array>
 
 //  Class FourJetPairing:
 /// Class to handle permutations of 2b jets and 4 light jets
@@ -34,12 +36,20 @@
  */
 
 class FourJetPairing : public BaseJetPairing {
+  protected:
+    constexpr static int NPERM = 3;
+    constexpr static int NJETS = 4;
+
   public:
     /// constructor
-    FourJetPairing (JetFitObject *jets_[]);
-    
+    FourJetPairing(std::array<JetFitObject*, NJETS> jets_);
+    FourJetPairing(const FourJetPairing&) = delete;
+    FourJetPairing& operator=(const FourJetPairing&) = delete;
+    FourJetPairing(FourJetPairing&&) = delete;
+    FourJetPairing& operator=(FourJetPairing&&) = delete;
+ 
     /// Virtual destructor
-    virtual ~FourJetPairing() {};    
+    virtual ~FourJetPairing() = default;
         
     /// Number of permutaions
     virtual int getNPerm() const {return NPERM;};
@@ -48,9 +58,7 @@ class FourJetPairing : public BaseJetPairing {
     virtual int nextPermutation (JetFitObject *permObjects[]);
     
   protected:
-    enum {NPERM = 3};
-    enum {NJETS = 4};
-    JetFitObject *jets[NJETS]; 
+    std::array<JetFitObject*, NJETS> jets;
     int permutations [NPERM][NJETS];
 
 };

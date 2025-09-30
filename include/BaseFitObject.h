@@ -185,7 +185,7 @@ class BaseFitObject {
     virtual double getParam (int ilocal     ///< Local parameter number
                             ) const;
     /// Get name of parameter ilocal
-    virtual const char *getParamName (int ilocal     ///< Local parameter number
+    virtual const char *getParamName (int     ///< Local parameter number
                             ) const { return "???";}
     /// Get object's name
     //    virtual const char *getName () const { return name ? name : "???";}

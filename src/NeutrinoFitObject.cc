@@ -42,9 +42,11 @@ NeutrinoFitObject::NeutrinoFitObject(double E, double theta, double phi,
   invalidateCache();
 }
 
-// destructor
-NeutrinoFitObject::~NeutrinoFitObject() {}
-
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 NeutrinoFitObject::NeutrinoFitObject (const NeutrinoFitObject& rhs)
   : ctheta(0), stheta(0), cphi(0), sphi(0), pt(0), px(0), py(0), pz(0), dptdE(0), 
     dpxdE(0), dpydE(0), dpxdtheta(0), dpydtheta(0), chi2(0)
@@ -52,6 +54,8 @@ NeutrinoFitObject::NeutrinoFitObject (const NeutrinoFitObject& rhs)
   //std::cout << "copying NeutrinoFitObject with name" << rhs.name << std::endl;
   NeutrinoFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
+
 
 NeutrinoFitObject& NeutrinoFitObject::operator= (const NeutrinoFitObject& rhs) {
   if (this != &rhs) {

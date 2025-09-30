@@ -11,12 +11,11 @@
 
 #include "TwoB4JPairing.h"
 
-#include <iostream>
+#include "BaseJetPairing.h"
 #include "JetFitObject.h"
 
-TwoB4JPairing::TwoB4JPairing (JetFitObject *jets_[])  {
-       
-  for (int i = 0; i < NJETS; ++i) jets[i] = jets_[i];
+TwoB4JPairing::TwoB4JPairing (std::array<JetFitObject*, NJETS> jets_) :
+  BaseJetPairing(), jets(jets_) {
   iperm = 0;
    
   // this assumes jet 5 & 6 to be the b-jets !!

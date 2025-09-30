@@ -14,13 +14,19 @@
 #define __DIJETEVENTILC_H
 
 #include "BaseEvent.h"
-#include "JetFitObject.h"
 #include "MomentumConstraint.h"
 #include "MassConstraint.h"
+
+#include <array>
 
 class DijetEventILC : public BaseEvent {
   public: 
     DijetEventILC();
+    DijetEventILC(const DijetEventILC&) = delete;
+    DijetEventILC& operator=(const DijetEventILC&) = delete;
+    DijetEventILC(DijetEventILC&&) = delete;
+    DijetEventILC& operator=(DijetEventILC&&) = delete;
+
     virtual ~DijetEventILC();
     virtual void genEvent();
     virtual int fitEvent (BaseFitter& fitter);
@@ -43,12 +49,12 @@ class DijetEventILC : public BaseEvent {
   protected:
   
     enum {NFV = 3, NBFO = 2};
-    FourVector *fv[NFV];
-    FourVector *fvsmear[NFV];
-    FourVector *fvfinal[NFV];
-    ParticleFitObject *bfo[NBFO];
-    ParticleFitObject *bfostart[NBFO];
-    ParticleFitObject *bfosmear[NBFO];
+    std::array<FourVector*, NFV> fv{};
+    std::array<FourVector*, NFV> fvsmear{};
+    std::array<FourVector*, NFV> fvfinal{};
+    std::array<ParticleFitObject*, NBFO> bfo{};
+    std::array<ParticleFitObject*, NBFO> bfostart{};
+    std::array<ParticleFitObject*, NBFO> bfosmear{};
     
     MomentumConstraint pxc;
     MomentumConstraint pyc;

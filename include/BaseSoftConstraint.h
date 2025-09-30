@@ -65,7 +65,7 @@ class BaseSoftConstraint: public BaseConstraint {
   public:
     
     /// Virtual destructor
-    virtual ~BaseSoftConstraint();
+    virtual ~BaseSoftConstraint() = default;
         
     /// Returns the chi2
     virtual double getChi2() const = 0;
@@ -82,7 +82,7 @@ class BaseSoftConstraint: public BaseConstraint {
     
                                  
     protected:
-      char *name;  
+      char *name{};
 };
 
 

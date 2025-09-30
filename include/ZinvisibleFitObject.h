@@ -25,7 +25,7 @@ class ZinvisibleFitObject : public ParticleFitObject {
     ZinvisibleFitObject& operator= (const ZinvisibleFitObject& rhs   ///< right hand side
 				  );
 
-    virtual ~ZinvisibleFitObject();
+    virtual ~ZinvisibleFitObject() = default;
     
     /// Return a new copy of itself
     virtual ZinvisibleFitObject *copy() const;

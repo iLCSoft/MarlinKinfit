@@ -32,7 +32,7 @@ class NeutrinoFitObject : public ParticleFitObject {
     NeutrinoFitObject& operator= (const NeutrinoFitObject& rhs   ///< right hand side
                              );
 
-    virtual ~NeutrinoFitObject();
+    virtual ~NeutrinoFitObject() = default;
     
     /// Return a new copy of itself
     virtual NeutrinoFitObject *copy() const;

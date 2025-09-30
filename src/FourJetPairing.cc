@@ -10,12 +10,13 @@
 ////////////////////////////////////////////////////////////////
 
 #include <iostream>
+
 #include "FourJetPairing.h"
 #include "JetFitObject.h"
 
-FourJetPairing::FourJetPairing (JetFitObject *jets_[])  {
+FourJetPairing::FourJetPairing (std::array<JetFitObject*, NJETS> jets_) :
+  BaseJetPairing(), jets(jets_) {
        
-  for (int i = 0; i < NJETS; ++i) jets[i] = jets_[i];
   iperm = 0;
    
   // this assumes jet 5 & 6 to be the b-jets !!

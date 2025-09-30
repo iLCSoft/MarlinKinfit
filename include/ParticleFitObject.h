@@ -75,7 +75,7 @@ class ParticleFitObject: public BaseFitObject {
                              );
 
     /// Virtual destructor
-    virtual ~ParticleFitObject();
+    virtual ~ParticleFitObject() = default;
     
     /// Assign from anther object, if of same type
     virtual ParticleFitObject& assign (const BaseFitObject& source   ///< The source object

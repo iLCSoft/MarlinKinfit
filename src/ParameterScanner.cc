@@ -463,8 +463,8 @@ void ParameterScanner::doScan (int xglobal,
   if (hmu)    hmu->Write();
   if (hphi1)  hphi1->Write();
 
-  delete par;
-  delete parsave;
+  delete[] par;
+  delete[] parsave;
 }
 
 #endif // MARLIN_USE_ROOT

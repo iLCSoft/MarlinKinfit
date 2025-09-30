@@ -169,7 +169,7 @@ class VertexFitObject: public BaseFitObject {
                                             ) const;
 
 
-    virtual void getDerivatives (double der[], int idim) const {}
+    virtual void getDerivatives (double[], int) const {}
 
 //    /// Add covariance matrix elements to 
 //    /// global covariance matrix of size idim x idim
@@ -256,7 +256,7 @@ class VertexFitObject: public BaseFitObject {
   
   
     /// Number of parameters
-    enum {NPAR = 3};
+    constexpr static int NPAR = 3;
     
 //    /// fit parameters
 //    double par[NPAR];
@@ -298,10 +298,10 @@ class VertexFitObject: public BaseFitObject {
     
     typedef std::vector<TrackDescriptor> TContainer;
     typedef TContainer::iterator TIterator;
-    TContainer tracks;
+    TContainer tracks{};
     typedef std::vector<BaseConstraint *> CContainer;
     typedef CContainer::iterator CIterator;
-    CContainer constraints;
+    CContainer constraints{};
     
 };
     
