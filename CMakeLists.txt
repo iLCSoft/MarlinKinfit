@@ -1,7 +1,7 @@
 ########################################################
 # cmake file for building Marlin example Package
 # @author Jan Engels, Desy IT
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23 FATAL_ERROR)
 ########################################################
 
 
@@ -23,26 +23,11 @@ FIND_PACKAGE( ILCUTIL REQUIRED COMPONENTS ILCSOFT_CMAKE_MODULES )
 # load default settings from ILCSOFT_CMAKE_MODULES
 INCLUDE( ilcsoft_default_settings )
 
-
-FIND_PACKAGE( Marlin 1.0 REQUIRED ) # minimum required Marlin version
-INCLUDE_DIRECTORIES( ${Marlin_INCLUDE_DIRS} )
-LINK_LIBRARIES( ${Marlin_LIBRARIES} )
-ADD_DEFINITIONS( ${Marlin_DEFINITIONS} )
-
+FIND_PACKAGE( LCIO 2.21 REQUIRED )
 FIND_PACKAGE( CLHEP REQUIRED )
-INCLUDE_DIRECTORIES( ${CLHEP_INCLUDE_DIRS} )
-LINK_LIBRARIES( ${CLHEP_LIBRARIES} )
-
 FIND_PACKAGE( GSL 1.12 REQUIRED )
-INCLUDE_DIRECTORIES( ${GSL_INCLUDE_DIRS} )
-LINK_LIBRARIES( ${GSL_LIBRARIES} )
-
-
 FIND_PACKAGE( ROOT 5.0 )
 IF( ROOT_FOUND )
-    INCLUDE_DIRECTORIES( SYSTEM ${ROOT_INCLUDE_DIRS} )
-    LINK_LIBRARIES( ${ROOT_LIBRARIES} )
-    ADD_DEFINITIONS( -DMARLIN_USE_ROOT )
     MESSAGE( STATUS "ROOT -- found" )
 ELSE()
     MESSAGE( STATUS "ROOT -- not found" )
@@ -51,9 +36,6 @@ ENDIF()
 
 FIND_PACKAGE( AIDA )
 IF( AIDA_FOUND )
-    INCLUDE_DIRECTORIES( ${AIDA_INCLUDE_DIRS} )
-    LINK_LIBRARIES( ${AIDA_LIBRARIES} )
-    ADD_DEFINITIONS( -DMARLIN_USE_AIDA )
     MESSAGE( STATUS "AIDA -- found" )
 ELSE()
     MESSAGE( STATUS "AIDA -- not found" )
@@ -84,11 +66,30 @@ INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
 ADD_SHARED_LIBRARY( ${PROJECT_NAME} ${library_sources} )
+target_link_libraries( ${PROJECT_NAME} PUBLIC
+    LCIO::lcio
+    GSL::gsl
+    CLHEP::CLHEP
+)
+if (ROOT_FOUND)
+    target_link_libraries( ${PROJECT_NAME} PUBLIC
+        ROOT::Core ROOT::Physics ROOT::Hist ROOT::Tree
+    )
+    target_compile_definitions( ${PROJECT_NAME} PUBLIC -DMARLIN_USE_ROOT)
+endif()
+if (AIDA_FOUND)
+    target_link_libraries( ${PROJECT_NAME} PUBLIC
+        ${AIDA_LIBARIES}
+    )
+    target_compile_definitions( ${PROJECT_NAME} PUBLIC -DMARLIN_USE_AIDA)
+    target_include_directories( ${PROJECT_NAME} PUBLIC ${AIDA_INCLUDE_DIRS} )
+endif()
+
+
 INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
 
 # display some variables and write them to cache
 DISPLAY_STD_VARIABLES()
 
 # generate and install following configuration files
-GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinKinfitConfig.cmake MarlinKinfitConfigVersion.cmake MarlinKinfitLibDeps.cmake )
-
+# GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinKinfitConfig.cmake MarlinKinfitConfigVersion.cmake MarlinKinfitLibDeps.cmake )
