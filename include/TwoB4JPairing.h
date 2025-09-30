@@ -25,6 +25,7 @@ class TwoB4JPairing : public BaseJetPairing {
   public:
     // constructor
     TwoB4JPairing (std::array<JetFitObject*, NJETS> jets_);
+    TwoB4JPairing(JetFitObject* jets_[]) : TwoB4JPairing({jets_[0], jets_[1], jets_[2], jets_[3]}) {}
     
     // destructor
     virtual ~TwoB4JPairing() = default;
