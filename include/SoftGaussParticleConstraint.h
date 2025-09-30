@@ -168,15 +168,15 @@ class SoftGaussParticleConstraint: public BaseSoftConstraint {
     /// Constant iterator through vector of pointers to ParticleFitObjects 
     typedef FitObjectContainer::const_iterator ConstFitObjectIterator;
     ///  The FitObjectContainer
-    FitObjectContainer fitobjects;
+    FitObjectContainer fitobjects{};
     ///  The derivatives
-    std::vector <double> derivatives;
+    std::vector <double> derivatives{};
     ///  The flags can be used to divide the FitObjectContainer into several subsets 
     ///  used for example to implement an equal mass constraint (see MassConstraint). 
-    std::vector <int> flags;
+    std::vector <int> flags{};
     
     /// The sigma of the Gaussian
-    double sigma;
+    double sigma{};
 
     enum { VAR_BASIS=BaseDefs::VARBASIS_EPXYZ }; // this means that the constraint knows about E,px,py,pz
 

@@ -12,17 +12,22 @@
 #ifndef __TWOB4JPAIRING_H
 #define __TWOB4JPAIRING_H
 
-#include <iostream>
 #include "BaseJetPairing.h"
 #include "JetFitObject.h"
 
+#include<array>
+
 class TwoB4JPairing : public BaseJetPairing {
+  private:
+    constexpr static int NPERM = 6;
+    constexpr static int NJETS = 6;
+
   public:
     // constructor
-    TwoB4JPairing (JetFitObject *jets_[]);
+    TwoB4JPairing (std::array<JetFitObject*, NJETS> jets_);
     
     // destructor
-    virtual ~TwoB4JPairing() {};    
+    virtual ~TwoB4JPairing() = default;
         
     // getters
     virtual int getNPerm() const {return NPERM;};
@@ -31,9 +36,7 @@ class TwoB4JPairing : public BaseJetPairing {
     virtual int nextPermutation (JetFitObject *permObjects[]);
     
   protected:
-    enum {NPERM = 6};
-    enum {NJETS = 6};
-    JetFitObject *jets[NJETS]; 
+    std::array<JetFitObject*, NJETS> jets;
     int permutations [NPERM][NJETS];
 
 };

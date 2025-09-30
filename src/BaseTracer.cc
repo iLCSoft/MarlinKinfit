@@ -15,10 +15,6 @@
 
 #include "BaseTracer.h"
 
-BaseTracer::BaseTracer(): next (0) {}
-
-BaseTracer::~BaseTracer() {}
-
 void BaseTracer::initialize (BaseFitter& fitter) {
   if (next) next->initialize (fitter);
 }

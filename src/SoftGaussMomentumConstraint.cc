@@ -78,15 +78,15 @@ void SoftGaussMomentumConstraint::getDerivatives(int idim, double der[]) const {
 }
   
 
-bool SoftGaussMomentumConstraint::firstDerivatives (int i, double *derivatives) const {
-  derivatives[0] = efact;
-  derivatives[1] = pxfact;
-  derivatives[2] = pyfact;
-  derivatives[3] = pzfact;
+bool SoftGaussMomentumConstraint::firstDerivatives (int, double *derivs) const {
+  derivs[0] = efact;
+  derivs[1] = pxfact;
+  derivs[2] = pyfact;
+  derivs[3] = pzfact;
   return true;
 }
 
-bool SoftGaussMomentumConstraint::secondDerivatives (int i, int j, double *derivatives) const {
+bool SoftGaussMomentumConstraint::secondDerivatives (int, int, double*) const {
   return false;
 }  
   

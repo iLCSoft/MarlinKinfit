@@ -119,6 +119,11 @@ JetFitObject::JetFitObject(double E, double theta, double phi,
 // destructor
 JetFitObject::~JetFitObject() {}
 
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 JetFitObject::JetFitObject (const JetFitObject& rhs)
   : ctheta(0), stheta(0), cphi(0), sphi(0),
     p2(0), p(0), pt(0), px(0), py(0), pz(0), dpdE(0), dptdE(0), 
@@ -127,6 +132,7 @@ JetFitObject::JetFitObject (const JetFitObject& rhs)
   //std::cout << "copying JetFitObject with name " << rhs.name << std::endl;
   JetFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
 
 JetFitObject& JetFitObject::operator= (const JetFitObject& rhs) {
   if (this != &rhs) {

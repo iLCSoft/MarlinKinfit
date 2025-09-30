@@ -48,6 +48,11 @@ class BaseFitter;
 class RootTracer: public BaseTracer {
   public:
     RootTracer(const char* filename="trace.root", const char *option="RECREATE");
+    RootTracer(const RootTracer&) = delete;
+    RootTracer& operator=(const RootTracer&) = delete;
+    RootTracer(RootTracer&&) = delete;
+    RootTracer& operator=(RootTracer&&) = delete;
+
     virtual ~RootTracer();
     
     /// Called at the start of a new fit (during initialization)

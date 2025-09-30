@@ -48,6 +48,11 @@ class NewtonFitterGSL : public BaseFitter {
   public:
     /// Constructor
     NewtonFitterGSL();
+    NewtonFitterGSL(const NewtonFitterGSL&) = delete;
+    NewtonFitterGSL& operator=(const NewtonFitterGSL&) = delete;
+    NewtonFitterGSL(NewtonFitterGSL&&) = delete;
+    NewtonFitterGSL& operator=(NewtonFitterGSL&&) = delete;
+
     /// Virtual destructor
     virtual ~NewtonFitterGSL();
     

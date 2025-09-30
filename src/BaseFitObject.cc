@@ -515,7 +515,7 @@ void BaseFitObject::addToGlobalChi2DerVector (double *y, int idim) const {
 }
 
 
-void BaseFitObject::addToGlobalChi2DerVector (double *y, int idim, 
+void BaseFitObject::addToGlobalChi2DerVector (double *y, int,
 					      double lambda, double der[], int metaSet ) const {
   // DANIEL moved to BaseFitObject 
   // this adds the lambda * dConst/dpar piece

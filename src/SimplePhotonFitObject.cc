@@ -61,11 +61,17 @@ SimplePhotonFitObject::SimplePhotonFitObject(double px, double py, double pz, do
 // destructor
 SimplePhotonFitObject::~SimplePhotonFitObject() {}
 
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 SimplePhotonFitObject::SimplePhotonFitObject (const SimplePhotonFitObject& rhs) : pt2(0), p2(0), p(0),dE0(0), dE1(0), dE2(0),chi2(0)
 {
   //std::cout << "copying SimplePhotonFitObject with name" << rhs.name << std::endl;
   SimplePhotonFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
 
 SimplePhotonFitObject& SimplePhotonFitObject::operator= (const SimplePhotonFitObject& rhs) {
   if (this != &rhs) {

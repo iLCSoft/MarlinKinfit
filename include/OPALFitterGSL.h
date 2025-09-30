@@ -99,6 +99,11 @@ class BaseConstraint;
 class OPALFitterGSL : public BaseFitter {
   public:
     OPALFitterGSL();
+    OPALFitterGSL(const OPALFitterGSL&) = delete;
+    OPALFitterGSL& operator=(const OPALFitterGSL&) = delete;
+    OPALFitterGSL(OPALFitterGSL&&) = delete;
+    OPALFitterGSL& operator=(OPALFitterGSL&&) = delete;
+
     virtual ~OPALFitterGSL();
     virtual double fit();
     

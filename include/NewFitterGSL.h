@@ -54,6 +54,11 @@ class NewFitterGSL : public BaseFitter {
   public:
     /// Constructor
     NewFitterGSL();
+    NewFitterGSL(const NewFitterGSL&) = delete;
+    NewFitterGSL& operator=(const NewFitterGSL&) = delete;
+    NewFitterGSL(NewFitterGSL&&) = delete;
+    NewFitterGSL& operator=(NewFitterGSL&&) = delete;
+
     /// Virtual destructor
     virtual ~NewFitterGSL();
     
@@ -251,17 +256,19 @@ class NewFitterGSL : public BaseFitter {
   
     void calcCovMatrix(gsl_matrix *MatW, gsl_permutation *permW, gsl_vector *vecx);
     
-    enum {NPARMAX=50, NCONMAX=10, NUNMMAX=10};
+    constexpr static int NPARMAX = 50;
+    constexpr static int NCONNMAX = 10;
+    constexpr static int NUNMMAX = 10;
     
-    int npar;      ///< total number of parameters
-    int ncon;      ///< total number of hard constraints
-    int nsoft;     ///< total number of soft constraints
-    int nunm;      ///< total number of unmeasured parameters
-    int ierr;      ///< Error status
-    int nit;       ///< Number of iterations
+    int npar{0};      ///< total number of parameters
+    int ncon{0};      ///< total number of hard constraints
+    int nsoft{0};     ///< total number of soft constraints
+    int nunm{0};      ///< total number of unmeasured parameters
+    int ierr{0};      ///< Error status
+    int nit{0};       ///< Number of iterations
 
-    double fitprob;   ///< fit probability
-    double chi2;      ///< final chi2
+    double fitprob{};   ///< fit probability
+    double chi2{};      ///< final chi2
     
     static void ini_gsl_permutation (gsl_permutation *&p, unsigned int size);
     static void ini_gsl_vector (gsl_vector *&v, int unsigned size);
@@ -359,24 +366,24 @@ class NewFitterGSL : public BaseFitter {
     gsl_permutation *permW;
     gsl_eigen_symm_workspace *eigenws; 
 //    gsl_eigen_symmv_workspace *eigenwsv; 
-    unsigned int eigenwsdim;
+    unsigned int eigenwsdim{};
     
-    double chi2best;
-    double chi2new;
-    double chi2old;
-    double fvalbest;
-    double scale;
-    double scalebest;
-    double stepsize;
-    double stepbest;
-    enum {NITMAX = 100};
-    double scalevals[NITMAX];
-    double fvals[NITMAX];
+    double chi2best{};
+    double chi2new{};
+    double chi2old{};
+    double fvalbest{};
+    double scale{};
+    double scalebest{};
+    double stepsize{};
+    double stepbest{};
+    constexpr static int NITMAX = 100;
+    double scalevals[NITMAX]{};
+    double fvals[NITMAX]{};
     
-    int imerit;
-    bool try2ndOrderCorr;
+    int imerit{};
+    bool try2ndOrderCorr{};
     
-    int debug;
+    int debug{};
 };
 
 #endif // __NEWFITTERGSL_H

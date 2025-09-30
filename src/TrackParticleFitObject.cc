@@ -67,7 +67,7 @@ TrackParticleFitObject::TrackParticleFitObject( const EVENT::Track* trk, double 
   initialise( ppar , ccov, m );
 }
 
-TrackParticleFitObject::TrackParticleFitObject( const EVENT::TrackState* trk, double m) 
+TrackParticleFitObject::TrackParticleFitObject( const EVENT::TrackState* trk, double m)
   : trackReferencePoint( ThreeVector(0,0,0) ),
     trackPlaneNormal( ThreeVector(0,0,0) ),
     trackPcaVector( ThreeVector(0,0,0) ),
@@ -172,6 +172,11 @@ TrackParticleFitObject::~TrackParticleFitObject() {}
 
 
 
+// We get a warning that ParticleFitObject should be explicitly initialized
+// here, but I don't want to change this part because, I think everything is
+// done properly already and not changing behavior is more important.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra"
 TrackParticleFitObject::TrackParticleFitObject (const TrackParticleFitObject& rhs)
   : trackReferencePoint( ThreeVector(0,0,0) ),
     trackPlaneNormal( ThreeVector(0,0,0) ),
@@ -187,6 +192,8 @@ TrackParticleFitObject::TrackParticleFitObject (const TrackParticleFitObject& rh
   //std::cout << "copying TrackParticleFitObject with name " << rhs.name << std::endl;
   TrackParticleFitObject::assign (rhs);
 }
+#pragma GCC diagnostic pop
+
 
 TrackParticleFitObject& TrackParticleFitObject::operator= (const TrackParticleFitObject& rhs) {
   if (this != &rhs) {
@@ -227,7 +234,7 @@ const char *TrackParticleFitObject::getParamName (int ilocal) const {
   return "undefined";
 }
 
-bool TrackParticleFitObject::updateParams (double p[], int idim) {
+bool TrackParticleFitObject::updateParams (double p[], int) {
   invalidateCache();
 
   double tempPar[NPAR]={0};
@@ -476,7 +483,6 @@ void TrackParticleFitObject::updateTrajectoryDerivatives() const {
   double D = d0;
   double P = phi0;
   double W = omega;
-  double Z = z0;
   double T = tanl;
   double S(0);
   

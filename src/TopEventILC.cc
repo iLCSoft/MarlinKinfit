@@ -45,12 +45,12 @@ TopEventILC::TopEventILC()
   pyc (0, 0, 1),
   pzc (0, 0, 0, 1),
   ec  (1, 0, 0, 0, 500), 
+  w1 (80.4),
+  w2 (80.4),
+  w (0),
   sw1 (2.1/(2.*sqrt(0.805)), 80.4),  // Thesis Jenny p44
   sw2 (2.1/(2.*sqrt(0.805)), 80.4),
-  sw (1.4/sqrt(0.805)),
-  w1 (80.4),  
-  w2 (80.4),
-  w (0)
+  sw (1.4/sqrt(0.805))
   {
   for (int i = 0; i < NFV; ++i) fv[i] = 0;
   for (int i = 0; i < NBFO; ++i) bfo[i] = bfosmear[i] = 0;
@@ -290,19 +290,19 @@ void TopEventILC::genEvent(){
 //      double en =  sqrt (pxn*pxn+pyn*pyn+pzn*pzn);
       double en =  Ecm - Etot;
       double ptn = sqrt(pxn*pxn+pyn*pyn);
-      double theta = acos (pzn/pn); 
-      double phi = atan2 (pyn, pxn);
+      double jtheta = acos (pzn/pn);
+      double jphi = atan2 (pyn, pxn);
 //       if (en <= 0) {
 //         cout << "WARNING: negative missing energy = " << en << ", setting to pn = " << pn << ", true pn = " << bfo[5]->getE() << endl;
 //         en = pn;
 //       }   
       if (debug) {
-        cout << "Neutrino: en = " << en << ", theta = " << theta << ", phi = " << phi << endl;
+        cout << "Neutrino: en = " << en << ", theta = " << jtheta << ", phi = " << jphi << endl;
         cout << "Neutrino: pxn = " << pxn << ", pyn = " << pyn << ", pzn = " << pzn << ", pn = " << pn << endl;
-        cout << "Neutrino momenta by hand: px = " << ptn*cos(phi) << ", py = " << ptn*sin(phi) << ", pz = " << pn*cos(theta) << endl;
+        cout << "Neutrino momenta by hand: px = " << ptn*cos(jphi) << ", py = " << ptn*sin(jphi) << ", pz = " << pn*cos(jtheta) << endl;
       }   
-      bfosmear[5] = new NeutrinoFitObject (pn, theta, phi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
-      bfostart[5] = new NeutrinoFitObject (pn, theta, phi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
+      bfosmear[5] = new NeutrinoFitObject (pn, jtheta, jphi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
+      bfostart[5] = new NeutrinoFitObject (pn, jtheta, jphi, 14, 0.32, 0.425);  // adjust such that "pull vs true" has width ~1
     
       bfosmear[5]->setName ("n22");
       bfostart[5]->setName ("n22");

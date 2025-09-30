@@ -94,32 +94,107 @@ NewtonFitterGSL::NewtonFitterGSL()
 
 // destructor
 NewtonFitterGSL::~NewtonFitterGSL() {
-
-  if (x) gsl_vector_free (x);               x=0;
-  if (xold) gsl_vector_free (xold);         xold=0;
-  if (xbest) gsl_vector_free (xbest);       xbest=0;
-  if (dx) gsl_vector_free (dx);             dx=0;
-  if (dxscal) gsl_vector_free (dxscal);     dxscal=0;
-  if (grad) gsl_vector_free (grad);         grad=0;
-  if (y) gsl_vector_free (y);               y=0;
-  if (yscal) gsl_vector_free (yscal);       yscal=0;
-  if (perr) gsl_vector_free (perr);         perr=0;
-  if (v1) gsl_vector_free (v1);             v1=0;
-  if (v2) gsl_vector_free (v2);             v2=0;
-  if (Meval) gsl_vector_free (Meval);       Meval=0;
-  if (M) gsl_matrix_free (M);               M=0;
-  if (Mscal) gsl_matrix_free (Mscal);       Mscal=0;
-  if (M1) gsl_matrix_free (M1);             M1=0;
-  if (M2) gsl_matrix_free (M2);             M2=0;
-  if (M3) gsl_matrix_free (M3);             M3=0;
-  if (M4) gsl_matrix_free (M4);             M4=0;
-  if (M5) gsl_matrix_free (M5);             M5=0;
-  if (Mevec) gsl_matrix_free (Mevec);       Mevec=0;
-  if (CC) gsl_matrix_free (CC);             CC=0;
-  if (CC1) gsl_matrix_free (CC1);           CC1=0;
-  if (CCinv) gsl_matrix_free (CCinv);       CCinv=0;
-  if (permM) gsl_permutation_free (permM);  permM=0;
-  if (ws) gsl_eigen_symmv_free (ws);        ws=0; wsdim=0;
+  if (x) {
+    gsl_vector_free(x);
+    x = 0;
+  }
+  if (xold) {
+    gsl_vector_free(xold);
+    xold = 0;
+  }
+  if (xbest) {
+    gsl_vector_free(xbest);
+    xbest = 0;
+  }
+  if (dx) {
+    gsl_vector_free(dx);
+    dx = 0;
+  }
+  if (dxscal) {
+    gsl_vector_free(dxscal);
+    dxscal = 0;
+  }
+  if (grad) {
+    gsl_vector_free(grad);
+    grad = 0;
+  }
+  if (y) {
+    gsl_vector_free(y);
+    y = 0;
+  }
+  if (yscal) {
+    gsl_vector_free(yscal);
+    yscal = 0;
+  }
+  if (perr) {
+    gsl_vector_free(perr);
+    perr = 0;
+  }
+  if (v1) {
+    gsl_vector_free(v1);
+    v1 = 0;
+  }
+  if (v2) {
+    gsl_vector_free(v2);
+    v2 = 0;
+  }
+  if (Meval) {
+    gsl_vector_free(Meval);
+    Meval = 0;
+  }
+  if (M) {
+    gsl_matrix_free(M);
+    M = 0;
+  }
+  if (Mscal) {
+    gsl_matrix_free(Mscal);
+    Mscal = 0;
+  }
+  if (M1) {
+    gsl_matrix_free(M1);
+    M1 = 0;
+  }
+  if (M2) {
+    gsl_matrix_free(M2);
+    M2 = 0;
+  }
+  if (M3) {
+    gsl_matrix_free(M3);
+    M3 = 0;
+  }
+  if (M4) {
+    gsl_matrix_free(M4);
+    M4 = 0;
+  }
+  if (M5) {
+    gsl_matrix_free(M5);
+    M5 = 0;
+  }
+  if (Mevec) {
+    gsl_matrix_free(Mevec);
+    Mevec = 0;
+  }
+  if (CC) {
+    gsl_matrix_free(CC);
+    CC = 0;
+  }
+  if (CC1) {
+    gsl_matrix_free(CC1);
+    CC1 = 0;
+  }
+  if (CCinv) {
+    gsl_matrix_free(CCinv);
+    CCinv = 0;
+  }
+  if (permM) {
+    gsl_permutation_free(permM);
+    permM = 0;
+  }
+  if (ws) {
+    gsl_eigen_symmv_free(ws);
+    ws = 0;
+    wsdim = 0;
+  }
 }
 
 
@@ -164,7 +239,7 @@ double NewtonFitterGSL::fit() {
   bool converged = 0;
   ierr = 0;
   
-  double chi2new = calcChi2();
+  chi2new = calcChi2();
   nit = 0;
   if (debug>1) {
     cout << "Fit objects:\n";
@@ -208,7 +283,7 @@ double NewtonFitterGSL::fit() {
   
   do {
   
-    double chi2old = chi2new;
+    chi2old = chi2new;
     
     if (debug>1 && (nit==0 || nit<nitdebug)) cout << "===================\nStarting iteration " << nit << endl;
     if (debug>2 && (nit==0 || nit<nitdebug)) {
@@ -402,7 +477,7 @@ bool NewtonFitterGSL::initialize() {
   // set number of constraints
   ncon = constraints.size();
   // Tell the constraints their numbers
-  for (unsigned int icon = 0; icon < ncon; ++icon) {
+  for (int icon = 0; icon < ncon; ++icon) {
     BaseHardConstraint *c = constraints[icon];
     assert (c);
     if (debug > 3) cout << "NewtonFitterGSL::initialize: constraint " << c->getName() 
@@ -473,11 +548,11 @@ double NewtonFitterGSL::calcChi2() {
   return chi2;
 }
 
-void NewtonFitterGSL::printMy (double M[], double y[], int idim) {
-  for (int i = 0; i < idim; ++i) {
-    cout << i << "  [ " << M[idim*i+0];
-      for (int j = 1; j<idim; ++j) cout << ", " << M[idim*i+j];
-      cout << "]  [" << y[i] << "]\n";
+void NewtonFitterGSL::printMy (double MM[], double yy[], int ndim) {
+  for (int i = 0; i < ndim; ++i) {
+    cout << i << "  [ " << MM[ndim*i+0];
+      for (int j = 1; j<ndim; ++j) cout << ", " << MM[ndim*i+j];
+      cout << "]  [" << yy[i] << "]\n";
   }
 }
 
@@ -545,7 +620,7 @@ int NewtonFitterGSL::calcDxSVD () {
 //     cout << "Complete system:\n";
 //     printMy(M, y, idim);
      // Get eigenvalues and eigenvectors of Mscal
-     int ierr=0;
+     ierr=0;
      gsl_matrix_memcpy (M1, Mscal);
      if (debug > 3) cout << "NewtonFitterGSL::calcDxSVD: Calling gsl_eigen_symmv" << endl;
      ierr = gsl_eigen_symmv (M1, Meval, Mevec, ws); 
@@ -898,7 +973,7 @@ int NewtonFitterGSL::optimizeScale () {
   // Code adapted from Numerical Recipies (3rd ed), page 479
   // routine lnsrch
   
-  int nit = 0;
+  nit = 0;
   
   static const double ALF = 1E-4;
   
@@ -1154,7 +1229,7 @@ double NewtonFitterGSL::meritFunction(double mu) {
   return result;
 }
 
-double NewtonFitterGSL::meritFunctionDeriv(double mu) {
+double NewtonFitterGSL::meritFunctionDeriv(double) {
   double result = 0;
   switch (imerit) {
     case 1: 

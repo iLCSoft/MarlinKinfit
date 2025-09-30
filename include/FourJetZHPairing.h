@@ -1,9 +1,10 @@
 #ifndef __FOURJETZHPAIRING_H
 #define __FOURJETZHPAIRING_H
 
-#include <iostream>
 #include "BaseJetPairing.h"
 #include "JetFitObject.h"
+
+#include <array>
 
 //  Class FourJetZHPairing:
 /// Class to handle permutations of 4 jets into two different bosons
@@ -16,12 +17,20 @@
  */
 
 class FourJetZHPairing : public BaseJetPairing {
+  protected:
+    constexpr static int NPERM = 6;
+    constexpr static int NJETS = 4;
+
   public:
     /// constructor
-    FourJetZHPairing (JetFitObject *jets_[]);
-    
+    FourJetZHPairing (std::array<JetFitObject*, NJETS> jets_);
+    FourJetZHPairing(const FourJetZHPairing&) = delete;
+    FourJetZHPairing& operator=(const FourJetZHPairing&) = delete;
+    FourJetZHPairing(FourJetZHPairing&&) = delete;
+    FourJetZHPairing& operator=(FourJetZHPairing&&) = delete;
+
     /// Virtual destructor
-    virtual ~FourJetZHPairing() {};    
+    virtual ~FourJetZHPairing() = default;
         
     /// Number of permutaions
     virtual int getNPerm() const {return NPERM;};
@@ -30,9 +39,7 @@ class FourJetZHPairing : public BaseJetPairing {
     virtual int nextPermutation (JetFitObject *permObjects[]);
     
   protected:
-    enum {NPERM = 6};
-    enum {NJETS = 4};
-    JetFitObject *jets[NJETS]; 
+    std::array<JetFitObject*, NJETS> jets;
     int permutations [NPERM][NJETS];
 
 };
