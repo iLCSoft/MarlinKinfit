@@ -1,5 +1,5 @@
 # MarlinKinfit
-[![linux](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/linux.yml/badge.svg)](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/linux.yml)
+[![keyh4ep](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/key4hep.yml/badge.svg)](https://github.com/iLCSoft/MarlinKinfit/actions/workflows/key4hep.yml)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/12361/badge.svg)](https://scan.coverity.com/projects/ilcsoft-marlinkinfit)
 
 Kinematic fitting library for MarlinKinfit. Does not include the Processors, which have been moved
