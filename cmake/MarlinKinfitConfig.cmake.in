@@ -12,11 +12,8 @@
 #       MarlinKinfit_FOUND is only set to TRUE if ALL components are also found
 #       if REQUIRED is NOT set components may or may not be available
 #
-#   MarlinKinfit_ROOT       : path to this MarlinKinfit installation
 #   MarlinKinfit_VERSION    : package version
 #   MarlinKinfit_LIBRARIES  : list of MarlinKinfit libraries (NOT including COMPONENTS)
-#   MarlinKinfit_INCLUDE_DIRS  : list of paths to be used with INCLUDE_DIRECTORIES
-#   MarlinKinfit_LIBRARY_DIRS  : list of paths to be used with LINK_DIRECTORIES
 #
 # @author Jan Engels, Desy
 ##############################################################################
