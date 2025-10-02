@@ -8,7 +8,6 @@
 // Description: class to generate and fit di jet events at ILC
 //               
 ////////////////////////////////////////////////////////////////
-#ifdef MARLIN_USE_ROOT
 #include "DijetEventILC.h"
 
 #include "JetFitObject.h"
@@ -335,4 +334,3 @@ int DijetEventILC::fitEvent (BaseFitter& fitter){
 
 
 }
-#endif // MARLIN_USE_ROOT

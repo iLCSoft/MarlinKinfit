@@ -27,13 +27,7 @@ INCLUDE( ilcsoft_default_settings )
 FIND_PACKAGE( LCIO 2.21 REQUIRED )
 FIND_PACKAGE( CLHEP REQUIRED )
 FIND_PACKAGE( GSL 1.12 REQUIRED )
-FIND_PACKAGE( ROOT 5.0 )
-IF( ROOT_FOUND )
-    MESSAGE( STATUS "ROOT -- found" )
-ELSE()
-    MESSAGE( STATUS "ROOT -- not found" )
-ENDIF()
-
+FIND_PACKAGE( ROOT 5.0 REQUIRED )
 
 FIND_PACKAGE( AIDA )
 IF( AIDA_FOUND )
@@ -71,13 +65,9 @@ target_link_libraries( ${PROJECT_NAME} PUBLIC
     LCIO::lcio
     GSL::gsl
     CLHEP::CLHEP
+    ROOT::Core ROOT::Physics ROOT::Hist ROOT::Tree
 )
-if (ROOT_FOUND)
-    target_link_libraries( ${PROJECT_NAME} PUBLIC
-        ROOT::Core ROOT::Physics ROOT::Hist ROOT::Tree
-    )
-    target_compile_definitions( ${PROJECT_NAME} PUBLIC -DMARLIN_USE_ROOT)
-endif()
+)
 if (AIDA_FOUND)
     target_link_libraries( ${PROJECT_NAME} PUBLIC
         ${AIDA_LIBARIES}

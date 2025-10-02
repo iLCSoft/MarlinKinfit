@@ -18,8 +18,6 @@
  * -
  *
  */ 
-#ifdef MARLIN_USE_ROOT
-
 #ifndef __PARAMETERSCANNER_H
 #define __PARAMETERSCANNER_H
 
@@ -62,5 +60,3 @@ class ParameterScanner {
 };
 
 #endif /* #ifndef __PARAMETERSCANNER_H */
-
-#endif // MARLIN_USE_ROOT

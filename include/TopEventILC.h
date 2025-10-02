@@ -8,7 +8,6 @@
 // Description: class to generate and fit top pair events at ILC
 //               
 ////////////////////////////////////////////////////////////////
-#ifdef MARLIN_USE_ROOT
 
 #ifndef __TOPEVENTILC_H
 #define __TOPEVENTILC_H
@@ -83,5 +82,3 @@ class TopEventILC : public BaseEvent {
 
 
 #endif // __TOPEVENTILC_H
-
-#endif // MARLIN_USE_ROOT
