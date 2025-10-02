@@ -11,8 +11,6 @@
  * -
  *
  */ 
-#ifdef MARLIN_USE_ROOT
-
 #include "IterationScanner.h"
 
 #include "BaseFitter.h"
@@ -184,5 +182,3 @@ void IterationScanner::doScan (int xglobal,
   delete[] par;
   delete[] parsave;
 }
-
-#endif // MARLIN_USE_ROOT

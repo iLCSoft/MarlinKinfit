@@ -8,8 +8,6 @@
 // Description: class to generate and fit di jet events at ILC
 //               
 ////////////////////////////////////////////////////////////////
-#ifdef MARLIN_USE_ROOT
-
 #ifndef __DIJETEVENTILC_H
 #define __DIJETEVENTILC_H
 
@@ -67,5 +65,3 @@ class DijetEventILC : public BaseEvent {
 
 
 #endif // __DIJETEVENTILC_H
-
-#endif // MARLIN_USE_ROOT

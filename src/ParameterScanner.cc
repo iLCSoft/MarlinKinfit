@@ -18,7 +18,6 @@
  * -
  *
  */ 
-#ifdef MARLIN_USE_ROOT
 
 #include "ParameterScanner.h"
 
@@ -467,4 +466,3 @@ void ParameterScanner::doScan (int xglobal,
   delete[] parsave;
 }
 
-#endif // MARLIN_USE_ROOT

@@ -20,7 +20,6 @@
 // Redo calculation of penalty function and deriavtives
 // Check where to get erfinv 
 
-#ifdef MARLIN_USE_ROOT
 
 
 #include "SoftBWParticleConstraint.h"
@@ -506,4 +505,3 @@ int SoftBWParticleConstraint::getVarBasis() const {
   return VAR_BASIS;
 }
 
-#endif // MARLIN_USE_ROOT

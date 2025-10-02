@@ -14,7 +14,6 @@
  * -
  *
  */ 
-#ifdef MARLIN_USE_ROOT
 
 #ifndef __SOFTBWPARTICLECONSTRAINT_H
 #define __SOFTBWPARTICLECONSTRAINT_H
@@ -215,5 +214,3 @@ class SoftBWParticleConstraint: public BaseSoftConstraint {
 };
 
 #endif // __SOFTBWPARTICLECONSTRAINT_H
-
-#endif // MARLIN_USE_ROOT

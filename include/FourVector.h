@@ -15,8 +15,6 @@
  * -
  *
  */ 
- 
-#ifdef MARLIN_USE_ROOT
 
 #ifndef __FOURVECTOR_H
 #define __FOURVECTOR_H
@@ -226,5 +224,3 @@ inline std::ostream& operator<< (std::ostream& os,
 
 
 #endif // __FOURVECTOR_H
-
-#endif // MARLIN_USE_ROOT

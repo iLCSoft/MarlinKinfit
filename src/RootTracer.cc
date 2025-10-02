@@ -17,7 +17,6 @@
  * -
  * -
  */ 
-#ifdef MARLIN_USE_ROOT
  
 #include "RootTracer.h"
 #include "BaseFitter.h"
@@ -252,4 +251,3 @@ void RootTracer::FillParameterValues(BaseFitter& fitter) {
   }
 }
 
-#endif // MARLIN_USE_ROOT
