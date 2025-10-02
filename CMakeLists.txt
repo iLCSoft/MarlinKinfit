@@ -15,6 +15,7 @@ SET( ${PROJECT_NAME}_VERSION_MAJOR 0 )
 SET( ${PROJECT_NAME}_VERSION_MINOR 6 )
 SET( ${PROJECT_NAME}_VERSION_PATCH 1 )
 
+SET( ${PROJECT_NAME}_VERSION  "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}" )
 
 
 ### DEPENDENCIES ############################################################
@@ -50,8 +51,6 @@ ENDIF()
 
 ### LIBRARY #################################################################
 
-# include directories
-INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
 AUX_SOURCE_DIRECTORY( ./src library_sources )
@@ -75,10 +74,16 @@ if (AIDA_FOUND)
 endif()
 
 
-INSTALL_SHARED_LIBRARY( ${PROJECT_NAME} DESTINATION lib )
-
 # display some variables and write them to cache
 DISPLAY_STD_VARIABLES()
 
-# generate and install following configuration files
-GENERATE_PACKAGE_CONFIGURATION_FILES( MarlinKinfitConfig.cmake MarlinKinfitConfigVersion.cmake MarlinKinfitLibDeps.cmake )
+# Install library
+# include directories
+INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
+
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT shlib
+)
+
+include(cmake/createMarlinKinfitConfig.cmake)
