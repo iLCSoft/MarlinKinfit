@@ -50,12 +50,7 @@ ENDIF()
 
 ### LIBRARY #################################################################
 
-# definitions to pass to the compiler
-#ADD_DEFINITIONS( "-Wall -ansi -pedantic" )
-#ADD_DEFINITIONS( "-Wno-long-long" )
-
 # include directories
-INCLUDE_DIRECTORIES( ./include )
 INSTALL_DIRECTORY( ./include DESTINATION . FILES_MATCHING PATTERN "*.h" )
 
 # add library
@@ -67,6 +62,9 @@ target_link_libraries( ${PROJECT_NAME} PUBLIC
     CLHEP::CLHEP
     ROOT::Core ROOT::Physics ROOT::Hist ROOT::Tree
 )
+target_include_directories(${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
 )
 if (AIDA_FOUND)
     target_link_libraries( ${PROJECT_NAME} PUBLIC
