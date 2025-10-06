@@ -2,7 +2,6 @@
 # cmake file for building Marlin example Package
 # @author Jan Engels, Desy IT
 CMAKE_MINIMUM_REQUIRED(VERSION 3.23 FATAL_ERROR)
-CMAKE_POLICY(SET CMP0033 OLD)  # Allow to call export_library_dependencies
 ########################################################
 
 
