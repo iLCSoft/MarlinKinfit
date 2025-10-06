@@ -1,3 +1,27 @@
+# v00-07
+
+* 2025-10-06 Thomas Madlener ([PR#6](https://github.com/iLCSoft/MarlinKinfit/pull/6))
+  - Remove a CMake policy that is no longer necessary due to the updated cmake configuration
+
+* 2025-10-02 Thomas Madlener ([PR#5](https://github.com/iLCSoft/MarlinKinfit/pull/5))
+  - Adopt cmake configuration to use the target based style of configuring
+  - Raise the minimum version of cmake to 3.23
+    - Keep existing behavior by enabling cmake policy CMP0033
+  - Fix dependencies to rely on LCIO instead of Marlin (since Marlin is not truly a dependency, but LCIO is).
+  - Make ROOT a required dependency since building without ROOT is not possible
+  - Export targets for downstream consumption with pure cmake functionality. The exported target is `MarlinKinfit::MarlinKinfit`.
+
+* 2025-10-01 Thomas Madlener ([PR#4](https://github.com/iLCSoft/MarlinKinfit/pull/4))
+  - Add a Key4hep based CI workflow
+  - Update clicdp nightlies based workflows
+  - **Fix many compiler warnings** and cleanup code slightly
+    - deleting all copy & move constructors
+    - Removing unused variables
+    - Intializing member variables
+    - Switching from c-style arrays to std::array
+    - Replacing enum constants with constexpr static ints
+    - Shadowing warnings
+
 # v00-06-01
 
 * 2022-06-28 Thomas Madlener ([PR#2](https://github.com/iLCSoft/MarlinKinfit/pull/2))
