@@ -101,11 +101,6 @@ void DijetEventILC::genEvent(){
   double thetaResolTrack = 0.001;  // rad
   double phiResolTrack = 0.001;    // rad
   
-  double Etot=0;
-  double pxtot=0;
-  double pytot=0;
-  double pztot=0;
-  
   for (int j = 0; j < 2; ++j) {
     int i = j+1;
     double E = fv[i]->getE();
@@ -174,10 +169,6 @@ void DijetEventILC::genEvent(){
       bfosmear[j]->setName (names[j]);
       bfostart[j] = new JetFitObject (ESmear, thetaSmear, phiSmear, EError, thetaResol, phiResol, mj);
       bfostart[j]->setName (names[j]);
-      Etot  += bfosmear[j]->getE();
-      pxtot += bfosmear[j]->getPx();
-      pytot += bfosmear[j]->getPy();
-      pztot += bfosmear[j]->getPz();
       if (debug) {
         cout << "smeared jet " << j << ": E = " << bfosmear[j]->getParam(0) << " +- " << bfosmear[j]->getError(0)
              << ", theta = " << bfosmear[j]->getParam(1) << " +- " << bfosmear[j]->getError(1)
@@ -190,12 +181,8 @@ void DijetEventILC::genEvent(){
       bfosmear[j]->setName (names[j]);
       bfostart[j] = new LeptonFitObject (ptinvSmear, thetaSmearTrack, phiSmearTrack, ptinvError, thetaResolTrack, phiResolTrack, 0.);
       bfostart[j]->setName (names[j]);
-      Etot  += bfosmear[j]->getE();
-      pxtot += bfosmear[j]->getPx();
-      pytot += bfosmear[j]->getPy();
-      pztot += bfosmear[j]->getPz(); 
       if (debug) {
-        cout << "Lepton energy by hand, exact theta: e=sqrt(pow(pt/sintheta,2)+m*m) = " 
+        cout << "Lepton energy by hand, exact theta: e=sqrt(pow(pt/sintheta,2)+m*m) = "
              << sqrt(pow(1./ptinvSmear/sin(theta),2)+mj*mj) << endl;
         cout << "Lepton energy by hand, smeared theta: e=sqrt(pow(pt/sintheta,2)+m*m) = " 
              << sqrt(pow(1./ptinvSmear/sin(thetaSmearTrack),2)+mj*mj) << endl;
